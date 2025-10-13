@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+
+<!-- Header -->
+<header class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-4">
+            <div class="flex items-center">
+                <i class="fas fa-store text-blue-600 text-2xl mr-3"></i>
+                <h1 class="text-xl font-bold text-gray-900">Tableau de Bord Admin</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-sm text-gray-700" sec:authentication="name"></span>
+                <a th:href="@{/logout}" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition duration-200">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
+                </a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Cartes Statistiques -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Carte Total Produits -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Produits</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2" th:text="${totalProduits}">0</p>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-lg">
+                    <i class="fas fa-boxes text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carte Produits Stock Bas -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Stock Bas</p>
+                    <p class="text-3xl font-bold text-orange-500 mt-2" th:text="${produitsStockBas}">0</p>
+                </div>
+                <div class="bg-orange-100 p-3 rounded-lg">
+                    <i class="fas fa-exclamation-triangle text-orange-500 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carte Total Personnel -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Personnel</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2" th:text="${totalPersonnel}">0</p>
+                </div>
+                <div class="bg-green-100 p-3 rounded-lg">
+                    <i class="fas fa-users text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carte Total Utilisateurs -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Utilisateurs</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2" th:text="${totalUtilisateurs}">0</p>
+                </div>
+                <div class="bg-indigo-100 p-3 rounded-lg">
+                    <i class="fas fa-user-shield text-indigo-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accès Rapide -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Accès Rapide</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <a th:href="@{/produits}" class="group flex items-center p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all duration-200">
+                <div class="bg-blue-100 p-3 rounded-lg mr-4 group-hover:bg-blue-200 transition-colors duration-200">
+                    <i class="fas fa-box text-blue-600"></i>
+                </div>
+                <span class="font-medium text-gray-700 group-hover:text-blue-600">Gérer les Produits</span>
+            </a>
+
+            <a th:href="@{/personnel}" class="group flex items-center p-4 border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all duration-200">
+                <div class="bg-green-100 p-3 rounded-lg mr-4 group-hover:bg-green-200 transition-colors duration-200">
+                    <i class="fas fa-users text-green-600"></i>
+                </div>
+                <span class="font-medium text-gray-700 group-hover:text-green-600">Gérer le Personnel</span>
+            </a>
+
+            <a th:href="@{/utilisateurs}" class="group flex items-center p-4 border border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200">
+                <div class="bg-indigo-100 p-3 rounded-lg mr-4 group-hover:bg-indigo-200 transition-colors duration-200">
+                    <i class="fas fa-user-cog text-indigo-600"></i>
+                </div>
+                <span class="font-medium text-gray-700 group-hover:text-indigo-600">Gérer les Utilisateurs</span>
+            </a>
+
+            <a th:href="@{/rapports/stock-bas}" class="group flex items-center p-4 border border-gray-200 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all duration-200">
+                <div class="bg-orange-100 p-3 rounded-lg mr-4 group-hover:bg-orange-200 transition-colors duration-200">
+                    <i class="fas fa-chart-bar text-orange-600"></i>
+                </div>
+                <span class="font-medium text-gray-700 group-hover:text-orange-600">Rapport Stock Bas</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Actions Rapides -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+        <!-- Dernières Activités -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Dernières Activités</h3>
+            <div class="space-y-3">
+                <div class="flex items-center text-sm text-gray-600">
+                    <i class="fas fa-plus-circle text-green-500 mr-2"></i>
+                    <span>Nouveau produit ajouté - <span class="font-medium">iPhone 15</span></span>
+                </div>
+                <div class="flex items-center text-sm text-gray-600">
+                    <i class="fas fa-user-plus text-blue-500 mr-2"></i>
+                    <span>Nouvel employé - <span class="font-medium">Marie Dupont</span></span>
+                </div>
+                <div class="flex items-center text-sm text-gray-600">
+                    <i class="fas fa-exclamation-triangle text-orange-500 mr-2"></i>
+                    <span>Stock bas détecté - <span class="font-medium">Samsung S23</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertes Importantes -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Alertes</h3>
+            <div class="space-y-3">
+                <div class="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-circle text-orange-500 mr-2"></i>
+                        <span class="text-sm font-medium text-orange-800" th:text="${produitsStockBas} + ' produits en stock bas'"></span>
+                    </div>
+                    <a th:href="@{/rapports/stock-bas}" class="text-orange-600 hover:text-orange-700 text-sm font-medium">Voir</a>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                        <span class="text-sm font-medium text-blue-800">Rapport mensuel disponible</span>
+                    </div>
+                    <a href="#" class="text-blue-600 hover:text-blue-700 text-sm font-medium">Télécharger</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

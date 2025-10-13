@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Sécurisée</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            min-height: 100vh;
+        }
+        .auth-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+        }
+        .auth-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .input-field {
+            transition: all 0.3s ease;
+        }
+        .input-field:focus-within {
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+<div class="auth-card w-full max-w-md p-8 sm:p-10">
+    <div class="text-center mb-8">
+        <div class="flex justify-center mb-4">
+            <div class="bg-primary p-3 rounded-full">
+                <i data-feather="lock" class="w-8 h-8 text-white"></i>
+            </div>
+        </div>
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">Bienvenue sur SecureAuth</h1>
+        <p class="text-gray-600">Veuillez vous connecter à votre compte</p>
+    </div>
+
+    <form th:action="@{/login}" method="post" class="space-y-6">
+        <!-- Error Message -->
+        <div th:if="${param.error}" class="bg-red-50 border-l-4 border-red-500 p-4">
+            <div class="flex items-center">
+                <i data-feather="alert-circle" class="text-red-500 mr-2"></i>
+                <p class="text-red-700 font-medium">Nom d'utilisateur ou mot de passe invalide</p>
+            </div>
+        </div>
+
+        <!-- Logout Message -->
+        <div th:if="${param.logout}" class="bg-green-50 border-l-4 border-green-500 p-4">
+            <div class="flex items-center">
+                <i data-feather="check-circle" class="text-green-500 mr-2"></i>
+                <p class="text-green-700 font-medium">Vous avez été déconnecté avec succès</p>
+            </div>
+        </div>
+
+        <div class="input-field">
+            <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Nom d'utilisateur</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i data-feather="user" class="text-gray-400"></i>
+                </div>
+                <input type="text" id="username" name="username"
+                       class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                       placeholder="Entrez votre nom d'utilisateur" required autofocus>
+            </div>
+        </div>
+
+        <div class="input-field">
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i data-feather="key" class="text-gray-400"></i>
+                </div>
+                <input type="password" id="password" name="password"
+                       class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                       placeholder="Entrez votre mot de passe" required>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <input id="remember-me" name="remember-me" type="checkbox"
+                       class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+                <label for="remember-me" class="ml-2 block text-sm text-gray-700">Se souvenir de moi</label>
+            </div>
+            <div class="text-sm">
+                <a href="#" class="font-medium text-primary hover:text-primary-dark">Mot de passe oublié?</a>
+            </div>
+        </div>
+
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+        <button type="submit"
+                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300">
+            <i data-feather="log-in" class="mr-2"></i> Se connecter
+        </button>
+    </form>
+
+    <div class="mt-6 text-center">
+        <p class="text-sm text-gray-600">
+            Vous n'avez pas de compte?
+            <a href="#" class="font-medium text-secondary hover:text-secondary-dark">S'inscrire</a>
+        </p>
+    </div>
+</div>
+
+<script>
+    feather.replace();
+    // Animate the form on load
+    document.addEventListener('DOMContentLoaded', () => {
+        const inputs = document.querySelectorAll('.input-field');
+        inputs.forEach((input, index) => {
+            input.style.opacity = '0';
+            input.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                input.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                input.style.opacity = '1';
+                input.style.transform = 'translateY(0)';
+            }, 100 * index);
+        });
+    });
+</script>
+</body>
+</html>

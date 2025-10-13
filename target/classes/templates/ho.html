@@ -1,0 +1,230 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .card-hover-effect:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #3B82F6 0%, #10B981 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+<!-- Header -->
+<header class="gradient-bg text-white shadow-lg">
+    <div class="container mx-auto px-4 py-6 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <i data-feather="shield" class="w-8 h-8"></i>
+            <h1 class="text-2xl font-bold">AdminVista</h1>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="relative">
+                <i data-feather="bell" class="w-6 h-6 cursor-pointer"></i>
+                <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <img src="http://static.photos/people/200x200/42" alt="Profile" class="w-8 h-8 rounded-full object-cover">
+                <span class="font-medium">Admin</span>
+                <i data-feather="chevron-down" class="w-4 h-4"></i>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Main Content -->
+<main class="container mx-auto px-4 py-8">
+    <!-- Welcome Banner -->
+    <div class="bg-white rounded-xl shadow-md p-6 mb-8 relative overflow-hidden">
+        <div class="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-primary opacity-10"></div>
+        <div class="absolute -right-10 -bottom-10 w-40 h-40 rounded-full bg-secondary opacity-10"></div>
+        <div class="relative z-10">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Bienvenue, Administrateur</h1>
+            <p class="text-gray-600">Gérez votre entreprise avec facilité et efficacité</p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Products -->
+        <div class="bg-white rounded-xl shadow-md p-6 card-hover-effect transition-all duration-300">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-gray-500">Total Produits</p>
+                    <h3 class="text-3xl font-bold text-gray-800 mt-2">125</h3>
+                </div>
+                <div class="p-3 rounded-lg bg-primary bg-opacity-10 text-primary">
+                    <i data-feather="box" class="w-6 h-6"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm text-green-500">
+                <i data-feather="arrow-up" class="w-4 h-4 mr-1"></i>
+                <span>5.2% depuis hier</span>
+            </div>
+        </div>
+
+        <!-- Low Stock -->
+        <div class="bg-white rounded-xl shadow-md p-6 card-hover-effect transition-all duration-300">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-gray-500">Stock Bas</p>
+                    <h3 class="text-3xl font-bold text-gray-800 mt-2">12</h3>
+                </div>
+                <div class="p-3 rounded-lg bg-yellow-500 bg-opacity-10 text-yellow-500">
+                    <i data-feather="alert-triangle" class="w-6 h-6"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm text-red-500">
+                <i data-feather="arrow-up" class="w-4 h-4 mr-1"></i>
+                <span>2.1% depuis hier</span>
+            </div>
+        </div>
+
+        <!-- Total Staff -->
+        <div class="bg-white rounded-xl shadow-md p-6 card-hover-effect transition-all duration-300">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-gray-500">Total Personnel</p>
+                    <h3 class="text-3xl font-bold text-gray-800 mt-2">24</h3>
+                </div>
+                <div class="p-3 rounded-lg bg-secondary bg-opacity-10 text-secondary">
+                    <i data-feather="users" class="w-6 h-6"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm text-green-500">
+                <i data-feather="arrow-up" class="w-4 h-4 mr-1"></i>
+                <span>1.3% ce mois</span>
+            </div>
+        </div>
+
+        <!-- Total Users -->
+        <div class="bg-white rounded-xl shadow-md p-6 card-hover-effect transition-all duration-300">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-gray-500">Total Utilisateurs</p>
+                    <h3 class="text-3xl font-bold text-gray-800 mt-2">458</h3>
+                </div>
+                <div class="p-3 rounded-lg bg-purple-500 bg-opacity-10 text-purple-500">
+                    <i data-feather="user" class="w-6 h-6"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm text-green-500">
+                <i data-feather="arrow-up" class="w-4 h-4 mr-1"></i>
+                <span>12.7% ce mois</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <h2 class="text-xl font-bold text-gray-800 mb-4">Accès Rapide</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <a href="#" class="bg-white rounded-xl shadow-md p-6 flex flex-col items-center justify-center card-hover-effect transition-all duration-300 text-center">
+            <div class="p-3 rounded-lg bg-primary bg-opacity-10 text-primary mb-3">
+                <i data-feather="box" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-medium text-gray-800">Gérer les Produits</h3>
+            <p class="text-sm text-gray-500 mt-1">Ajouter, modifier, supprimer</p>
+        </a>
+
+        <a href="#" class="bg-white rounded-xl shadow-md p-6 flex flex-col items-center justify-center card-hover-effect transition-all duration-300 text-center">
+            <div class="p-3 rounded-lg bg-secondary bg-opacity-10 text-secondary mb-3">
+                <i data-feather="users" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-medium text-gray-800">Gérer le Personnel</h3>
+            <p class="text-sm text-gray-500 mt-1">Gestion des employés</p>
+        </a>
+
+        <a href="#" class="bg-white rounded-xl shadow-md p-6 flex flex-col items-center justify-center card-hover-effect transition-all duration-300 text-center">
+            <div class="p-3 rounded-lg bg-purple-500 bg-opacity-10 text-purple-500 mb-3">
+                <i data-feather="user" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-medium text-gray-800">Gérer les Utilisateurs</h3>
+            <p class="text-sm text-gray-500 mt-1">Comptes clients</p>
+        </a>
+
+        <a href="#" class="bg-white rounded-xl shadow-md p-6 flex flex-col items-center justify-center card-hover-effect transition-all duration-300 text-center">
+            <div class="p-3 rounded-lg bg-yellow-500 bg-opacity-10 text-yellow-500 mb-3">
+                <i data-feather="file-text" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-medium text-gray-800">Rapport de Stock</h3>
+            <p class="text-sm text-gray-500 mt-1">Analyses des stocks</p>
+        </a>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-800">Activité Récente</h2>
+            <button class="text-primary hover:text-primary-dark text-sm font-medium">Voir tout</button>
+        </div>
+
+        <div class="space-y-4">
+            <div class="flex items-start">
+                <div class="p-2 rounded-lg bg-green-100 text-green-500 mr-4">
+                    <i data-feather="plus" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h4 class="font-medium text-gray-800">Nouveau produit ajouté</h4>
+                    <p class="text-sm text-gray-500">iPhone 13 Pro Max - Il y a 2 minutes</p>
+                </div>
+            </div>
+
+            <div class="flex items-start">
+                <div class="p-2 rounded-lg bg-blue-100 text-blue-500 mr-4">
+                    <i data-feather="user" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h4 class="font-medium text-gray-800">Nouvel employé enregistré</h4>
+                    <p class="text-sm text-gray-500">Jean Dupont - Il y a 1 heure</p>
+                </div>
+            </div>
+
+            <div class="flex items-start">
+                <div class="p-2 rounded-lg bg-yellow-100 text-yellow-500 mr-4">
+                    <i data-feather="alert-triangle" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h4 class="font-medium text-gray-800">Stock bas détecté</h4>
+                    <p class="text-sm text-gray-500">AirPods Pro - Il y a 3 heures</p>
+                </div>
+            </div>
+
+            <div class="flex items-start">
+                <div class="p-2 rounded-lg bg-purple-100 text-purple-500 mr-4">
+                    <i data-feather="shopping-cart" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h4 class="font-medium text-gray-800">Nouvelle commande passée</h4>
+                    <p class="text-sm text-gray-500">Commande #4587 - Il y a 5 heures</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    feather.replace();
+</script>
+</body>
+</html>
