@@ -2,6 +2,9 @@ package com.example.boutique.controller;
 
 import com.example.boutique.model.Produit;
 import com.example.boutique.repository.ProduitRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,13 +21,25 @@ public class ProduitController {
     }
 
     @GetMapping
-    public String listProduits(Model model, @RequestParam(required = false) String keyword) {
+    public String listProduits(Model model,
+                               @RequestParam(required = false) String keyword,
+                               @RequestParam(defaultValue = "0") int page,
+                               @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Produit> pageProduits;
+
         if (keyword != null && !keyword.isEmpty()) {
-            model.addAttribute("produits", produitRepository.findByNomContainingIgnoreCase(keyword));
+            pageProduits = produitRepository.findByNomContainingIgnoreCase(keyword, pageable);
         } else {
-            model.addAttribute("produits", produitRepository.findAll());
+            pageProduits = produitRepository.findAll(pageable);
         }
+
+        model.addAttribute("produitsPage", pageProduits);
         model.addAttribute("keyword", keyword);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", pageProduits.getTotalPages());
+
         return "produits";
     }
 

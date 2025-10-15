@@ -1,29 +1,19 @@
 <!DOCTYPE html>
-<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${pageTitle}"></title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-gray-50">
 
-<div class="min-h-screen">
-    <!-- Header Simple -->
-    <header class="bg-white shadow-sm border-b">
-        <div class="max-w-4xl mx-auto px-4 py-4">
-            <div class="flex items-center justify-between">
-                <h1 class="text-xl font-bold text-gray-800" th:text="${pageTitle}"></h1>
-                <a th:href="@{/personnel}" class="text-gray-600 hover:text-gray-800">
-                    ← Retour
-                </a>
-            </div>
-        </div>
-    </header>
+<div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle=${pageTitle})}"></div>
 
     <!-- Formulaire -->
-    <div class="max-w-2xl mx-auto px-4 py-8">
-        <div class="bg-white rounded-lg shadow-sm border p-6">
+    <div class="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-sm border p-6">
             <form th:action="@{/personnel/save}" th:object="${personnel}" method="post">
                 <input type="hidden" th:field="*{id}">
 
@@ -93,7 +83,6 @@
             </form>
         </div>
     </div>
-</div>
 
 </body>
 </html>

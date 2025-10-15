@@ -2,6 +2,9 @@ package com.example.boutique.controller;
 
 import com.example.boutique.model.Personnel;
 import com.example.boutique.repository.PersonnelRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +21,12 @@ public class PersonnelController {
     }
 
     @GetMapping
-    public String listPersonnel(Model model) {
-        model.addAttribute("personnelList", personnelRepository.findAll());
+    public String listPersonnel(Model model,
+                                @RequestParam(defaultValue = "0") int page,
+                                @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Personnel> personnelPage = personnelRepository.findAll(pageable);
+        model.addAttribute("personnelPage", personnelPage);
         return "personnel-list";
     }
 

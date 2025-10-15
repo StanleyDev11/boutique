@@ -13,7 +13,7 @@ import java.util.List;
 public interface ProduitRepository extends JpaRepository<Produit, Long> {
 
     // Méthode pour la recherche par nom
-    List<Produit> findByNomContainingIgnoreCase(String nom);
+    Page<Produit> findByNomContainingIgnoreCase(String nom, Pageable pageable);
 
     // Méthode paginée pour le rapport de stock bas
     Page<Produit> findAllByQuantiteEnStockLessThanEqual(int seuil, Pageable pageable);

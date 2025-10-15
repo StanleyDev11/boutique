@@ -2,6 +2,9 @@ package com.example.boutique.controller;
 
 import com.example.boutique.model.Utilisateur;
 import com.example.boutique.repository.UtilisateurRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,8 +26,12 @@ public class UtilisateurController {
     }
 
     @GetMapping
-    public String listUtilisateurs(Model model) {
-        model.addAttribute("utilisateurs", utilisateurRepository.findAll());
+    public String listUtilisateurs(Model model,
+                                   @RequestParam(defaultValue = "0") int page,
+                                   @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Utilisateur> utilisateurPage = utilisateurRepository.findAll(pageable);
+        model.addAttribute("utilisateursPage", utilisateurPage);
         return "utilisateur-list";
     }
 

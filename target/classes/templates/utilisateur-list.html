@@ -13,7 +13,7 @@
 <!-- Header -->
 <div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Gestion des Utilisateurs')}"></div>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="w-full px-4 sm:px-6 lg:px-8 py-8">
     <!-- En-tête avec bouton -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <div>
@@ -33,22 +33,20 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom d'utilisateur</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rôles</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                <tr th:each="user : ${utilisateurs}">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${user.id}"></td>
+                <tr th:each="user : ${utilisateursPage.content}">
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${user.username}"></td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex flex-wrap gap-1">
-                                <span th:each="role : ${user.roles}"
+                                <span th:each="role : ${#strings.arraySplit(user.roles, ',')}"
                                       class="px-2 py-1 text-xs rounded-full"
-                                      th:class="${role == 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'}">
-                                    <span th:text="${role}"></span>
+                                      th:classappend="${role == 'ROLE_ADMIN'} ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'">
+                                    <span th:text="${#strings.replace(role, 'ROLE_', '')}"></span>
                                 </span>
                         </div>
                     </td>
@@ -76,10 +74,39 @@
                 </tbody>
             </table>
         </div>
+        <!-- Pagination -->
+        <div th:if="${utilisateursPage.totalPages > 0}" class="p-4 border-t flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+                Page <span th:text="${utilisateursPage.number + 1}"></span> sur <span th:text="${utilisateursPage.totalPages}"></span>
+            </div>
+            <nav class="flex items-center space-x-2">
+                <a th:href="@{/utilisateurs(page=0)}"
+                   th:classappend="${utilisateursPage.first} ? 'pointer-events-none text-gray-400' : 'text-gray-600 hover:text-blue-600'"
+                   class="px-3 py-1 border border-gray-300 rounded-md text-sm">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+                <a th:href="@{/utilisateurs(page=${utilisateursPage.number - 1})}"
+                   th:classappend="${utilisateursPage.first} ? 'pointer-events-none text-gray-400' : 'text-gray-600 hover:text-blue-600'"
+                   class="px-3 py-1 border border-gray-300 rounded-md text-sm">
+                    <i class="fas fa-angle-left"></i> Précédent
+                </a>
+
+                <a th:href="@{/utilisateurs(page=${utilisateursPage.number + 1})}"
+                   th:classappend="${utilisateursPage.last} ? 'pointer-events-none text-gray-400' : 'text-gray-600 hover:text-blue-600'"
+                   class="px-3 py-1 border border-gray-300 rounded-md text-sm">
+                    Suivant <i class="fas fa-angle-right"></i>
+                </a>
+                <a th:href="@{/utilisateurs(page=${utilisateursPage.totalPages - 1})}"
+                   th:classappend="${utilisateursPage.last} ? 'pointer-events-none text-gray-400' : 'text-gray-600 hover:text-blue-600'"
+                   class="px-3 py-1 border border-gray-300 rounded-md text-sm">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            </nav>
+        </div>
     </div>
 
     <!-- Message si aucun utilisateur -->
-    <div th:if="${#lists.isEmpty(utilisateurs)}" class="text-center py-12">
+    <div th:if="${utilisateursPage.empty}" class="text-center py-12">
         <h3 class="text-lg font-medium text-gray-900">Aucun utilisateur trouvé</h3>
         <p class="text-gray-500 mt-2">Commencez par ajouter votre premier utilisateur.</p>
         <a th:href="@{/utilisateurs/new}" class="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200">

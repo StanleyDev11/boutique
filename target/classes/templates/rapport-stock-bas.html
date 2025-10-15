@@ -1,163 +1,154 @@
 <!DOCTYPE html>
-<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard des Stocks</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Rapport de Stock Bas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .kpi-card .card-body {
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        }
-        .kpi-card:hover .card-body {
-            transform: translateY(-5px);
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-        }
-        .pagination .page-item.active .page-link {
-            z-index: 1;
-        }
-    </style>
 </head>
-<body>
+<body class="bg-gray-50">
 
-<div th:replace="~{fragments/header :: header}"></div>
+<div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Rapport de Stock Bas')}"></div>
 
-<div class="container-fluid mt-4">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
-        <h1 class="h2">Dashboard des Stocks</h1>
-    </div>
+<div class="w-full px-4 sm:px-6 lg:px-8 py-8">
 
-    <!-- Ligne 1: Cartes de Statistiques -->
-    <div class="row mb-4">
-        <div class="col-md-6 col-lg-3 mb-3 kpi-card">
-            <div class="card h-100 shadow-sm border-warning">
-                <div class="card-body d-flex align-items-center">
-                    <div class="flex-shrink-0 me-3"><i class="fas fa-box-open fa-3x text-warning"></i></div>
-                    <div class="flex-grow-1">
-                        <h5 class="card-title">Stock Bas</h5>
-                        <p class="h2 fw-bold mb-0" th:text="${nombreStockBas}">0</p>
-                    </div>
+    <!-- Cartes Statistiques -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Stock Bas</p>
+                    <p class="text-3xl font-bold text-orange-500 mt-2" th:text="${nombreStockBas}">0</p>
+                </div>
+                <div class="bg-orange-100 p-3 rounded-lg">
+                    <i class="fas fa-box-open text-orange-500 text-xl"></i>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 col-lg-3 mb-3 kpi-card">
-            <div class="card h-100 shadow-sm border-danger">
-                <div class="card-body d-flex align-items-center">
-                    <div class="flex-shrink-0 me-3"><i class="fas fa-times-circle fa-3x text-danger"></i></div>
-                    <div class="flex-grow-1">
-                        <h5 class="card-title">En Rupture</h5>
-                        <p class="h2 fw-bold mb-0" th:text="${nombreEnRupture}">0</p>
-                    </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">En Rupture</p>
+                    <p class="text-3xl font-bold text-red-500 mt-2" th:text="${nombreEnRupture}">0</p>
+                </div>
+                <div class="bg-red-100 p-3 rounded-lg">
+                    <i class="fas fa-times-circle text-red-500 text-xl"></i>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 col-lg-3 mb-3 kpi-card">
-            <div class="card h-100 shadow-sm border-info">
-                <div class="card-body d-flex align-items-center">
-                    <div class="flex-shrink-0 me-3"><i class="fas fa-calendar-times fa-3x text-info"></i></div>
-                    <div class="flex-grow-1">
-                        <h5 class="card-title">Périme Bientôt</h5>
-                        <p class="h2 fw-bold mb-0" th:text="${produitsPeremptionProche.size()}">0</p>
-                        <small class="text-muted" th:text="'Dans les ' + ${joursAvantPeremption} + ' jours'"></small>
-                    </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Périme Bientôt</p>
+                    <p class="text-3xl font-bold text-blue-500 mt-2" th:text="${produitsPeremptionProche.size()}">0</p>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-lg">
+                    <i class="fas fa-calendar-times text-blue-500 text-xl"></i>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 col-lg-3 mb-3 kpi-card">
-            <div class="card h-100 shadow-sm border-secondary">
-                <div class="card-body d-flex align-items-center">
-                    <div class="flex-shrink-0 me-3"><i class="fas fa-euro-sign fa-3x text-secondary"></i></div>
-                    <div class="flex-grow-1">
-                        <h5 class="card-title">Valeur Stock Bas</h5>
-                        <p class="h2 fw-bold mb-0" th:text="${#numbers.formatDecimal(valeurStockBas, 1, 'POINT', 2, 'COMMA')}">0</p>
-                    </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Valeur Stock Bas</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2" th:text="${#numbers.formatDecimal(valeurStockBas, 1, 'POINT', 2, 'COMMA')} + ' €'">0</p>
+                </div>
+                <div class="bg-gray-100 p-3 rounded-lg">
+                    <i class="fas fa-euro-sign text-gray-500 text-xl"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Ligne 2: Graphiques -->
-    <div class="row mb-4">
-        <div class="col-lg-8 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header">Quantités en Stock Bas (Produits de la page actuelle)</div>
-                <div class="card-body"><canvas id="stockChart"></canvas></div>
-            </div>
+    <!-- Graphiques -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8 mb-8">
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Quantités en Stock Bas (Page actuelle)</h3>
+            <div><canvas id="stockChart"></canvas></div>
         </div>
-        <div class="col-lg-4 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header">Statut de Péremption (Total)</div>
-                <div class="card-body"><canvas id="peremptionChart"></canvas></div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Statut de Péremption (Total)</h3>
+            <div><canvas id="peremptionChart"></canvas></div>
+        </div>
+    </div>
+
+    <!-- Liste des Produits Périmant Bientôt -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-8">
+        <div class="p-4 bg-blue-50 border-b">
+            <h3 class="text-lg font-semibold text-gray-900"><i class="fas fa-calendar-times mr-2"></i>Produits Périmant Bientôt (<span th:text="${joursAvantPeremption}"></span> jours)</h3>
+        </div>
+        <div class="p-4">
+            <div th:if="${produitsPeremptionProche.empty}" class="text-center text-gray-500 py-4">Aucun produit n'arrive à péremption dans la période sélectionnée.</div>
+            <div th:unless="${produitsPeremptionProche.empty}" class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produit</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date de Péremption</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jours Restants</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantité</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr th:each="produit : ${produitsPeremptionProche}">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${produit.nom}"></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700" th:text="${#temporals.format(produit.datePeremption, 'dd/MM/yyyy')}"></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" th:with="joursRestants=${#temporals.day(produit.datePeremption) - #temporals.day(#temporals.createNow())}" th:text="${joursRestants <= 0 ? 'Périmé' : joursRestants + ' jours'}" th:classappend="${joursRestants <= 0} ? 'bg-red-100 text-red-800' : (${joursRestants < 7} ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800')"></span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${produit.quantiteEnStock}"></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <!-- Ligne 3: Liste des Produits Périmant Bientôt -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-info-subtle">
-                    <h5 class="mb-0"><i class="fas fa-calendar-times me-2"></i>Produits Périmant Bientôt (<span th:text="${joursAvantPeremption}"></span> jours)</h5>
-                </div>
-                <div class="card-body">
-                    <div th:if="${produitsPeremptionProche.empty}" class="alert alert-secondary mb-0">Aucun produit n'arrive à péremption dans la période sélectionnée.</div>
-                    <div th:unless="${produitsPeremptionProche.empty}" class="table-responsive">
-                        <table class="table table-hover table-sm mb-0">
-                            <thead><tr><th>Produit</th><th>Date de Péremption</th><th>Jours Restants</th><th>Quantité en Stock</th></tr></thead>
-                            <tbody>
-                                <tr th:each="produit : ${produitsPeremptionProche}" th:class="${#temporals.day(produit.datePeremption) - #temporals.day(#temporals.createNow()) < 7} ? 'table-danger' : ''">
-                                    <td th:text="${produit.nom}"></td>
-                                    <td th:text="${#temporals.format(produit.datePeremption, 'dd/MM/yyyy')}"></td>
-                                    <td><span class="badge" th:with="joursRestants=${#temporals.day(produit.datePeremption) - #temporals.day(#temporals.createNow())}" th:text="${joursRestants <= 0 ? 'Périmé' : joursRestants + ' jours'}" th:classappend="${joursRestants <= 0} ? 'bg-danger' : (${joursRestants < 7} ? 'bg-warning text-dark' : 'bg-success')"></span></td>
-                                    <td th:text="${produit.quantiteEnStock}"></td>
-                                </tr>
-                            </tbody>
-                        </table>
+    <!-- Filtres et Liste Stock Bas -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="p-4 border-b">
+            <div class="flex flex-wrap gap-3 items-center">
+                <span class="font-semibold text-gray-800">Produits en Stock Bas :</span>
+                <a th:href="@{/rapports/stock-bas}" class="px-3 py-1 text-sm rounded-md" th:classappend="${activeFilter == null} ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'">Tout</a>
+                <a th:href="@{/rapports/stock-bas(filter='rupture')}" class="px-3 py-1 text-sm rounded-md" th:classappend="${activeFilter == 'rupture'} ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'">En rupture</a>
+                <div class="w-px h-6 bg-gray-300 mx-2"></div>
+                <a th:href="@{/rapports/stock-bas(sort='asc', filter=${activeFilter})}" class="px-3 py-1 text-sm rounded-md" th:classappend="${sort == 'asc'} ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'">Stock Asc.</a>
+                <a th:href="@{/rapports/stock-bas(sort='desc', filter=${activeFilter})}" class="px-3 py-1 text-sm rounded-md" th:classappend="${sort == 'desc'} ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'">Stock Desc.</a>
+            </div>
+        </div>
+        <div class="p-4">
+            <div th:if="${produitsPage.empty}" class="text-center text-gray-500 py-12">Aucun produit correspondant aux critères actuels.</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div th:each="produit : ${produitsPage.content}" th:class="'rounded-lg shadow-sm border ' + ${produit.quantiteEnStock == 0 ? 'border-red-300 bg-red-50' : 'border-orange-300 bg-orange-50'}">
+                    <div class="p-4 flex flex-col items-center text-center">
+                        <h4 class="font-semibold text-gray-800" th:text="${produit.nom}"></h4>
+                        <p class="text-5xl font-bold text-gray-900 my-2" th:text="${produit.quantiteEnStock}"></p>
+                        <p class="text-sm text-gray-600">en stock</p>
+                        <span th:if="${produit.quantiteEnStock == 0}" class="mt-2 px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">En rupture</span>
+                    </div>
+                    <div class="px-4 pb-4 text-center">
+                        <a th:href="@{/stock/new(produitId=${produit.id})}" class="w-full bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm transition duration-200"><i class="fas fa-plus mr-1"></i> Ajouter</a>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Ligne 4: Filtres et Liste Stock Bas -->
-    <div class="card shadow-sm">
-        <div class="card-header">
-            <div class="d-flex flex-wrap gap-2 align-items-center">
-                <span class="fw-bold me-2">Produits en Stock Bas :</span>
-                <a th:href="@{/rapports/stock-bas}" class="btn btn-sm" th:classappend="${activeFilter == null} ? 'btn-primary' : 'btn-outline-secondary'">Afficher tout</a>
-                <a th:href="@{/rapports/stock-bas(filter='rupture')}" class="btn btn-sm" th:classappend="${activeFilter == 'rupture'} ? 'btn-danger' : 'btn-outline-secondary'">Filtrer : En rupture</a>
-                <div class="vr mx-2 d-none d-md-block"></div>
-                <a th:href="@{/rapports/stock-bas(sort='asc', filter=${activeFilter})}" class="btn btn-sm" th:classappend="${sort == 'asc'} ? 'btn-info' : 'btn-outline-secondary'">Trier : Stock Ascendant</a>
-                <a th:href="@{/rapports/stock-bas(sort='desc', filter=${activeFilter})}" class="btn btn-sm" th:classappend="${sort == 'desc'} ? 'btn-info' : 'btn-outline-secondary'">Trier : Stock Descendant</a>
-            </div>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div th:if="${produitsPage.empty}" class="col-12"><div class="alert alert-info">Aucun produit correspondant aux critères actuels.</div></div>
-                <div th:each="produit : ${produitsPage.content}" class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
-                    <div th:class="'card h-100 border-2 shadow-sm ' + ${produit.quantiteEnStock == 0 ? 'border-danger bg-danger-subtle' : 'border-warning'}">
-                        <div class="card-body d-flex flex-column pb-0">
-                            <h5 class="card-title text-center" th:text="${produit.nom}"></h5>
-                            <div class="mt-auto text-center">
-                                <p class="display-4 fw-bold" th:text="${produit.quantiteEnStock}"></p>
-                                <p class="text-muted">en stock</p>
-                                <span th:if="${produit.quantiteEnStock == 0}" class="badge bg-danger mb-2">En rupture</span>
-                            </div>
-                        </div>
-                        <div class="card-footer bg-transparent border-0 text-center pt-0"><a th:href="@{/stock/new(produitId=${produit.id})}" class="btn btn-sm btn-success"><i class="fas fa-plus me-1"></i> Ajouter au Stock</a></div>
-                    </div>
+        <div class="p-4 border-t" th:if="${produitsPage.totalPages > 1}">
+            <nav class="flex items-center justify-between">
+                <a th:href="@{/rapports/stock-bas(page=${produitsPage.number - 1}, sort=${sort}, filter=${activeFilter})}"
+                   th:classappend="${produitsPage.first} ? 'invisible' : ''"
+                   class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                    Précédent
+                </a>
+                <div class="text-sm text-gray-700">
+                    Page <span th:text="${produitsPage.number + 1}"></span> sur <span th:text="${produitsPage.totalPages}"></span>
                 </div>
-            </div>
-        </div>
-        <div class="card-footer bg-light" th:if="${produitsPage.totalPages > 1}">
-            <nav aria-label="Page navigation">
-                <ul class="pagination justify-content-center mb-0">
-                    <li class="page-item" th:classappend="${produitsPage.first} ? 'disabled' : ''"><a class="page-link" th:href="@{/rapports/stock-bas(page=${produitsPage.number - 1}, sort=${sort}, filter=${activeFilter})}">Précédent</a></li>
-                    <li th:each="i : ${#numbers.sequence(0, produitsPage.totalPages - 1)}" class="page-item" th:classappend="${i == produitsPage.number} ? 'active' : ''"><a class="page-link" th:href="@{/rapports/stock-bas(page=${i}, sort=${sort}, filter=${activeFilter})}" th:text="${i + 1}"></a></li>
-                    <li class="page-item" th:classappend="${produitsPage.last} ? 'disabled' : ''"><a class="page-link" th:href="@{/rapports/stock-bas(page=${produitsPage.number + 1}, sort=${sort}, filter=${activeFilter})}">Suivant</a></li>
-                </ul>
+                <a th:href="@{/rapports/stock-bas(page=${produitsPage.number + 1}, sort=${sort}, filter=${activeFilter})}"
+                   th:classappend="${produitsPage.last} ? 'invisible' : ''"
+                   class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                    Suivant
+                </a>
             </nav>
         </div>
     </div>
@@ -180,8 +171,8 @@
                     datasets: [{
                         label: 'Quantité en Stock',
                         data: produitsPourGraphique.map(p => p.quantiteEnStock),
-                        backgroundColor: produitsPourGraphique.map(p => p.quantiteEnStock === 0 ? 'rgba(220, 53, 69, 0.6)' : 'rgba(255, 193, 7, 0.6)'),
-                        borderColor: produitsPourGraphique.map(p => p.quantiteEnStock === 0 ? 'rgba(220, 53, 69, 1)' : 'rgba(255, 193, 7, 1)'),
+                        backgroundColor: produitsPourGraphique.map(p => p.quantiteEnStock === 0 ? 'rgba(239, 68, 68, 0.5)' : 'rgba(249, 115, 22, 0.5)'),
+                        borderColor: produitsPourGraphique.map(p => p.quantiteEnStock === 0 ? 'rgba(239, 68, 68, 1)' : 'rgba(249, 115, 22, 1)'),
                         borderWidth: 1
                     }]
                 },
@@ -198,8 +189,8 @@
                 labels: ['Périme bientôt', 'Autres produits'],
                 datasets: [{
                     data: [nbPeremptionProche, nbAutresProduits],
-                    backgroundColor: ['rgba(23, 162, 184, 0.7)', 'rgba(200, 200, 200, 0.5)'],
-                    borderColor: ['rgba(23, 162, 184, 1)','rgba(200, 200, 200, 1)'],
+                    backgroundColor: ['rgba(59, 130, 246, 0.5)', 'rgba(209, 213, 219, 0.5)'],
+                    borderColor: ['rgba(59, 130, 246, 1)','rgba(209, 213, 219, 1)'],
                     borderWidth: 1
                 }]
             },
