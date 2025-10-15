@@ -1,52 +1,91 @@
 <!DOCTYPE html>
-<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion des Utilisateurs</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body>
+<body class="bg-gray-50">
 
-<div th:replace="~{fragments/header :: header}"></div>
+<!-- Header -->
+<div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Gestion des Utilisateurs')}"></div>
 
-<div class="container mt-4">
-    <h1>Gestion des Utilisateurs</h1>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- En-tête avec bouton -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
+            <p class="text-gray-600 mt-1">Administrez les accès et permissions</p>
+        </div>
+        <div class="mt-4 sm:mt-0">
+            <a th:href="@{/utilisateurs/new}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                Ajouter un utilisateur
+            </a>
+        </div>
+    </div>
 
-    <!-- Messages d'alerte -->
-    <div th:if="${successMessage}" class="alert alert-success" role="alert" th:text="${successMessage}" style="display: none;"></div>
-    <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}" style="display: none;"></div>
+    <!-- Tableau des utilisateurs -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom d'utilisateur</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rôles</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                <tr th:each="user : ${utilisateurs}">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${user.id}"></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${user.username}"></td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex flex-wrap gap-1">
+                                <span th:each="role : ${user.roles}"
+                                      class="px-2 py-1 text-xs rounded-full"
+                                      th:class="${role == 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'}">
+                                    <span th:text="${role}"></span>
+                                </span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                            <a th:href="@{/utilisateurs/edit/{id}(id=${user.id})}"
+                               class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-md transition duration-200 flex items-center justify-center">
+                                Modifier
+                            </a>
+                            <button th:attr="data-id=${user.id}, data-name=${user.username}"
+                                    onclick="confirmDelete(this.getAttribute('data-id'), this.getAttribute('data-name'))"
+                                    class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md transition duration-200 flex items-center justify-center">
+                                Supprimer
+                            </button>
+                        </div>
 
-    <p>
-        <a th:href="@{/utilisateurs/new}" class="btn btn-primary">Ajouter un utilisateur</a>
-    </p>
+                        <!-- Formulaire de suppression caché -->
+                        <form th:id="'deleteForm-' + ${user.id}"
+                              th:action="@{/utilisateurs/delete/{id}(id=${user.id})}"
+                              method="post" style="display: none;">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-    <table class="table table-striped mt-3">
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Nom d'utilisateur</th>
-            <th>Rôles</th>
-            <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="user : ${utilisateurs}">
-            <td th:text="${user.id}"></td>
-            <td th:text="${user.username}"></td>
-            <td th:text="${user.roles}"></td>
-            <td>
-                <a th:href="@{/utilisateurs/edit/{id}(id=${user.id})}" class="btn btn-warning btn-sm">Modifier</a>
-                <button th:attr="data-id=${user.id}, data-name=${user.username}" 
-                        onclick="confirmDelete(this.getAttribute('data-id'), this.getAttribute('data-name'))" 
-                        class="btn btn-danger btn-sm">Supprimer</button>
-                <form th:id="'deleteForm-' + ${user.id}" th:action="@{/utilisateurs/delete/{id}(id=${user.id})}" method="post" style="display: none;">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                </form>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+    <!-- Message si aucun utilisateur -->
+    <div th:if="${#lists.isEmpty(utilisateurs)}" class="text-center py-12">
+        <h3 class="text-lg font-medium text-gray-900">Aucun utilisateur trouvé</h3>
+        <p class="text-gray-500 mt-2">Commencez par ajouter votre premier utilisateur.</p>
+        <a th:href="@{/utilisateurs/new}" class="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200">
+            Ajouter un utilisateur
+        </a>
+    </div>
 </div>
 
 <script th:inline="javascript">
@@ -54,13 +93,18 @@
     function confirmDelete(id, name) {
         Swal.fire({
             title: 'Êtes-vous sûr ?',
-            text: "Vous êtes sur le point de supprimer l'utilisateur : \"" + name + "\".",
+            html: `<div class="text-left">
+                     <p class="mb-2">Vous êtes sur le point de supprimer l'utilisateur :</p>
+                     <p class="font-bold text-lg text-red-600">"${name}"</p>
+                     <p class="mt-2 text-sm text-gray-600">Cette action est irréversible !</p>
+                   </div>`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
+            cancelButtonColor: '#6b7280',
             confirmButtonText: 'Oui, supprimer !',
-            cancelButtonText: 'Annuler'
+            cancelButtonText: 'Annuler',
+            reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
                 document.getElementById('deleteForm-' + id).submit();
@@ -71,8 +115,26 @@
     document.addEventListener('DOMContentLoaded', function() {
         var successMessage = /*[[${successMessage}]]*/ null;
         var errorMessage = /*[[${errorMessage}]]*/ null;
-        if (successMessage) { Swal.fire({ title: 'Succès !', text: successMessage, icon: 'success' }); }
-        if (errorMessage) { Swal.fire({ title: 'Erreur !', text: errorMessage, icon: 'error' }); }
+
+        if (successMessage) {
+            Swal.fire({
+                title: 'Succès !',
+                text: successMessage,
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#10b981'
+            });
+        }
+
+        if (errorMessage) {
+            Swal.fire({
+                title: 'Erreur !',
+                text: errorMessage,
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#ef4444'
+            });
+        }
     });
     /*]]>*/
 </script>

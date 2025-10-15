@@ -12,6 +12,7 @@ com\example\boutique\model\Utilisateur.class
 com\example\boutique\repository\UtilisateurRepository.class
 com\example\boutique\BoutiqueApplication.class
 com\example\boutique\config\SecurityConfig.class
+com\example\boutique\dto\MouvementStatDto.class
 com\example\boutique\enums\TypeMouvement.class
 com\example\boutique\controller\RapportController.class
 com\example\boutique\service\StockService.class

@@ -1,0 +1,26 @@
+<!-- Header Fragment -->
+<header class="bg-white shadow-sm" th:fragment="tailwind-header(pageTitle)">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-4">
+            <div class="flex items-center">
+                <a th:href="@{/dashboard}" class="flex items-center">
+                    <i class="fas fa-store text-blue-600 text-2xl mr-3"></i>
+                </a>
+                <h1 class="text-xl font-bold text-gray-900" th:text="${pageTitle}">Page Title</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a th:href="@{/dashboard}" class="text-sm text-gray-700 hover:text-blue-600 transition duration-200">
+                    <i class="fas fa-tachometer-alt mr-1"></i>Tableau de Bord
+                </a>
+                <span class="text-gray-300">|</span>
+                <span class="text-sm text-gray-700" sec:authentication="name"></span>
+                <form th:action="@{/logout}" method="post" class="inline">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition duration-200">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>

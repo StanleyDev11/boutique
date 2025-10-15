@@ -4,9 +4,9 @@ spring:
   
   # --- Configuration de la base de données (MySQL Active) ---
   datasource:
-    url: jdbc:mysql://192.168.1.94:3306/Db_Tennis?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
-    username: ace3i
-    password: 'africa@2025'
+    url: jdbc:mysql://localhost/:3306/boutique?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+    username: root
+    password: ''
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   # --- Configuration JPA ---

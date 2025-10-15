@@ -26,8 +26,13 @@ public class StockController {
     }
 
     @GetMapping("/new")
-    public String showStockForm(Model model) {
-        model.addAttribute("mouvement", new MouvementStock());
+    public String showStockForm(@RequestParam(required = false) Long produitId, Model model) {
+        MouvementStock mouvement = new MouvementStock();
+        if (produitId != null) {
+            produitRepository.findById(produitId).ifPresent(mouvement::setProduit);
+        }
+
+        model.addAttribute("mouvement", mouvement);
         model.addAttribute("produits", produitRepository.findAll());
         model.addAttribute("typesMouvement", TypeMouvement.values());
         return "stock-form";

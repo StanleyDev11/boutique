@@ -6,28 +6,21 @@
     <title>Dashboard Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-50">
 
 <!-- Header -->
-<header class="bg-white shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center py-4">
-            <div class="flex items-center">
-                <i class="fas fa-store text-blue-600 text-2xl mr-3"></i>
-                <h1 class="text-xl font-bold text-gray-900">Tableau de Bord Admin</h1>
-            </div>
-            <div class="flex items-center space-x-4">
-                <span class="text-sm text-gray-700" sec:authentication="name"></span>
-                <a th:href="@{/logout}" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition duration-200">
-                    <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
-                </a>
-            </div>
-        </div>
-    </div>
-</header>
+<div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Tableau de Bord Admin')}"></div>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Message de bienvenue -->
+    <div class="mb-8">
+        <h2 class="text-3xl font-bold text-gray-800">Bonjour, <span sec:authentication="name"></span> !</h2>
+        <p class="text-gray-600">Voici un aperçu de votre boutique aujourd'hui.</p>
+    </div>
+
     <!-- Cartes Statistiques -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <!-- Carte Total Produits -->
@@ -84,7 +77,7 @@
     </div>
 
     <!-- Accès Rapide -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">Accès Rapide</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <a th:href="@{/produits}" class="group flex items-center p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all duration-200">
@@ -117,49 +110,76 @@
         </div>
     </div>
 
-    <!-- Actions Rapides -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-        <!-- Dernières Activités -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Dernières Activités</h3>
-            <div class="space-y-3">
-                <div class="flex items-center text-sm text-gray-600">
-                    <i class="fas fa-plus-circle text-green-500 mr-2"></i>
-                    <span>Nouveau produit ajouté - <span class="font-medium">iPhone 15</span></span>
-                </div>
-                <div class="flex items-center text-sm text-gray-600">
-                    <i class="fas fa-user-plus text-blue-500 mr-2"></i>
-                    <span>Nouvel employé - <span class="font-medium">Marie Dupont</span></span>
-                </div>
-                <div class="flex items-center text-sm text-gray-600">
-                    <i class="fas fa-exclamation-triangle text-orange-500 mr-2"></i>
-                    <span>Stock bas détecté - <span class="font-medium">Samsung S23</span></span>
-                </div>
+    <!-- Section Principale: Graphique et Activités -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+        <!-- Graphique d'activité -->
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Activité des 7 derniers jours</h3>
+            <div>
+                <canvas id="mouvementsChart"></canvas>
             </div>
         </div>
 
-        <!-- Alertes Importantes -->
+        <!-- Derniers Mouvements de Stock -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Alertes</h3>
-            <div class="space-y-3">
-                <div class="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                    <div class="flex items-center">
-                        <i class="fas fa-exclamation-circle text-orange-500 mr-2"></i>
-                        <span class="text-sm font-medium text-orange-800" th:text="${produitsStockBas} + ' produits en stock bas'"></span>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Derniers Mouvements</h3>
+            <div th:if="${#lists.isEmpty(derniersMouvements)}" class="text-center text-gray-500 py-4">
+                Aucun mouvement de stock récent.
+            </div>
+            <div th:unless="${#lists.isEmpty(derniersMouvements)}" class="space-y-4">
+                <div th:each="mvt : ${derniersMouvements}" class="flex items-center text-sm">
+                    <i class="fas fa-fw me-3"
+                       th:classappend="${mvt.typeMouvement.name() == 'ENTREE'} ? 'fa-arrow-down text-green-500' : (${mvt.typeMouvement.name() == 'SORTIE'} ? 'fa-arrow-up text-red-500' : 'fa-exchange-alt text-blue-500')"></i>
+                    <div class="flex-grow">
+                        <span th:text="${mvt.typeMouvement.libelle}" class="font-semibold"></span>
+                        <span th:text="'(' + ${mvt.quantite} + ')'"></span>
+                        <a th:href="@{/stock/history/{id}(id=${mvt.produit.id})}" class="font-semibold text-blue-600 hover:underline" th:text="${mvt.produit.nom}"></a>
                     </div>
-                    <a th:href="@{/rapports/stock-bas}" class="text-orange-600 hover:text-orange-700 text-sm font-medium">Voir</a>
-                </div>
-                <div class="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div class="flex items-center">
-                        <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-                        <span class="text-sm font-medium text-blue-800">Rapport mensuel disponible</span>
-                    </div>
-                    <a href="#" class="text-blue-600 hover:text-blue-700 text-sm font-medium">Télécharger</a>
+                    <div class="text-xs text-gray-500" th:text="${#temporals.format(mvt.dateMouvement, 'dd/MM')}"></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        const chartLabels = /*[[${chartLabels}]]*/ [];
+        const chartData = /*[[${chartData}]]*/ [];
+
+        const ctx = document.getElementById('mouvementsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Nombre de Mouvements',
+                    data: chartData,
+                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    });
+    /*]]>*/
+</script>
 
 </body>
 </html>
