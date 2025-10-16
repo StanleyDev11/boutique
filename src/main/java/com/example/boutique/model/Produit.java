@@ -3,6 +3,7 @@ package com.example.boutique.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 
 @Data
@@ -31,4 +32,12 @@ public class Produit {
     private int quantiteEnStock;
 
     private LocalDate datePeremption;
+
+    public BigDecimal getMarge() {
+        if (prixAchat == null || prixVenteUnitaire == null || prixVenteUnitaire.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal difference = prixVenteUnitaire.subtract(prixAchat);
+        return difference.divide(prixVenteUnitaire, 4, RoundingMode.HALF_UP);
+    }
 }

@@ -2,6 +2,7 @@ C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\service\JpaUserDetailsService.java
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\repository\ProduitRepository.java
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\model\Personnel.java
+C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\dto\ProduitVenteDto.java
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\service\StockService.java
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\enums\TypeMouvement.java
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\controller\UtilisateurController.java

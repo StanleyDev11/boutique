@@ -21,8 +21,8 @@
         <p class="text-gray-600">Voici un aperçu de votre boutique aujourd'hui.</p>
     </div>
 
-    <!-- Cartes Statistiques -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Cartes Statistiques (Ligne 1) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         <!-- Carte Total Produits -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
             <div class="flex items-center justify-between">
@@ -30,25 +30,19 @@
                     <p class="text-sm font-medium text-gray-600">Total Produits</p>
                     <p class="text-3xl font-bold text-gray-900 mt-2" th:text="${totalProduits}">0</p>
                 </div>
-                <div class="bg-blue-100 p-3 rounded-lg">
-                    <i class="fas fa-boxes text-blue-600 text-xl"></i>
-                </div>
+                <div class="bg-blue-100 p-3 rounded-lg"><i class="fas fa-boxes text-blue-600 text-xl"></i></div>
             </div>
         </div>
-
-        <!-- Carte Produits Stock Bas -->
+        <!-- Carte Stock Bas -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-gray-600">Stock Bas</p>
                     <p class="text-3xl font-bold text-orange-500 mt-2" th:text="${produitsStockBas}">0</p>
                 </div>
-                <div class="bg-orange-100 p-3 rounded-lg">
-                    <i class="fas fa-exclamation-triangle text-orange-500 text-xl"></i>
-                </div>
+                <div class="bg-orange-100 p-3 rounded-lg"><i class="fas fa-exclamation-triangle text-orange-500 text-xl"></i></div>
             </div>
         </div>
-
         <!-- Carte Total Personnel -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
             <div class="flex items-center justify-between">
@@ -56,12 +50,9 @@
                     <p class="text-sm font-medium text-gray-600">Total Personnel</p>
                     <p class="text-3xl font-bold text-gray-900 mt-2" th:text="${totalPersonnel}">0</p>
                 </div>
-                <div class="bg-green-100 p-3 rounded-lg">
-                    <i class="fas fa-users text-green-600 text-xl"></i>
-                </div>
+                <div class="bg-green-100 p-3 rounded-lg"><i class="fas fa-users text-green-600 text-xl"></i></div>
             </div>
         </div>
-
         <!-- Carte Total Utilisateurs -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
             <div class="flex items-center justify-between">
@@ -69,73 +60,97 @@
                     <p class="text-sm font-medium text-gray-600">Total Utilisateurs</p>
                     <p class="text-3xl font-bold text-gray-900 mt-2" th:text="${totalUtilisateurs}">0</p>
                 </div>
-                <div class="bg-indigo-100 p-3 rounded-lg">
-                    <i class="fas fa-user-shield text-indigo-600 text-xl"></i>
-                </div>
+                <div class="bg-indigo-100 p-3 rounded-lg"><i class="fas fa-user-shield text-indigo-600 text-xl"></i></div>
             </div>
         </div>
     </div>
 
-    <!-- Accès Rapide -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Accès Rapide</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <a th:href="@{/produits}" class="group flex items-center p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all duration-200">
-                <div class="bg-blue-100 p-3 rounded-lg mr-4 group-hover:bg-blue-200 transition-colors duration-200">
-                    <i class="fas fa-box text-blue-600"></i>
+    <!-- Cartes Statistiques (Ligne 2) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Carte Valeur du Stock -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Valeur du Stock</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2" th:text="${#numbers.formatDecimal(valeurStock, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</p>
                 </div>
-                <span class="font-medium text-gray-700 group-hover:text-blue-600">Gérer les Produits</span>
-            </a>
-
-            <a th:href="@{/personnel}" class="group flex items-center p-4 border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all duration-200">
-                <div class="bg-green-100 p-3 rounded-lg mr-4 group-hover:bg-green-200 transition-colors duration-200">
-                    <i class="fas fa-users text-green-600"></i>
+                <div class="bg-purple-100 p-3 rounded-lg"><i class="fas fa-dollar-sign text-purple-600 text-xl"></i></div>
+            </div>
+        </div>
+        <!-- Carte Ventes du Jour -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Ventes du Jour</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2" th:text="${nombreVentesAujourdhui}">0</p>
                 </div>
-                <span class="font-medium text-gray-700 group-hover:text-green-600">Gérer le Personnel</span>
-            </a>
-
-            <a th:href="@{/utilisateurs}" class="group flex items-center p-4 border border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200">
-                <div class="bg-indigo-100 p-3 rounded-lg mr-4 group-hover:bg-indigo-200 transition-colors duration-200">
-                    <i class="fas fa-user-cog text-indigo-600"></i>
+                <div class="bg-cyan-100 p-3 rounded-lg"><i class="fas fa-shopping-cart text-cyan-600 text-xl"></i></div>
+            </div>
+        </div>
+        <!-- Carte CA Aujourd'hui -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">CA Aujourd'hui</p>
+                    <p class="text-3xl font-bold text-green-600 mt-2" th:text="${#numbers.formatDecimal(chiffreAffairesAujourdhui, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</p>
                 </div>
-                <span class="font-medium text-gray-700 group-hover:text-indigo-600">Gérer les Utilisateurs</span>
-            </a>
-
-            <a th:href="@{/rapports/stock-bas}" class="group flex items-center p-4 border border-gray-200 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all duration-200">
-                <div class="bg-orange-100 p-3 rounded-lg mr-4 group-hover:bg-orange-200 transition-colors duration-200">
-                    <i class="fas fa-chart-bar text-orange-600"></i>
+                <div class="bg-green-100 p-3 rounded-lg"><i class="fas fa-cash-register text-green-600 text-xl"></i></div>
+            </div>
+        </div>
+        <!-- Carte CA du Mois -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">CA du Mois</p>
+                    <p class="text-3xl font-bold text-teal-600 mt-2" th:text="${#numbers.formatDecimal(chiffreAffairesMois, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</p>
                 </div>
-                <span class="font-medium text-gray-700 group-hover:text-orange-600">Rapport Stock Bas</span>
-            </a>
+                <div class="bg-teal-100 p-3 rounded-lg"><i class="fas fa-calendar-alt text-teal-600 text-xl"></i></div>
+            </div>
         </div>
     </div>
+
 
     <!-- Section Principale: Graphique et Activités -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
         <!-- Graphique d'activité -->
         <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Activité des 7 derniers jours</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Activité des 7 derniers jours (Entrées/Sorties)</h3>
             <div>
                 <canvas id="mouvementsChart"></canvas>
             </div>
         </div>
 
-        <!-- Derniers Mouvements de Stock -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Derniers Mouvements</h3>
-            <div th:if="${#lists.isEmpty(derniersMouvements)}" class="text-center text-gray-500 py-4">
-                Aucun mouvement de stock récent.
-            </div>
-            <div th:unless="${#lists.isEmpty(derniersMouvements)}" class="space-y-4">
-                <div th:each="mvt : ${derniersMouvements}" class="flex items-center text-sm">
-                    <i class="fas fa-fw me-3"
-                       th:classappend="${mvt.typeMouvement.name() == 'ENTREE'} ? 'fa-arrow-down text-green-500' : (${mvt.typeMouvement.name() == 'SORTIE'} ? 'fa-arrow-up text-red-500' : 'fa-exchange-alt text-blue-500')"></i>
-                    <div class="flex-grow">
-                        <span th:text="${mvt.typeMouvement.libelle}" class="font-semibold"></span>
-                        <span th:text="'(' + ${mvt.quantite} + ')'"></span>
-                        <a th:href="@{/stock/history/{id}(id=${mvt.produit.id})}" class="font-semibold text-blue-600 hover:underline" th:text="${mvt.produit.nom}"></a>
+        <!-- Activités Récentes -->
+        <div class="flex flex-col gap-6">
+            <!-- Derniers Mouvements de Stock -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex-grow">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Derniers Mouvements</h3>
+                <div th:if="${#lists.isEmpty(derniersMouvements)}" class="text-center text-gray-500 py-4">Aucun mouvement récent.</div>
+                <div th:unless="${#lists.isEmpty(derniersMouvements)}" class="space-y-4">
+                    <div th:each="mvt : ${derniersMouvements}" class="flex items-center text-sm">
+                        <i class="fas fa-fw me-3" th:classappend="${mvt.typeMouvement.name() == 'ENTREE'} ? 'fa-arrow-down text-green-500' : 'fa-arrow-up text-red-500'"></i>
+                        <div class="flex-grow">
+                            <span th:text="${mvt.typeMouvement.libelle}" class="font-semibold"></span>
+                            <span th:text="'(' + ${mvt.quantite} + ')'"></span>
+                            <a th:href="@{/stock/history/{id}(id=${mvt.produit.id})}" class="font-semibold text-blue-600 hover:underline" th:text="${mvt.produit.nom}"></a>
+                        </div>
+                        <div class="text-xs text-gray-500" th:text="${#temporals.format(mvt.dateMouvement, 'dd/MM')}"></div>
                     </div>
-                    <div class="text-xs text-gray-500" th:text="${#temporals.format(mvt.dateMouvement, 'dd/MM')}"></div>
+                </div>
+            </div>
+
+            <!-- Top 5 Produits Vendus -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex-grow">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Top 5 Produits Vendus</h3>
+                <div th:if="${#lists.isEmpty(topProduits)}" class="text-center text-gray-500 py-4">Aucune vente enregistrée.</div>
+                <div th:unless="${#lists.isEmpty(topProduits)}" class="space-y-3">
+                    <div th:each="top, iterStat : ${topProduits}" class="flex items-center text-sm">
+                        <div class="w-6 text-center me-3 text-gray-500 font-bold" th:text="${iterStat.count} + '.'"></div>
+                        <div class="flex-grow">
+                            <a th:href="@{/stock/history/{id}(id=${top.produit.id})}" class="font-semibold text-blue-600 hover:underline" th:text="${top.produit.nom}"></a>
+                        </div>
+                        <div class="text-xs font-bold bg-gray-100 text-gray-700 px-2 py-1 rounded-md" th:text="${top.totalVendu} + ' vendus'"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -146,24 +161,40 @@
     /*<![CDATA[*/
     document.addEventListener('DOMContentLoaded', function() {
         const chartLabels = /*[[${chartLabels}]]*/ [];
-        const chartData = /*[[${chartData}]]*/ [];
+        const entreesData = /*[[${entreesData}]]*/ [];
+        const sortiesData = /*[[${sortiesData}]]*/ [];
 
         const ctx = document.getElementById('mouvementsChart').getContext('2d');
         new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: chartLabels,
-                datasets: [{
-                    label: 'Nombre de Mouvements',
-                    data: chartData,
-                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                    borderColor: 'rgba(59, 130, 246, 1)',
-                    borderWidth: 1
-                }]
+                datasets: [
+                    {
+                        label: 'Entrées',
+                        data: entreesData,
+                        backgroundColor: 'rgba(74, 222, 128, 0.6)', // green-400
+                        borderColor: 'rgba(34, 197, 94, 1)',     // green-600
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Sorties',
+                        data: sortiesData,
+                        backgroundColor: 'rgba(248, 113, 113, 0.6)', // red-400
+                        borderColor: 'rgba(239, 68, 68, 1)',      // red-600
+                        borderWidth: 1
+                    }
+                ]
             },
             options: {
+                responsive: true,
+                maintainAspectRatio: false,
                 scales: {
+                    x: {
+                        stacked: true,
+                    },
                     y: {
+                        stacked: true,
                         beginAtZero: true,
                         ticks: {
                             stepSize: 1
@@ -172,7 +203,11 @@
                 },
                 plugins: {
                     legend: {
-                        display: false
+                        position: 'top',
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
                     }
                 }
             }

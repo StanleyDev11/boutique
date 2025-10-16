@@ -1,19 +1,27 @@
 package com.example.boutique.controller;
 
 import com.example.boutique.dto.MouvementStatDto;
+import com.example.boutique.dto.ProduitVenteDto;
+import com.example.boutique.enums.TypeMouvement;
+import com.example.boutique.model.MouvementStock;
 import com.example.boutique.repository.MouvementStockRepository;
 import com.example.boutique.repository.PersonnelRepository;
 import com.example.boutique.repository.ProduitRepository;
 import com.example.boutique.repository.UtilisateurRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -37,21 +45,69 @@ public class DashboardController {
 
     @GetMapping
     public String showDashboard(Model model) {
-        // KPI Cards data
+        // 1. Indicateurs clés (KPIs)
+        addKpiData(model);
+
+        // 2. Données pour la liste des mouvements récents
+        model.addAttribute("derniersMouvements", mouvementStockRepository.findTop5ByOrderByDateMouvementDesc());
+
+        // 3. Données pour le graphique d'activité
+        addChartData(model);
+
+        // 4. Données pour les produits les plus vendus
+        addTopSellingProducts(model);
+
+        return "dashboard";
+    }
+
+    private void addKpiData(Model model) {
+        // KPIs existants
         model.addAttribute("totalProduits", produitRepository.count());
         model.addAttribute("produitsStockBas", produitRepository.countByQuantiteEnStockLessThanEqual(SEUIL_STOCK_BAS));
         model.addAttribute("totalPersonnel", personnelRepository.count());
         model.addAttribute("totalUtilisateurs", utilisateurRepository.count());
 
-        // Recent movements list data
-        model.addAttribute("derniersMouvements", mouvementStockRepository.findTop5ByOrderByDateMouvementDesc());
+        // 1. Valeur totale du stock
+        double valeurStock = produitRepository.findAll().stream()
+                .mapToDouble(p -> p.getQuantiteEnStock() * p.getPrixVenteUnitaire().doubleValue())
+                .sum();
+        model.addAttribute("valeurStock", valeurStock);
 
-        // Chart data
+        // 2. Indicateurs de ventes
+        LocalDate today = LocalDate.now();
+        YearMonth currentMonth = YearMonth.now();
+
+        // Ventes du jour
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
+        List<MouvementStock> ventesAujourdhui = mouvementStockRepository.findByTypeMouvementAndDateMouvementBetween(TypeMouvement.SORTIE_VENTE, startOfDay, endOfDay);
+        double chiffreAffairesAujourdhui = ventesAujourdhui.stream()
+                .mapToDouble(mvt -> mvt.getQuantite() * mvt.getProduit().getPrixVenteUnitaire().doubleValue())
+                .sum();
+        model.addAttribute("chiffreAffairesAujourdhui", chiffreAffairesAujourdhui);
+        model.addAttribute("nombreVentesAujourdhui", (long) ventesAujourdhui.size());
+
+        // Ventes du mois
+        LocalDateTime startOfMonth = currentMonth.atDay(1).atStartOfDay();
+        LocalDateTime endOfMonth = currentMonth.atEndOfMonth().atTime(LocalTime.MAX);
+        List<MouvementStock> ventesMois = mouvementStockRepository.findByTypeMouvementAndDateMouvementBetween(TypeMouvement.SORTIE_VENTE, startOfMonth, endOfMonth);
+        double chiffreAffairesMois = ventesMois.stream()
+                .mapToDouble(mvt -> mvt.getQuantite() * mvt.getProduit().getPrixVenteUnitaire().doubleValue())
+                .sum();
+        model.addAttribute("chiffreAffairesMois", chiffreAffairesMois);
+    }
+
+    private void addChartData(Model model) {
         LocalDateTime endDate = LocalDateTime.now();
         LocalDateTime startDate = endDate.minusDays(6);
 
-        List<MouvementStatDto> stats = mouvementStockRepository.countMouvementsByDay(startDate);
-        Map<String, Long> statsMap = stats.stream()
+        // 4. Données pour le graphique Entrées/Sorties
+        List<MouvementStatDto> entreesStats = mouvementStockRepository.countMouvementsByDayAndType(startDate, TypeMouvement.ENTREE);
+        List<MouvementStatDto> sortiesStats = mouvementStockRepository.countMouvementsByDayAndType(startDate, TypeMouvement.SORTIE_VENTE);
+
+        Map<String, Long> entreesMap = entreesStats.stream()
+                .collect(Collectors.toMap(s -> s.getDate().format(DateTimeFormatter.ofPattern("dd/MM")), MouvementStatDto::getCount));
+        Map<String, Long> sortiesMap = sortiesStats.stream()
                 .collect(Collectors.toMap(s -> s.getDate().format(DateTimeFormatter.ofPattern("dd/MM")), MouvementStatDto::getCount));
 
         List<String> chartLabels = IntStream.range(0, 7)
@@ -59,13 +115,22 @@ public class DashboardController {
                 .sorted()
                 .collect(Collectors.toList());
 
-        List<Long> chartData = chartLabels.stream()
-                .map(label -> statsMap.getOrDefault(label, 0L))
+        List<Long> entreesData = chartLabels.stream()
+                .map(label -> entreesMap.getOrDefault(label, 0L))
+                .collect(Collectors.toList());
+
+        List<Long> sortiesData = chartLabels.stream()
+                .map(label -> sortiesMap.getOrDefault(label, 0L))
                 .collect(Collectors.toList());
 
         model.addAttribute("chartLabels", chartLabels);
-        model.addAttribute("chartData", chartData);
+        model.addAttribute("entreesData", entreesData);
+        model.addAttribute("sortiesData", sortiesData);
+    }
 
-        return "dashboard";
+    private void addTopSellingProducts(Model model) {
+        // 3. Produits les plus vendus
+        List<ProduitVenteDto> topProduits = mouvementStockRepository.findTopSellingProducts(PageRequest.of(0, 5));
+        model.addAttribute("topProduits", topProduits);
     }
 }
