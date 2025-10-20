@@ -6,10 +6,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.Map;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/produits")
@@ -51,6 +55,47 @@ public class ProduitController {
         return "produits";
     }
 
+    @GetMapping("/form")
+    public String getFormFragment(@RequestParam(required = false) Long id, Model model) {
+        Produit produit;
+        String pageTitle;
+        if (id != null) {
+            produit = produitRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé pour l'ID: " + id));
+            pageTitle = "Modifier le produit";
+        } else {
+            produit = new Produit();
+            pageTitle = "Ajouter un nouveau produit";
+        }
+        model.addAttribute("produit", produit);
+        model.addAttribute("pageTitle", pageTitle);
+        model.addAttribute("view", "fragment"); // Pour le rendu conditionnel dans le template
+        return "produit-form :: form-content";
+    }
+
+    @PostMapping("/save")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> saveProduit(@ModelAttribute("produit") Produit produit) {
+        try {
+            produitRepository.save(produit);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Le produit a été sauvegardé avec succès !"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur lors de la sauvegarde du produit."));
+        }
+    }
+
+    @PostMapping("/delete/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deleteProduit(@PathVariable Long id) {
+        try {
+            produitRepository.deleteById(id);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Le produit a été supprimé avec succès !"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur lors de la suppression du produit."));
+        }
+    }
+
+    // --- Anciennes méthodes (peuvent être gardées pour la navigation sans JS) ---
     @GetMapping("/new")
     public String showCreateForm(Model model) {
         model.addAttribute("produit", new Produit());
@@ -70,27 +115,5 @@ public class ProduitController {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/produits";
         }
-    }
-
-    @PostMapping("/save")
-    public String saveProduit(@ModelAttribute("produit") Produit produit, RedirectAttributes redirectAttributes) {
-        try {
-            produitRepository.save(produit);
-            redirectAttributes.addFlashAttribute("successMessage", "Le produit a été sauvegardé avec succès !");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Erreur lors de la sauvegarde du produit.");
-        }
-        return "redirect:/produits";
-    }
-
-    @PostMapping("/delete/{id}")
-    public String deleteProduit(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        try {
-            produitRepository.deleteById(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Le produit a été supprimé avec succès !");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Erreur lors de la suppression du produit.");
-        }
-        return "redirect:/produits";
     }
 }
