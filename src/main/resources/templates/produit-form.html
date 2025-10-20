@@ -23,7 +23,7 @@
 
             <!-- Nom du produit -->
             <div class="mb-4">
-                <label for="nom" class="block text-sm font-medium text-gray-700 mb-1">Nom du produit *</label>
+                <label for="nom" class="block text-sm font-medium text-gray-700 mb-1"><i class="fas fa-tag mr-2"></i>Nom du produit *</label>
                 <input type="text" id="nom" th:field="*{nom}"
                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                        required>
@@ -31,7 +31,7 @@
 
             <!-- Code-barres -->
             <div class="mb-4">
-                <label for="codeBarres" class="block text-sm font-medium text-gray-700 mb-1">Code-barres</label>
+                <label for="codeBarres" class="block text-sm font-medium text-gray-700 mb-1"><i class="fas fa-barcode mr-2"></i>Code-barres</label>
                 <input type="text" id="codeBarres" th:field="*{codeBarres}"
                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                        placeholder="Optionnel">
@@ -40,22 +40,38 @@
             <!-- Prix d'achat et Prix de vente -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                    <label for="prixAchat" class="block text-sm font-medium text-gray-700 mb-1">Prix d'achat (€)</label>
+                    <label for="prixAchat" class="block text-sm font-medium text-gray-700 mb-1"><i class="fas fa-dollar-sign mr-2"></i>Prix d'achat (€)</label>
                     <input type="number" step="0.01" id="prixAchat" th:field="*{prixAchat}"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                            placeholder="0.00">
                 </div>
                 <div>
-                    <label for="prixVenteUnitaire" class="block text-sm font-medium text-gray-700 mb-1">Prix de vente (€) *</label>
+                    <label for="prixVenteUnitaire" class="block text-sm font-medium text-gray-700 mb-1"><i class="fas fa-money-bill-wave mr-2"></i>Prix de vente (€) *</label>
                     <input type="number" step="0.01" id="prixVenteUnitaire" th:field="*{prixVenteUnitaire}"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                            required placeholder="0.00">
                 </div>
             </div>
 
+            <!-- Nom du fournisseur et Numéro de facture -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="nomFournisseur" class="block text-sm font-medium text-gray-700 mb-1"><i class="fas fa-building mr-2"></i>Nom du fournisseur</label>
+                    <input type="text" id="nomFournisseur" th:field="*{nomFournisseur}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Optionnel">
+                </div>
+                <div>
+                    <label for="numeroFacture" class="block text-sm font-medium text-gray-700 mb-1"><i class="fas fa-file-invoice mr-2"></i>Numéro de facture</label>
+                    <input type="text" id="numeroFacture" th:field="*{numeroFacture}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Optionnel">
+                </div>
+            </div>
+
             <!-- Catégorie -->
             <div class="mb-4">
-                <label for="categorie" class="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                <label for="categorie" class="block text-sm font-medium text-gray-700 mb-1"><i class="fas fa-sitemap mr-2"></i>Familles</label>
                 <input type="text" id="categorie" th:field="*{categorie}"
                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                        placeholder="Ex: Électronique, Alimentation...">
@@ -64,13 +80,13 @@
             <!-- Quantité en stock et Date de péremption -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
-                    <label for="quantiteEnStock" class="block text-sm font-medium text-gray-700 mb-1">Quantité en stock *</label>
+                    <label for="quantiteEnStock" class="block text-sm font-medium text-gray-700 mb-1"><i class="fas fa-boxes-stacked mr-2"></i>Quantité en stock *</label>
                     <input type="number" id="quantiteEnStock" th:field="*{quantiteEnStock}"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                            required placeholder="0">
                 </div>
                 <div>
-                    <label for="datePeremption" class="block text-sm font-medium text-gray-700 mb-1">Date de péremption</label>
+                    <label for="datePeremption" class="block text-sm font-medium text-gray-700 mb-1"><i class="fas fa-calendar-times mr-2"></i>Date de péremption</label>
                     <input type="date" id="datePeremption" th:field="*{datePeremption}"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>

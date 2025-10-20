@@ -41,7 +41,8 @@ public class SecurityConfig {
             .logout(logout -> logout
                 .logoutSuccessUrl("/login?logout") // Page après la déconnexion
                 .permitAll()
-            );
+            )
+            ;
 
         return http.build();
     }

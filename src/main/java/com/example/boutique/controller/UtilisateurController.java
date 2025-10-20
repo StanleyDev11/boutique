@@ -5,6 +5,7 @@ import com.example.boutique.repository.UtilisateurRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/utilisateurs")
@@ -33,6 +36,26 @@ public class UtilisateurController {
         Page<Utilisateur> utilisateurPage = utilisateurRepository.findAll(pageable);
         model.addAttribute("utilisateursPage", utilisateurPage);
         return "utilisateur-list";
+    }
+
+    @GetMapping("/form")
+    public String getFormFragment(@RequestParam(required = false) Long id, Model model) {
+        Utilisateur utilisateur;
+        String pageTitle;
+        if (id != null) {
+            utilisateur = utilisateurRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Utilisateur non trouvé pour l'ID: " + id));
+            utilisateur.setPassword(""); // Ne jamais envoyer le hash au formulaire
+            pageTitle = "Modifier l'utilisateur";
+        } else {
+            utilisateur = new Utilisateur();
+            pageTitle = "Ajouter un nouvel utilisateur";
+        }
+        model.addAttribute("utilisateur", utilisateur);
+        model.addAttribute("pageTitle", pageTitle);
+        model.addAttribute("view", "fragment"); // Pour le rendu conditionnel dans le template
+        model.addAttribute("allRoles", List.of("ROLE_ADMIN", "ROLE_GESTIONNAIRE"));
+        return "utilisateur-form :: form-content";
     }
 
     @GetMapping("/new")
@@ -58,7 +81,8 @@ public class UtilisateurController {
     }
 
     @PostMapping("/save")
-    public String saveUtilisateur(@ModelAttribute("utilisateur") Utilisateur utilisateur, RedirectAttributes redirectAttributes) {
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> saveUtilisateur(@ModelAttribute("utilisateur") Utilisateur utilisateur, @RequestParam(name = "roles", required = false) List<String> roles) {
         try {
             // Si c'est une modification et que le mot de passe est vide, on garde l'ancien
             if (utilisateur.getId() != null && (utilisateur.getPassword() == null || utilisateur.getPassword().isEmpty())) {
@@ -68,28 +92,29 @@ public class UtilisateurController {
                 // Sinon, on chiffre le nouveau mot de passe
                 utilisateur.setPassword(passwordEncoder.encode(utilisateur.getPassword()));
             }
+            if (roles != null) {
+                utilisateur.setRoles(String.join(",", roles));
+            }
             utilisateurRepository.save(utilisateur);
-            redirectAttributes.addFlashAttribute("successMessage", "L'utilisateur a été sauvegardé avec succès !");
+            return ResponseEntity.ok(Map.of("success", true, "message", "L'utilisateur a été sauvegardé avec succès !"));
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Erreur lors de la sauvegarde de l'utilisateur.");
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur lors de la sauvegarde de l'utilisateur."));
         }
-        return "redirect:/utilisateurs";
     }
 
     @PostMapping("/delete/{id}")
-    public String deleteUtilisateur(@PathVariable Long id, RedirectAttributes redirectAttributes, Principal principal) {
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deleteUtilisateur(@PathVariable Long id, Principal principal) {
         try {
             Utilisateur userToDelete = utilisateurRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Utilisateur non trouvé"));
             // Empêcher un admin de supprimer son propre compte
             if (principal.getName().equals(userToDelete.getUsername())) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Vous ne pouvez pas supprimer votre propre compte.");
-                return "redirect:/utilisateurs";
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vous ne pouvez pas supprimer votre propre compte."));
             }
             utilisateurRepository.deleteById(id);
-            redirectAttributes.addFlashAttribute("successMessage", "L'utilisateur a été supprimé avec succès !");
+            return ResponseEntity.ok(Map.of("success", true, "message", "L'utilisateur a été supprimé avec succès !"));
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Erreur lors de la suppression de l'utilisateur.");
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur lors de la suppression de l'utilisateur."));
         }
-        return "redirect:/utilisateurs";
     }
 }

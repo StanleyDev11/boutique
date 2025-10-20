@@ -6,6 +6,7 @@
     <title th:text="'Historique - ' + ${produit.nom}"></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-50">
 
@@ -20,6 +21,29 @@
         <a th:href="@{/produits}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition duration-200">
             Retour aux produits
         </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div class="lg:col-span-2 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <canvas id="stockChart" width="400" height="200"></canvas>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">Statistiques</h2>
+            <div class="space-y-4">
+                <div>
+                    <p class="text-sm text-gray-600">Entrées totales</p>
+                    <p class="text-2xl font-bold text-green-600" th:text="${#aggregates.sum(historique.?[typeMouvement.name() == 'ENTREE'].![quantite])}"></p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Sorties totales</p>
+                    <p class="text-2xl font-bold text-red-600" th:text="${#aggregates.sum(historique.?[typeMouvement.name() == 'SORTIE'].![quantite])}"></p>
+                </div>
+                <div th:if="${!#lists.isEmpty(historique)}">
+                    <p class="text-sm text-gray-600">Dernier mouvement</p>
+                    <p class="text-lg font-bold text-gray-800" th:text="${#temporals.format(historique[0].dateMouvement, 'dd/MM/yyyy HH:mm')}"></p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -57,6 +81,55 @@
         </div>
     </div>
 </div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const history = /*[[${historique}]]*/ [];
+    const initialStock = /*[[${produit.quantiteEnStock}]]*/ 0;
+
+    // Reverse the history to start from the oldest movement
+    const reversedHistory = [...history].reverse();
+
+    const labels = [];
+    const data = [];
+    let currentStock = initialStock;
+
+    // Calculate the stock at the time of each movement
+    for (let i = reversedHistory.length - 1; i >= 0; i--) {
+        const mvt = reversedHistory[i];
+        labels.unshift(new Date(mvt.dateMouvement).toLocaleDateString());
+        data.unshift(currentStock);
+        if (mvt.typeMouvement === 'ENTREE') {
+            currentStock -= mvt.quantite;
+        } else {
+            currentStock += mvt.quantite;
+        }
+    }
+
+    const ctx = document.getElementById('stockChart').getContext('2d');
+    const stockChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Évolution du stock',
+                data: data,
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+                fill: true,
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    /*]]>*/
+</script>
 
 </body>
 </html>

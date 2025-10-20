@@ -31,7 +31,8 @@ public class ProduitController {
                                @RequestParam(defaultValue = "0") int page,
                                @RequestParam(defaultValue = "10") int size,
                                @RequestParam(defaultValue = "nom") String sortField,
-                               @RequestParam(defaultValue = "asc") String sortDir) {
+                               @RequestParam(defaultValue = "asc") String sortDir,
+                               @RequestHeader(value = "X-Requested-With", required = false) String requestedWith) {
 
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortField).ascending() :
                 Sort.by(sortField).descending();
@@ -52,7 +53,11 @@ public class ProduitController {
         model.addAttribute("sortDir", sortDir);
         model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
 
-        return "produits";
+        if ("XMLHttpRequest".equals(requestedWith)) {
+            return "produits :: #product-list-container"; // Return only the fragment
+        }
+
+        return "produits"; // Return the full page
     }
 
     @GetMapping("/form")

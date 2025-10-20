@@ -33,6 +33,9 @@ public class Produit {
 
     private LocalDate datePeremption;
 
+    private String nomFournisseur;
+    private String numeroFacture;
+
     public BigDecimal getMarge() {
         if (prixAchat == null || prixVenteUnitaire == null || prixVenteUnitaire.compareTo(BigDecimal.ZERO) == 0) {
             return BigDecimal.ZERO;
