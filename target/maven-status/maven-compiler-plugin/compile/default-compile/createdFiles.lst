@@ -1,5 +1,6 @@
 com\example\boutique\model\Produit.class
 com\example\boutique\config\CustomAuthenticationSuccessHandler.class
+com\example\boutique\dto\VenteRequestDto.class
 com\example\boutique\model\Personnel.class
 com\example\boutique\controller\ProduitController.class
 com\example\boutique\controller\StockController.class
@@ -12,7 +13,9 @@ com\example\boutique\model\Utilisateur.class
 com\example\boutique\repository\UtilisateurRepository.class
 com\example\boutique\BoutiqueApplication.class
 com\example\boutique\config\SecurityConfig.class
+com\example\boutique\controller\CaissierController.class
 com\example\boutique\dto\MouvementStatDto.class
+com\example\boutique\dto\CartItemDto.class
 com\example\boutique\enums\TypeMouvement.class
 com\example\boutique\dto\ProduitVenteDto.class
 com\example\boutique\controller\RapportController.class

@@ -23,6 +23,7 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/css/**", "/js/**").permitAll() // Pages et ressources publiques
+                .requestMatchers("/api/**").authenticated() // Autoriser l'accès à l'API pour les utilisateurs connectés
                 .requestMatchers("/produits/delete/**").hasRole("ADMIN") // Seul l'admin peut supprimer
                 .requestMatchers("/produits/new", "/produits/edit/**", "/produits/save").hasAnyRole("ADMIN", "GESTIONNAIRE") // Qui peut modifier/créer
                 .requestMatchers("/stock/**").hasAnyRole("ADMIN", "GESTIONNAIRE")

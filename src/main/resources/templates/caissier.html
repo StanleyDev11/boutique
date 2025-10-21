@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interface Caissier</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .tab-button.active { background-color: #1D4ED8; color: white; }
+        .tab-button { transition: background-color 0.2s; }
+        .swal2-radio-label { margin: 0 10px; }
+        #client-search-results div:hover { background-color: #eff6ff; }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+<div class="flex flex-col h-screen">
+    <!-- Tabs -->
+    <div id="tabs-container" class="flex-shrink-0 bg-gray-200 p-1 flex space-x-1 overflow-x-auto"></div>
+
+    <div class="flex flex-grow overflow-hidden">
+        <!-- Left Column: Product List -->
+        <div class="w-1/2 bg-white p-4 overflow-y-auto border-r">
+            <h2 class="text-2xl font-bold mb-4">Produits</h2>
+            <div class="mb-4">
+                <input type="text" id="search-input" placeholder="Rechercher par nom ou code-barres..." class="w-full px-3 py-2 border border-gray-300 rounded-md">
+            </div>
+            <div class="mb-4">
+                <select id="category-filter" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    <option value="">Toutes les catégories</option>
+                    <option th:each="category : ${categories}" th:value="${category}" th:text="${category}"></option>
+                </select>
+            </div>
+            <div id="product-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div th:each="produit : ${produits}" class="product-card border p-4 rounded-md cursor-pointer" th:data-id="${produit.id}" th:data-nom="${produit.nom}" th:data-prix="${produit.prixVenteUnitaire}" th:data-categorie="${produit.categorie}" th:data-codebarres="${produit.codeBarres}" th:data-stock="${produit.quantiteEnStock}">
+                    <h3 class="font-bold" th:text="${produit.nom}"></h3>
+                    <p th:text="${produit.prixVenteUnitaire} + ' €'"></p>
+                    <p class="text-sm mt-2" th:classappend="${produit.quantiteEnStock <= 5 ? 'text-red-500' : 'text-gray-500'}">Stock: <span th:text="${produit.quantiteEnStock}"></span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Sale for Active Tab -->
+        <div class="w-1/2 p-4 flex flex-col">
+            <h2 class="text-2xl font-bold mb-4">Vente en cours (Ticket <span id="active-tab-display">1</span>)</h2>
+            <div id="sale-details" class="bg-white p-4 rounded-md shadow-md mb-4 min-h-[150px]"></div>
+            
+            <!-- Client Section -->
+            <div class="bg-white p-4 rounded-md shadow-md mb-4">
+                <div id="selected-client-display" class="hidden items-center justify-between p-2 bg-blue-100 rounded-md">
+                    <p>Client: <strong id="selected-client-name"></strong></p>
+                    <button id="remove-client-btn" class="text-red-500 hover:text-red-700"><i class="fas fa-times-circle"></i></button>
+                </div>
+                <div id="client-search-section">
+                    <div class="flex items-center">
+                        <input type="text" id="client-search-input" placeholder="Rechercher un client..." class="w-full px-3 py-2 border border-gray-300 rounded-l-md">
+                        <button id="add-client-btn" class="bg-blue-500 text-white px-4 py-2 rounded-r-md hover:bg-blue-600"><i class="fas fa-plus"></i></button>
+                    </div>
+                    <div id="client-search-results" class="mt-1 border border-gray-200 rounded-md max-h-40 overflow-y-auto"></div>
+                </div>
+            </div>
+
+            <!-- Cart Section -->
+            <div id="cart" class="bg-white p-4 rounded-md shadow-md flex-grow flex flex-col">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-bold text-lg">Panier</h3>
+                    <button id="clear-cart-button" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i> Vider</button>
+                </div>
+                <div id="cart-items" class="flex-grow overflow-y-auto"></div>
+                <div id="total-section" class="mt-4 border-t pt-4 flex-shrink-0"></div>
+                <button id="pay-button" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg mt-4">Payer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+    const initialClients = /*[[${clients}]]*/ [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- DOM Elements ---
+        const searchInput = document.getElementById('search-input');
+        const categoryFilter = document.getElementById('category-filter');
+        const productCards = Array.from(document.getElementsByClassName('product-card'));
+        const saleDetails = document.getElementById('sale-details');
+        const cartItemsContainer = document.getElementById('cart-items');
+        const totalSection = document.getElementById('total-section');
+        const payButton = document.getElementById('pay-button');
+        const clearCartButton = document.getElementById('clear-cart-button');
+        const tabsContainer = document.getElementById('tabs-container');
+        const activeTabDisplay = document.getElementById('active-tab-display');
+        const clientSearchInput = document.getElementById('client-search-input');
+        const clientSearchResults = document.getElementById('client-search-results');
+        const addClientBtn = document.getElementById('add-client-btn');
+        const selectedClientDisplay = document.getElementById('selected-client-display');
+        const selectedClientName = document.getElementById('selected-client-name');
+        const removeClientBtn = document.getElementById('remove-client-btn');
+        const clientSearchSection = document.getElementById('client-search-section');
+
+        // --- State ---
+        const NUM_TABS = 20;
+        let tabs = Array.from({ length: NUM_TABS }, (_, i) => ({ id: i + 1, cart: [], selectedClient: null, discountAmount: 0 }));
+        let activeTabIndex = 0;
+
+        // --- Initialization ---
+        searchInput.focus();
+        renderTabs();
+        switchTab(0);
+
+        const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true });
+
+        // --- Tab Management ---
+        function renderTabs() {
+            tabsContainer.innerHTML = '';
+            tabs.forEach((tab, index) => {
+                const tabButton = document.createElement('button');
+                tabButton.className = `tab-button px-4 py-2 rounded-md text-sm font-medium ` + (index === activeTabIndex ? 'active' : 'bg-gray-300');
+                let content = `Ticket ${tab.id}`;
+                if (tab.cart.length > 0) content += ` <span class="bg-blue-600 text-white text-xs rounded-full px-1.5 py-0.5 ml-1">${tab.cart.length}</span>`;
+                if (tab.selectedClient) content += ` <i class="fas fa-user ml-2 text-xs"></i>`;
+                tabButton.innerHTML = content;
+                tabButton.addEventListener('click', () => switchTab(index));
+                tabsContainer.appendChild(tabButton);
+            });
+        }
+
+        function switchTab(index) {
+            activeTabIndex = index;
+            activeTabDisplay.textContent = tabs[activeTabIndex].id;
+            renderTabs();
+            renderActiveTabContent();
+        }
+
+        function filterProducts() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedCategory = categoryFilter.value;
+            productCards.forEach(card => {
+                const isVisible = (card.dataset.nom.toLowerCase().includes(searchTerm) || (card.dataset.codebarres || '').toLowerCase().includes(searchTerm)) &&
+                                  (!selectedCategory || card.dataset.categorie === selectedCategory);
+                card.style.display = isVisible ? 'block' : 'none';
+            });
+        }
+
+        // --- Product & Cart Logic ---
+        productCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const productId = this.dataset.id;
+                const stock = parseInt(this.dataset.stock);
+                const itemInCart = tabs[activeTabIndex].cart.find(item => item.id === productId);
+                const qtyInCart = itemInCart ? itemInCart.quantity : 0;
+
+                if (stock - qtyInCart <= 0) {
+                    Swal.fire('Stock épuisé', `Il ne reste plus de ${this.dataset.nom} en stock.`, 'warning');
+                    return;
+                }
+                displaySaleDetails(this.dataset);
+            });
+        });
+
+        function displaySaleDetails(productData) {
+            const { id, nom, prix, stock } = productData;
+            const itemInCart = tabs[activeTabIndex].cart.find(item => item.id === id);
+            const qtyInCart = itemInCart ? itemInCart.quantity : 0;
+            const availableStock = stock - qtyInCart;
+
+            saleDetails.innerHTML = `
+                <h3 class="font-bold text-lg">${nom}</h3>
+                <p>Prix: ${parseFloat(prix).toFixed(2)} € / <span class="text-sm text-gray-600">Stock dispo: ${availableStock}</span></p>
+                <div class="mt-4">
+                    <label for="quantity" class="block text-sm font-medium text-gray-700">Quantité</label>
+                    <input type="number" id="quantity" value="1" min="1" max="${availableStock}" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                </div>
+                <div class="mt-4"><p class="font-bold">Total: <span id="total-price">${parseFloat(prix).toFixed(2)}</span> €</p></div>
+                <button id="add-to-cart" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg mt-4">Ajouter</button>
+            `;
+
+            const qtyInput = document.getElementById('quantity');
+            qtyInput.addEventListener('input', () => {
+                document.getElementById('total-price').textContent = (qtyInput.value * parseFloat(prix)).toFixed(2);
+            });
+            document.getElementById('add-to-cart').addEventListener('click', () => {
+                addToCart(id, nom, parseFloat(prix), parseInt(qtyInput.value), parseInt(stock));
+            });
+        }
+
+        function addToCart(productId, name, price, quantity, stock) {
+            if (quantity <= 0) return;
+            const tab = tabs[activeTabIndex];
+            const itemInCart = tab.cart.find(item => item.id === productId);
+            const qtyInCart = itemInCart ? itemInCart.quantity : 0;
+
+            if (qtyInCart + quantity > stock) {
+                Swal.fire('Quantité insuffisante', `Seulement ${stock - qtyInCart} restant(s) en stock.`, 'error');
+                return;
+            }
+
+            if (itemInCart) {
+                itemInCart.quantity += quantity;
+            } else {
+                tab.cart.push({ id: productId, name: name, price: price, quantity: quantity });
+            }
+            
+            renderActiveTabContent();
+            renderTabs();
+            Toast.fire({ icon: 'success', title: `${name} ajouté` });
+            searchInput.focus();
+            saleDetails.innerHTML = '';
+        }
+
+        function updateCartItemQuantity(productId, change) {
+            const tab = tabs[activeTabIndex];
+            const item = tab.cart.find(i => i.id === productId);
+            if (!item) return;
+
+            const productCard = productCards.find(card => card.dataset.id === productId);
+            const stock = parseInt(productCard.dataset.stock);
+
+            if (item.quantity + change > stock) {
+                Toast.fire({ icon: 'error', title: 'Stock insuffisant' });
+                return;
+            }
+
+            item.quantity += change;
+            if (item.quantity <= 0) {
+                tab.cart = tab.cart.filter(i => i.id !== productId);
+            }
+            renderActiveTabContent();
+            renderTabs();
+        }
+
+        function clearCart() {
+            const tab = tabs[activeTabIndex];
+            if (tab.cart.length === 0) return;
+            Swal.fire({ title: 'Vider le panier?', text: "Cette action est irréversible.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Oui, vider!' })
+                .then(result => {
+                    if (result.isConfirmed) {
+                        tab.cart = [];
+                        tab.discountAmount = 0;
+                        tab.selectedClient = null;
+                        renderActiveTabContent();
+                        renderTabs();
+                        Toast.fire({ icon: 'success', title: 'Panier vidé' });
+                    }
+                });
+        }
+
+        // --- Client Management ---
+        function renderClientSection() {
+            const client = tabs[activeTabIndex].selectedClient;
+            if (client) {
+                selectedClientName.textContent = client.nom;
+                selectedClientDisplay.classList.remove('hidden');
+                clientSearchSection.classList.add('hidden');
+            } else {
+                selectedClientDisplay.classList.add('hidden');
+                clientSearchSection.classList.remove('hidden');
+                clientSearchInput.value = '';
+            }
+        }
+
+        function selectClient(client) {
+            tabs[activeTabIndex].selectedClient = client;
+            clientSearchResults.innerHTML = '';
+            clientSearchInput.value = '';
+            renderClientSection();
+            renderTabs();
+        }
+
+        async function openAddClientModal() {
+            const { value: formValues } = await Swal.fire({
+                title: 'Ajouter un nouveau client',
+                html: `
+                    <input id="swal-input-name" class="swal2-input" placeholder="Nom du client">
+                    <input id="swal-input-phone" class="swal2-input" placeholder="Téléphone (optionnel)">
+                    <input id="swal-input-address" class="swal2-input" placeholder="Adresse (optionnel)">
+                `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'Ajouter',
+                preConfirm: () => {
+                    const nom = document.getElementById('swal-input-name').value;
+                    if (!nom) {
+                        Swal.showValidationMessage('Le nom est obligatoire');
+                        return false;
+                    }
+                    return {
+                        nom: nom,
+                        telephone: document.getElementById('swal-input-phone').value,
+                        adresse: document.getElementById('swal-input-address').value
+                    }
+                }
+            });
+
+            if (formValues) {
+                try {
+                    const response = await fetch('/api/clients', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
+                        body: JSON.stringify(formValues)
+                    });
+                    if (response.ok) {
+                        const newClient = await response.json();
+                        selectClient(newClient);
+                        Toast.fire({ icon: 'success', title: 'Client ajouté!' });
+                    } else {
+                        Swal.fire('Erreur', 'Ce client existe peut-être déjà.', 'error');
+                    }
+                } catch (error) {
+                    console.error("Add client error:", error);
+                    Swal.fire('Erreur', 'Impossible de contacter le serveur.', 'error');
+                }
+            }
+        }
+
+        // --- Discount Management ---
+        async function openDiscountModal() {
+            const { value: amount } = await Swal.fire({
+                title: 'Appliquer une remise',
+                input: 'number',
+                inputLabel: 'Montant de la remise en €',
+                inputValue: tabs[activeTabIndex].discountAmount || 0,
+                showCancelButton: true,
+                inputValidator: (value) => {
+                    if (value === '' || parseFloat(value) < 0) {
+                        return 'Veuillez entrer un montant valide'
+                    }
+                }
+            });
+
+            if (amount) {
+                tabs[activeTabIndex].discountAmount = parseFloat(amount);
+                renderActiveTabContent();
+            }
+        }
+
+        // --- Main Rendering & Payment ---
+        function renderActiveTabContent() {
+            const tab = tabs[activeTabIndex];
+            cartItemsContainer.innerHTML = '';
+            let subTotal = 0;
+
+            tab.cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                subTotal += itemTotal;
+                const cartItemEl = document.createElement('div');
+                cartItemEl.className = 'flex justify-between items-center mb-2';
+                cartItemEl.dataset.productId = item.id;
+                cartItemEl.innerHTML = `
+                    <div>
+                        <p class="font-bold">${item.name}</p>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <button data-action="decrease" class="px-2 py-0.5 bg-gray-200 rounded-md hover:bg-gray-300"><i class="fas fa-minus"></i></button>
+                            <p class="mx-2">${item.quantity} x ${item.price.toFixed(2)} €</p>
+                            <button data-action="increase" class="px-2 py-0.5 bg-gray-200 rounded-md hover:bg-gray-300"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <p class="font-bold mr-4">${itemTotal.toFixed(2)} €</p>
+                        <button data-action="remove" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+                cartItemsContainer.appendChild(cartItemEl);
+            });
+
+            const discount = tab.discountAmount || 0;
+            const finalTotal = subTotal - discount > 0 ? subTotal - discount : 0;
+
+            totalSection.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <span>Sous-total:</span>
+                    <span>${subTotal.toFixed(2)} €</span>
+                </div>
+                <div class="flex justify-between items-center mt-1">
+                    <span>Remise:</span>
+                    <span><button id="discount-btn" class="text-blue-500 hover:underline">-${discount.toFixed(2)} €</button></span>
+                </div>
+                <p class="font-bold text-xl mt-2">Total Final: <span id="final-total">${finalTotal.toFixed(2)}</span> €</p>
+            `;
+            document.getElementById('discount-btn').addEventListener('click', openDiscountModal);
+
+            renderClientSection();
+        }
+
+        async function openPaymentModal() {
+            const tab = tabs[activeTabIndex];
+            if (tab.cart.length === 0) {
+                Swal.fire({ icon: 'error', title: 'Oops...', text: 'Le panier est vide!' });
+                return;
+            }
+            
+            const subTotal = tab.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const finalTotal = subTotal - (tab.discountAmount || 0) > 0 ? subTotal - (tab.discountAmount || 0) : 0;
+
+            const { value: formValues } = await Swal.fire({
+                title: 'Finaliser la vente',
+                html: `
+                    <div class="text-left">
+                        <p class="text-2xl font-bold text-center mb-4">Total à payer: ${finalTotal.toFixed(2)} €</p>
+                        <hr class="my-4">
+                        <div class="mb-4">
+                            <strong class="block mb-2">Type de vente:</strong>
+                            <input type="radio" id="sale-direct" name="saleType" value="direct" checked><label for="sale-direct" class="swal2-radio-label">Payé</label>
+                            <input type="radio" id="sale-credit" name="saleType" value="credit"><label for="sale-credit" class="swal2-radio-label">A crédit</label>
+                        </div>
+                        <div class="mb-4">
+                            <strong class="block mb-2">Moyen de paiement:</strong>
+                            <input type="radio" id="pay-cash" name="paymentMethod" value="cash" checked><label for="pay-cash" class="swal2-radio-label">Espèces</label>
+                            <input type="radio" id="pay-card" name="paymentMethod" value="card"><label for="pay-card" class="swal2-radio-label">Carte</label>
+                        </div>
+                        <div id="tendered-amount-section" class="mb-4 text-center">
+                            <label for="swal-input-tendered" class="block font-bold mb-2">Montant reçu:</label>
+                            <input id="swal-input-tendered" class="swal2-input" type="number" placeholder="0.00" style="width: 12em;">
+                        </div>
+                        <div class="text-center bg-gray-100 p-3 rounded-md">
+                            <strong class="block">Reliquat:</strong>
+                            <span id="swal-change-display" class="text-2xl font-bold text-green-600">0.00 €</span>
+                        </div>
+                    </div>
+                `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'Valider le paiement',
+                cancelButtonText: 'Annuler',
+                didOpen: () => {
+                    const tenderedInput = document.getElementById('swal-input-tendered');
+                    const changeDisplay = document.getElementById('swal-change-display');
+                    const cashRadio = document.getElementById('pay-cash');
+                    const cardRadio = document.getElementById('pay-card');
+                    const creditRadio = document.getElementById('sale-credit');
+                    const paymentMethodSection = cashRadio.closest('.mb-4');
+                    const tenderedSection = document.getElementById('tendered-amount-section');
+
+                    const updateTotal = () => {
+                        const isCredit = creditRadio.checked;
+                        const isCash = cashRadio.checked;
+                        paymentMethodSection.style.display = isCredit ? 'none' : 'block';
+                        tenderedSection.style.display = isCredit || !isCash ? 'none' : 'block';
+                        const tendered = parseFloat(tenderedInput.value) || 0;
+                        const change = tendered - finalTotal;
+                        changeDisplay.textContent = (change > 0 ? change : 0).toFixed(2) + ' €';
+                    };
+
+                    tenderedInput.addEventListener('input', updateTotal);
+                    cashRadio.addEventListener('change', updateTotal);
+                    cardRadio.addEventListener('change', updateTotal);
+                    creditRadio.addEventListener('change', updateTotal);
+                    document.getElementById('sale-direct').addEventListener('change', updateTotal);
+                    updateTotal();
+                },
+                preConfirm: () => {
+                    const saleType = document.querySelector('input[name="saleType"]:checked').value;
+                    if (saleType === 'credit' && !tab.selectedClient) {
+                        Swal.showValidationMessage('Veuillez sélectionner un client pour une vente à crédit.');
+                        return false;
+                    }
+                    const paymentMethod = saleType === 'credit' ? 'credit' : document.querySelector('input[name="paymentMethod"]:checked').value;
+                    const tenderedAmount = parseFloat(document.getElementById('swal-input-tendered').value) || 0;
+
+                    if (saleType === 'direct' && paymentMethod === 'cash' && tenderedAmount < finalTotal) {
+                        Swal.showValidationMessage('Le montant reçu est inférieur au total.');
+                        return false;
+                    }
+                    return { saleType, paymentMethod, tenderedAmount };
+                }
+            });
+
+            if (formValues) {
+                fetch('/caissier/vendre', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
+                    body: JSON.stringify({ 
+                        cart: tab.cart,
+                        saleType: formValues.saleType,
+                        paymentMethod: formValues.paymentMethod,
+                        clientId: tab.selectedClient ? tab.selectedClient.id : null,
+                        discountAmount: tab.discountAmount
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire('Vente enregistrée!', data.message, 'success');
+                        tabs[activeTabIndex] = { id: activeTabIndex + 1, cart: [], selectedClient: null, discountAmount: 0 }; // Reset tab
+                        renderActiveTabContent();
+                        renderTabs();
+                    } else {
+                        Swal.fire('Erreur!', data.message, 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error('Sale error:', err);
+                    Swal.fire('Erreur Connexion', 'La communication avec le serveur a échoué.', 'error');
+                });
+            }
+        }
+        
+        // --- Event Listeners ---
+        cartItemsContainer.addEventListener('click', (e) => {
+            const button = e.target.closest('button[data-action]');
+            if (!button) return;
+            const action = button.dataset.action;
+            const cartItemEl = button.closest('[data-product-id]');
+            const productId = cartItemEl.dataset.productId;
+
+            if (action === 'increase') updateCartItemQuantity(productId, 1);
+            if (action === 'decrease') updateCartItemQuantity(productId, -1);
+            if (action === 'remove') {
+                tabs[activeTabIndex].cart = tabs[activeTabIndex].cart.filter(i => i.id !== productId);
+                renderActiveTabContent();
+                renderTabs();
+            }
+        });
+        clearCartButton.addEventListener('click', clearCart);
+        searchInput.addEventListener('input', filterProducts);
+        categoryFilter.addEventListener('change', filterProducts);
+        payButton.addEventListener('click', openPaymentModal);
+
+        clientSearchInput.addEventListener('input', async (e) => {
+            const query = e.target.value;
+            if (query.length < 2) {
+                clientSearchResults.innerHTML = '';
+                return;
+            }
+            try {
+                const response = await fetch(`/api/clients/search?query=${query}`);
+                const clients = await response.json();
+                clientSearchResults.innerHTML = '';
+                clients.forEach(client => {
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'p-2 cursor-pointer';
+                    resultDiv.textContent = client.nom;
+                    resultDiv.addEventListener('click', () => selectClient(client));
+                    clientSearchResults.appendChild(resultDiv);
+                });
+            } catch (error) {
+                console.error('Client search error:', error);
+            }
+        });
+
+        addClientBtn.addEventListener('click', openAddClientModal);
+
+        removeClientBtn.addEventListener('click', () => {
+            tabs[activeTabIndex].selectedClient = null;
+            renderClientSection();
+            renderTabs();
+        });
+    });
+    /*]]>*/
+</script>
+
+</body>
+</html>

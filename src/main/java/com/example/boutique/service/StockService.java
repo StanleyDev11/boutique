@@ -1,11 +1,22 @@
 package com.example.boutique.service;
 
+import com.example.boutique.dto.CartItemDto;
+import com.example.boutique.dto.VenteRequestDto;
+import com.example.boutique.enums.TypeMouvement;
+import com.example.boutique.model.Client;
 import com.example.boutique.model.MouvementStock;
 import com.example.boutique.model.Produit;
+import com.example.boutique.model.Vente;
+import com.example.boutique.repository.ClientRepository;
 import com.example.boutique.repository.MouvementStockRepository;
 import com.example.boutique.repository.ProduitRepository;
+import com.example.boutique.repository.VenteRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @Transactional
@@ -13,14 +24,17 @@ public class StockService {
 
     private final MouvementStockRepository mouvementStockRepository;
     private final ProduitRepository produitRepository;
+    private final VenteRepository venteRepository;
+    private final ClientRepository clientRepository;
 
-    public StockService(MouvementStockRepository mouvementStockRepository, ProduitRepository produitRepository) {
+    public StockService(MouvementStockRepository mouvementStockRepository, ProduitRepository produitRepository, VenteRepository venteRepository, ClientRepository clientRepository) {
         this.mouvementStockRepository = mouvementStockRepository;
         this.produitRepository = produitRepository;
+        this.venteRepository = venteRepository;
+        this.clientRepository = clientRepository;
     }
 
     public void enregistrerMouvement(MouvementStock mouvement) {
-        // 1. Récupérer le produit concerné pour s'assurer qu'il existe
         Produit produit = produitRepository.findById(mouvement.getProduit().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé"));
 
@@ -28,7 +42,6 @@ public class StockService {
         int stockActuel = produit.getQuantiteEnStock();
         int nouveauStock;
 
-        // 2. Mettre à jour la quantité en stock en fonction du type de mouvement
         switch (mouvement.getTypeMouvement()) {
             case ENTREE:
                 nouveauStock = stockActuel + quantiteMouvement;
@@ -45,9 +58,68 @@ public class StockService {
         }
 
         produit.setQuantiteEnStock(nouveauStock);
-
-        // 3. Sauvegarder le produit mis à jour et le nouveau mouvement
         produitRepository.save(produit);
         mouvementStockRepository.save(mouvement);
+    }
+
+    public void enregistrerVente(VenteRequestDto venteRequest) {
+        List<CartItemDto> cartItems = venteRequest.getCart();
+        BigDecimal totalBrut = BigDecimal.ZERO;
+
+        // First, validate stock and calculate total from backend data for security
+        for (CartItemDto item : cartItems) {
+            Produit produit = produitRepository.findById(item.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé avec l'ID: " + item.getId()));
+            if (produit.getQuantiteEnStock() < item.getQuantity()) {
+                throw new IllegalStateException("Stock insuffisant pour le produit: " + produit.getNom());
+            }
+            totalBrut = totalBrut.add(produit.getPrixVenteUnitaire().multiply(new BigDecimal(item.getQuantity())));
+        }
+
+        // Handle discount
+        BigDecimal remise = venteRequest.getDiscountAmount() != null ? venteRequest.getDiscountAmount() : BigDecimal.ZERO;
+        BigDecimal totalFinal = totalBrut.subtract(remise);
+        if (totalFinal.compareTo(BigDecimal.ZERO) < 0) {
+            totalFinal = BigDecimal.ZERO; // Ensure final total is not negative
+        }
+
+        // Handle client
+        Client client = null;
+        if (venteRequest.getClientId() != null) {
+            client = clientRepository.findById(venteRequest.getClientId())
+                    .orElse(null); // Or throw an exception if client MUST exist
+        }
+
+        // Create and save the Vente entity
+        Vente vente = new Vente();
+        vente.setDateVente(LocalDateTime.now());
+        vente.setClient(client);
+        vente.setTotal(totalBrut);
+        vente.setTotalBrut(totalBrut);
+        vente.setRemise(remise);
+        vente.setTotalNet(totalFinal);
+        vente.setTotalFinal(totalFinal);
+        vente.setTypeVente(venteRequest.getSaleType());
+        vente.setMoyenPaiement(venteRequest.getPaymentMethod());
+        venteRepository.save(vente);
+
+        // Then, update stock and create stock movements
+        for (CartItemDto item : cartItems) {
+            Produit produit = produitRepository.findById(item.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé avec l'ID: " + item.getId())); // Should not happen as we checked before
+
+            // Update product stock
+            produit.setQuantiteEnStock(produit.getQuantiteEnStock() - item.getQuantity());
+            produitRepository.save(produit);
+
+            // Create stock movement record
+            MouvementStock mouvementStock = new MouvementStock();
+            mouvementStock.setProduit(produit);
+            mouvementStock.setQuantite(item.getQuantity());
+            mouvementStock.setTypeMouvement(TypeMouvement.SORTIE_VENTE);
+            mouvementStock.setDateMouvement(LocalDateTime.now());
+            mouvementStock.setDescription("Vente de " + item.getQuantity() + " unités. Réf Vente ID: " + vente.getId());
+            mouvementStockRepository.save(mouvementStock);
+        }
     }
 }
