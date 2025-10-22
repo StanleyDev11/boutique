@@ -1,83 +1,180 @@
 <!DOCTYPE html>
-<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interface Caissier</title>
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        .tab-button.active { background-color: #1D4ED8; color: white; }
-        .tab-button { transition: background-color 0.2s; }
-        .swal2-radio-label { margin: 0 10px; }
-        #client-search-results div:hover { background-color: #eff6ff; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caissier Pro - Interface Caissier</title>
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.waves.min.js"></script>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-50">
 
-<div class="flex flex-col h-screen">
-    <!-- Tabs -->
-    <div id="tabs-container" class="flex-shrink-0 bg-gray-200 p-1 flex space-x-1 overflow-x-auto"></div>
-
-    <div class="flex flex-grow overflow-hidden">
-        <!-- Left Column: Product List -->
-        <div class="w-1/2 bg-white p-4 overflow-y-auto border-r">
-            <h2 class="text-2xl font-bold mb-4">Produits</h2>
-            <div class="mb-4">
-                <input type="text" id="search-input" placeholder="Rechercher par nom ou code-barres..." class="w-full px-3 py-2 border border-gray-300 rounded-md">
-            </div>
-            <div class="mb-4">
-                <select id="category-filter" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                    <option value="">Toutes les catégories</option>
-                    <option th:each="category : ${categories}" th:value="${category}" th:text="${category}"></option>
-                </select>
-            </div>
-            <div id="product-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div th:each="produit : ${produits}" class="product-card border p-4 rounded-md cursor-pointer" th:data-id="${produit.id}" th:data-nom="${produit.nom}" th:data-prix="${produit.prixVenteUnitaire}" th:data-categorie="${produit.categorie}" th:data-codebarres="${produit.codeBarres}" th:data-stock="${produit.quantiteEnStock}">
-                    <h3 class="font-bold" th:text="${produit.nom}"></h3>
-                    <p th:text="${produit.prixVenteUnitaire} + ' €'"></p>
-                    <p class="text-sm mt-2" th:classappend="${produit.quantiteEnStock <= 5 ? 'text-red-500' : 'text-gray-500'}">Stock: <span th:text="${produit.quantiteEnStock}"></span></p>
-                </div>
-            </div>
+<!-- Header with Vanta.js background -->
+<header id="vanta-header" class="relative h-16 shadow-md">
+    <div class="absolute inset-0 bg-gray-800"></div> <!-- Changed color here -->
+    <div class="relative container mx-auto h-full flex items-center justify-between px-4">
+        <div class="flex items-center"> <!-- Added a div for logo and title -->
+            <img th:src="@{/lo.png}" alt="Logo" class="h-10 w-auto mr-4"> <!-- Added logo here -->
+            <h1 class="text-2xl font-bold text-white">
+                <i class="fas fa-cash-register mr-2"></i> Caissier Pro
+            </h1>
         </div>
-
-        <!-- Right Column: Sale for Active Tab -->
-        <div class="w-1/2 p-4 flex flex-col">
-            <h2 class="text-2xl font-bold mb-4">Vente en cours (Ticket <span id="active-tab-display">1</span>)</h2>
-            <div id="sale-details" class="bg-white p-4 rounded-md shadow-md mb-4 min-h-[150px]"></div>
-            
-            <!-- Client Section -->
-            <div class="bg-white p-4 rounded-md shadow-md mb-4">
-                <div id="selected-client-display" class="hidden items-center justify-between p-2 bg-blue-100 rounded-md">
-                    <p>Client: <strong id="selected-client-name"></strong></p>
-                    <button id="remove-client-btn" class="text-red-500 hover:text-red-700"><i class="fas fa-times-circle"></i></button>
-                </div>
-                <div id="client-search-section">
-                    <div class="flex items-center">
-                        <input type="text" id="client-search-input" placeholder="Rechercher un client..." class="w-full px-3 py-2 border border-gray-300 rounded-l-md">
-                        <button id="add-client-btn" class="bg-blue-500 text-white px-4 py-2 rounded-r-md hover:bg-blue-600"><i class="fas fa-plus"></i></button>
-                    </div>
-                    <div id="client-search-results" class="mt-1 border border-gray-200 rounded-md max-h-40 overflow-y-auto"></div>
-                </div>
+        <div class="flex items-center space-x-4">
+            <div id="connection-status" class="flex items-center space-x-2">
+                <span class="h-3 w-3 bg-green-500 rounded-full animate-pulse"></span>
+                <span class="text-white text-sm font-medium">En ligne</span>
             </div>
-
-            <!-- Cart Section -->
-            <div id="cart" class="bg-white p-4 rounded-md shadow-md flex-grow flex flex-col">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="font-bold text-lg">Panier</h3>
-                    <button id="clear-cart-button" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i> Vider</button>
-                </div>
-                <div id="cart-items" class="flex-grow overflow-y-auto"></div>
-                <div id="total-section" class="mt-4 border-t pt-4 flex-shrink-0"></div>
-                <button id="pay-button" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg mt-4">Payer</button>
-            </div>
+            <div id="clock" class="text-white text-sm font-mono text-center"></div>
+            <span class="text-white hidden md:inline">Session: <span class="font-bold" sec:authentication="name"></span></span>
+            <a th:href="@{/dashboard}" sec:authorize="hasRole('ADMIN')" class="bg-white/10 hover:bg-white/20 text-white px-4 py-1 rounded-full transition" title="Dashboard">
+                <i class="fas fa-tachometer-alt"></i>
+            </a>
+            <form id="logout-form" th:action="@{/logout}" method="post" class="inline">
+                <button type="submit" class="bg-white/10 hover:bg-white/20 text-white px-4 py-1 rounded-full transition" title="Déconnexion">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </form>
         </div>
     </div>
+</header>
+
+<div class="flex flex-col md:flex-row h-[calc(100vh-4rem)]">
+  <!-- Left Sidebar - Product Navigation -->
+  <aside class="w-full md:w-[40rem] bg-white shadow-md p-4 overflow-y-auto">
+    <div class="mb-8">
+      <h2 class="text-lg font-bold mb-2 text-indigo-800 flex items-center">
+        <i class="fas fa-filter mr-2"></i> Filtres
+      </h2>
+      <input type="text" id="search-input" placeholder="Recherche..."
+             class="w-full px-3 py-2 border border-gray-200 rounded-lg mb-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+      <select id="category-filter" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500">
+        <option value="">Toutes catégories</option>
+        <option th:each="category : ${categories}" th:value="${category}" th:text="${category}"></option>
+      </select>
+    </div>
+
+    <div class="mb-4">
+      <h2 class="text-lg font-bold mb-2 text-indigo-800 flex items-center">
+        <i class="fas fa-tags mr-2"></i> Produits
+      </h2>
+      <div id="product-list" class="space-y-2">
+        <div th:each="produit : ${produits}"
+             class="product-card p-3 rounded-lg hover:bg-indigo-50 cursor-pointer transition border border-gray-100"
+             th:data-id="${produit.id}" th:data-nom="${produit.nom}"
+             th:data-prix="${produit.prixVenteUnitaire}"
+             th:data-categorie="${produit.categorie}"
+             th:data-codebarres="${produit.codeBarres}"
+             th:data-stock="${produit.quantiteEnStock}">
+          <div class="flex justify-between items-start">
+            <h3 class="font-semibold" th:text="${produit.nom}"></h3>
+            <span class="text-xs px-2 py-1 rounded-full"
+                  th:classappend="${produit.quantiteEnStock <= 5 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
+                            <span th:text="${produit.quantiteEnStock}"></span> en stock
+                        </span>
+          </div>
+          <p class="text-lg font-bold text-indigo-600" th:text="${produit.prixVenteUnitaire} + ' FCFA'"></p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 flex flex-col overflow-hidden">
+    <!-- Tabs Navigation -->
+    <div class="bg-indigo-50 px-4 py-2 flex items-center overflow-x-auto">
+      <div id="tabs-container" class="flex space-x-2"></div>
+      <button id="new-tab-btn" class="ml-2 p-1 rounded-full bg-indigo-600 text-white hover:bg-indigo-700">
+        <i class="fas fa-plus text-xs"></i>
+      </button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 overflow-hidden">
+      <!-- Product Details Panel -->
+      <div id="sale-details" class="bg-white rounded-xl shadow-sm p-4 hidden">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold text-indigo-800">Détails Produit</h3>
+          <button id="close-details" class="text-gray-400 hover:text-gray-600">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div id="product-details-content" class="space-y-4"></div>
+      </div>
+
+      <!-- Cart Panel -->
+      <div class="bg-white rounded-xl shadow-sm p-4 flex flex-col h-full">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold text-indigo-800">
+            <i class="fas fa-shopping-cart mr-2"></i> Panier
+          </h3>
+          <div>
+            <button id="clear-cart-button" class="text-red-500 hover:text-red-700 mr-3">
+              <i class="fas fa-trash mr-1"></i> Vider
+            </button>
+            <button id="discount-btn" class="text-indigo-600 hover:text-indigo-800">
+              <i class="fas fa-percentage mr-1"></i> Remise
+            </button>
+          </div>
+        </div>
+
+        <!-- Client Info -->
+        <div id="selected-client-display" class="hidden bg-indigo-50 p-3 rounded-lg mb-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="text-xs text-indigo-500">Client</p>
+              <p class="font-bold" id="selected-client-name"></p>
+            </div>
+            <button id="remove-client-btn" class="text-red-500 hover:text-red-700">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+        <div id="client-search-section" class="mb-4">
+          <div class="relative">
+            <input type="text" id="client-search-input" placeholder="Rechercher un client..."
+                   class="w-full px-4 py-2 border border-gray-200 rounded-lg pl-10 focus:ring-2 focus:ring-indigo-500">
+            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+            <button id="add-client-btn" class="absolute right-2 top-2 bg-indigo-600 text-white p-1 rounded-lg hover:bg-indigo-700">
+              <i class="fas fa-plus text-xs"></i>
+            </button>
+          </div>
+          <div id="client-search-results" class="mt-1 border border-gray-100 rounded-lg max-h-40 overflow-y-auto hidden"></div>
+        </div>
+
+        <!-- Cart Items -->
+        <div id="cart-items" class="flex-grow overflow-y-auto space-y-3 mb-4"></div>
+
+        <!-- Totals -->
+        <div id="total-section" class="border-t pt-4 space-y-2">
+          <div class="flex justify-between">
+            <span>Sous-total:</span>
+            <span id="subtotal-amount">0.00 FCFA</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Remise:</span>
+            <span id="discount-amount" class="text-red-500">-0.00 FCFA</span>
+          </div>
+          <div class="flex justify-between text-lg font-bold pt-2 border-t">
+            <span>Total:</span>
+            <span id="final-total" class="text-indigo-600">0.00 FCFA</span>
+          </div>
+        </div>
+
+        <!-- Payment Button -->
+        <button id="pay-button" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-800 hover:from-indigo-700 hover:to-indigo-900 text-white py-3 rounded-lg font-bold mt-4 shadow-md transition-all hover:shadow-lg">
+          <i class="fas fa-credit-card mr-2"></i> Payer
+        </button>
+      </div>
+    </div>
+  </main>
 </div>
 
+<!-- Scripts -->
 <script th:inline="javascript">
     /*<![CDATA[*/
     const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
@@ -88,14 +185,20 @@
         // --- DOM Elements ---
         const searchInput = document.getElementById('search-input');
         const categoryFilter = document.getElementById('category-filter');
-        const productCards = Array.from(document.getElementsByClassName('product-card'));
+        const productList = document.getElementById('product-list');
         const saleDetails = document.getElementById('sale-details');
+        const productDetailsContent = document.getElementById('product-details-content');
+        const closeDetailsBtn = document.getElementById('close-details');
         const cartItemsContainer = document.getElementById('cart-items');
         const totalSection = document.getElementById('total-section');
+        const subtotalAmount = document.getElementById('subtotal-amount');
+        const discountAmount = document.getElementById('discount-amount');
+        const finalTotal = document.getElementById('final-total');
         const payButton = document.getElementById('pay-button');
         const clearCartButton = document.getElementById('clear-cart-button');
+        const discountBtn = document.getElementById('discount-btn');
         const tabsContainer = document.getElementById('tabs-container');
-        const activeTabDisplay = document.getElementById('active-tab-display');
+        const newTabBtn = document.getElementById('new-tab-btn');
         const clientSearchInput = document.getElementById('client-search-input');
         const clientSearchResults = document.getElementById('client-search-results');
         const addClientBtn = document.getElementById('add-client-btn');
@@ -105,9 +208,9 @@
         const clientSearchSection = document.getElementById('client-search-section');
 
         // --- State ---
-        const NUM_TABS = 20;
-        let tabs = Array.from({ length: NUM_TABS }, (_, i) => ({ id: i + 1, cart: [], selectedClient: null, discountAmount: 0 }));
+        let tabs = [{ id: 1, cart: [], selectedClient: null, discountAmount: 0 }];
         let activeTabIndex = 0;
+        let nextTabId = 2;
 
         // --- Initialization ---
         searchInput.focus();
@@ -121,19 +224,23 @@
             tabsContainer.innerHTML = '';
             tabs.forEach((tab, index) => {
                 const tabButton = document.createElement('button');
-                tabButton.className = `tab-button px-4 py-2 rounded-md text-sm font-medium ` + (index === activeTabIndex ? 'active' : 'bg-gray-300');
-                let content = `Ticket ${tab.id}`;
-                if (tab.cart.length > 0) content += ` <span class="bg-blue-600 text-white text-xs rounded-full px-1.5 py-0.5 ml-1">${tab.cart.length}</span>`;
+                tabButton.className = `px-4 py-2 rounded-md text-sm font-medium ` + (index === activeTabIndex ? 'bg-indigo-600 text-white shadow' : 'bg-white text-gray-600 hover:bg-indigo-100');
+                let content = `Tab ${tab.id}`;
+                if (tab.cart.length > 0) content += ` <span class="bg-white text-indigo-600 text-xs rounded-full px-1.5 py-0.5 ml-1">${tab.cart.length}</span>`;
                 if (tab.selectedClient) content += ` <i class="fas fa-user ml-2 text-xs"></i>`;
                 tabButton.innerHTML = content;
                 tabButton.addEventListener('click', () => switchTab(index));
                 tabsContainer.appendChild(tabButton);
             });
         }
+        
+        function addNewTab() {
+            tabs.push({ id: nextTabId++, cart: [], selectedClient: null, discountAmount: 0 });
+            switchTab(tabs.length - 1);
+        }
 
         function switchTab(index) {
             activeTabIndex = index;
-            activeTabDisplay.textContent = tabs[activeTabIndex].id;
             renderTabs();
             renderActiveTabContent();
         }
@@ -141,7 +248,7 @@
         function filterProducts() {
             const searchTerm = searchInput.value.toLowerCase();
             const selectedCategory = categoryFilter.value;
-            productCards.forEach(card => {
+            document.querySelectorAll('.product-card').forEach(card => {
                 const isVisible = (card.dataset.nom.toLowerCase().includes(searchTerm) || (card.dataset.codebarres || '').toLowerCase().includes(searchTerm)) &&
                                   (!selectedCategory || card.dataset.categorie === selectedCategory);
                 card.style.display = isVisible ? 'block' : 'none';
@@ -149,19 +256,20 @@
         }
 
         // --- Product & Cart Logic ---
-        productCards.forEach(card => {
-            card.addEventListener('click', function() {
-                const productId = this.dataset.id;
-                const stock = parseInt(this.dataset.stock);
-                const itemInCart = tabs[activeTabIndex].cart.find(item => item.id === productId);
-                const qtyInCart = itemInCart ? itemInCart.quantity : 0;
+        productList.addEventListener('click', function(e) {
+            const card = e.target.closest('.product-card');
+            if (!card) return;
 
-                if (stock - qtyInCart <= 0) {
-                    Swal.fire('Stock épuisé', `Il ne reste plus de ${this.dataset.nom} en stock.`, 'warning');
-                    return;
-                }
-                displaySaleDetails(this.dataset);
-            });
+            const productId = card.dataset.id;
+            const stock = parseInt(card.dataset.stock);
+            const itemInCart = tabs[activeTabIndex].cart.find(item => item.id === productId);
+            const qtyInCart = itemInCart ? itemInCart.quantity : 0;
+
+            if (stock - qtyInCart <= 0) {
+                Swal.fire('Stock épuisé', `Il ne reste plus de ${card.dataset.nom} en stock.`, 'warning');
+                return;
+            }
+            displaySaleDetails(card.dataset);
         });
 
         function displaySaleDetails(productData) {
@@ -170,16 +278,17 @@
             const qtyInCart = itemInCart ? itemInCart.quantity : 0;
             const availableStock = stock - qtyInCart;
 
-            saleDetails.innerHTML = `
+            productDetailsContent.innerHTML = `
                 <h3 class="font-bold text-lg">${nom}</h3>
-                <p>Prix: ${parseFloat(prix).toFixed(2)} € / <span class="text-sm text-gray-600">Stock dispo: ${availableStock}</span></p>
+                <p>Prix: ${parseFloat(prix).toFixed(2)} FCFA / <span class="text-sm text-gray-600">Stock dispo: ${availableStock}</span></p>
                 <div class="mt-4">
                     <label for="quantity" class="block text-sm font-medium text-gray-700">Quantité</label>
                     <input type="number" id="quantity" value="1" min="1" max="${availableStock}" class="w-full px-3 py-2 border border-gray-300 rounded-md">
                 </div>
-                <div class="mt-4"><p class="font-bold">Total: <span id="total-price">${parseFloat(prix).toFixed(2)}</span> €</p></div>
-                <button id="add-to-cart" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg mt-4">Ajouter</button>
+                <div class="mt-4"><p class="font-bold">Total: <span id="total-price">${parseFloat(prix).toFixed(2)}</span> FCFA</p></div>
+                <button id="add-to-cart" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg mt-4"><i class="fas fa-cart-plus"></i> Ajouter</button>
             `;
+            saleDetails.classList.remove('hidden');
 
             const qtyInput = document.getElementById('quantity');
             qtyInput.addEventListener('input', () => {
@@ -187,8 +296,13 @@
             });
             document.getElementById('add-to-cart').addEventListener('click', () => {
                 addToCart(id, nom, parseFloat(prix), parseInt(qtyInput.value), parseInt(stock));
+                saleDetails.classList.add('hidden');
             });
         }
+        
+        closeDetailsBtn.addEventListener('click', () => {
+            saleDetails.classList.add('hidden');
+        });
 
         function addToCart(productId, name, price, quantity, stock) {
             if (quantity <= 0) return;
@@ -211,7 +325,6 @@
             renderTabs();
             Toast.fire({ icon: 'success', title: `${name} ajouté` });
             searchInput.focus();
-            saleDetails.innerHTML = '';
         }
 
         function updateCartItemQuantity(productId, change) {
@@ -219,7 +332,7 @@
             const item = tab.cart.find(i => i.id === productId);
             if (!item) return;
 
-            const productCard = productCards.find(card => card.dataset.id === productId);
+            const productCard = document.querySelector(`.product-card[data-id='${productId}']`);
             const stock = parseInt(productCard.dataset.stock);
 
             if (item.quantity + change > stock) {
@@ -269,6 +382,7 @@
             tabs[activeTabIndex].selectedClient = client;
             clientSearchResults.innerHTML = '';
             clientSearchInput.value = '';
+            clientSearchResults.classList.add('hidden');
             renderClientSection();
             renderTabs();
         }
@@ -324,7 +438,7 @@
             const { value: amount } = await Swal.fire({
                 title: 'Appliquer une remise',
                 input: 'number',
-                inputLabel: 'Montant de la remise en €',
+                inputLabel: 'Montant de la remise en FCFA',
                 inputValue: tabs[activeTabIndex].discountAmount || 0,
                 showCancelButton: true,
                 inputValidator: (value) => {
@@ -350,40 +464,31 @@
                 const itemTotal = item.price * item.quantity;
                 subTotal += itemTotal;
                 const cartItemEl = document.createElement('div');
-                cartItemEl.className = 'flex justify-between items-center mb-2';
+                cartItemEl.className = 'flex justify-between items-center p-2 rounded-lg hover:bg-gray-50';
                 cartItemEl.dataset.productId = item.id;
                 cartItemEl.innerHTML = `
-                    <div>
-                        <p class="font-bold">${item.name}</p>
-                        <div class="flex items-center text-sm text-gray-600">
+                    <div class="flex-grow">
+                        <p class="font-semibold">${item.name}</p>
+                        <div class="flex items-center text-sm text-gray-500 mt-1">
                             <button data-action="decrease" class="px-2 py-0.5 bg-gray-200 rounded-md hover:bg-gray-300"><i class="fas fa-minus"></i></button>
-                            <p class="mx-2">${item.quantity} x ${item.price.toFixed(2)} €</p>
+                            <p class="mx-3">${item.quantity}</p>
                             <button data-action="increase" class="px-2 py-0.5 bg-gray-200 rounded-md hover:bg-gray-300"><i class="fas fa-plus"></i></button>
                         </div>
                     </div>
-                    <div class="flex items-center">
-                        <p class="font-bold mr-4">${itemTotal.toFixed(2)} €</p>
-                        <button data-action="remove" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                    <div class="text-right">
+                        <p class="font-bold">${itemTotal.toFixed(2)} FCFA</p>
+                        <button data-action="remove" class="text-red-400 hover:text-red-600 text-xs">Retirer</button>
                     </div>
                 `;
                 cartItemsContainer.appendChild(cartItemEl);
             });
 
             const discount = tab.discountAmount || 0;
-            const finalTotal = subTotal - discount > 0 ? subTotal - discount : 0;
+            const finalTotalValue = subTotal - discount > 0 ? subTotal - discount : 0;
 
-            totalSection.innerHTML = `
-                <div class="flex justify-between items-center">
-                    <span>Sous-total:</span>
-                    <span>${subTotal.toFixed(2)} €</span>
-                </div>
-                <div class="flex justify-between items-center mt-1">
-                    <span>Remise:</span>
-                    <span><button id="discount-btn" class="text-blue-500 hover:underline">-${discount.toFixed(2)} €</button></span>
-                </div>
-                <p class="font-bold text-xl mt-2">Total Final: <span id="final-total">${finalTotal.toFixed(2)}</span> €</p>
-            `;
-            document.getElementById('discount-btn').addEventListener('click', openDiscountModal);
+            subtotalAmount.textContent = `${subTotal.toFixed(2)} FCFA`;
+            discountAmount.textContent = `-${discount.toFixed(2)} FCFA`;
+            finalTotal.textContent = `${finalTotalValue.toFixed(2)} FCFA`;
 
             renderClientSection();
         }
@@ -396,13 +501,13 @@
             }
             
             const subTotal = tab.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            const finalTotal = subTotal - (tab.discountAmount || 0) > 0 ? subTotal - (tab.discountAmount || 0) : 0;
+            const finalTotalValue = subTotal - (tab.discountAmount || 0) > 0 ? subTotal - (tab.discountAmount || 0) : 0;
 
             const { value: formValues } = await Swal.fire({
                 title: 'Finaliser la vente',
                 html: `
                     <div class="text-left">
-                        <p class="text-2xl font-bold text-center mb-4">Total à payer: ${finalTotal.toFixed(2)} €</p>
+                        <p class="text-2xl font-bold text-center mb-4">Total à payer: ${finalTotalValue.toFixed(2)} FCFA</p>
                         <hr class="my-4">
                         <div class="mb-4">
                             <strong class="block mb-2">Type de vente:</strong>
@@ -420,7 +525,7 @@
                         </div>
                         <div class="text-center bg-gray-100 p-3 rounded-md">
                             <strong class="block">Reliquat:</strong>
-                            <span id="swal-change-display" class="text-2xl font-bold text-green-600">0.00 €</span>
+                            <span id="swal-change-display" class="text-2xl font-bold text-green-600">0.00 FCFA</span>
                         </div>
                     </div>
                 `,
@@ -443,8 +548,8 @@
                         paymentMethodSection.style.display = isCredit ? 'none' : 'block';
                         tenderedSection.style.display = isCredit || !isCash ? 'none' : 'block';
                         const tendered = parseFloat(tenderedInput.value) || 0;
-                        const change = tendered - finalTotal;
-                        changeDisplay.textContent = (change > 0 ? change : 0).toFixed(2) + ' €';
+                        const change = tendered - finalTotalValue;
+                        changeDisplay.textContent = (change > 0 ? change : 0).toFixed(2) + ' FCFA';
                     };
 
                     tenderedInput.addEventListener('input', updateTotal);
@@ -463,7 +568,7 @@
                     const paymentMethod = saleType === 'credit' ? 'credit' : document.querySelector('input[name="paymentMethod"]:checked').value;
                     const tenderedAmount = parseFloat(document.getElementById('swal-input-tendered').value) || 0;
 
-                    if (saleType === 'direct' && paymentMethod === 'cash' && tenderedAmount < finalTotal) {
+                    if (saleType === 'direct' && paymentMethod === 'cash' && tenderedAmount < finalTotalValue) {
                         Swal.showValidationMessage('Le montant reçu est inférieur au total.');
                         return false;
                     }
@@ -486,8 +591,19 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        Swal.fire('Vente enregistrée!', data.message, 'success');
-                        tabs[activeTabIndex] = { id: activeTabIndex + 1, cart: [], selectedClient: null, discountAmount: 0 }; // Reset tab
+                        Swal.fire({
+                            title: 'Vente enregistrée!',
+                            text: data.message,
+                            icon: 'success',
+                            showCancelButton: true,
+                            confirmButtonText: 'Imprimer le reçu',
+                            cancelButtonText: 'Fermer'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                printReceipt(tab, formValues, finalTotalValue);
+                            }
+                        });
+                        tabs[activeTabIndex] = { id: tabs[activeTabIndex].id, cart: [], selectedClient: null, discountAmount: 0 }; // Reset tab
                         renderActiveTabContent();
                         renderTabs();
                     } else {
@@ -499,6 +615,66 @@
                     Swal.fire('Erreur Connexion', 'La communication avec le serveur a échoué.', 'error');
                 });
             }
+        }
+
+        function printReceipt(tab, saleData, finalTotal) {
+            const now = new Date();
+            const receiptWindow = window.open('', 'PRINT', 'height=600,width=400');
+            const clientName = tab.selectedClient ? tab.selectedClient.nom : 'Client de passage';
+
+            let receiptContent = `
+                <html>
+                <head>
+                    <title>Reçu</title>
+                    <style>
+                        body { font-family: 'Courier New', monospace; font-size: 10pt; }
+                        .container { width: 90%; margin: auto; }
+                        h2 { text-align: center; }
+                        hr { border-top: 1px dashed #000; }
+                        .item { display: flex; justify-content: space-between; }
+                        .total { text-align: right; font-weight: bold; margin-top: 10px; }
+                        .footer { text-align: center; margin-top: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h2>Votre Boutique</h2>
+                        <p>Date: ${now.toLocaleDateString('fr-FR')} ${now.toLocaleTimeString('fr-FR')}</p>
+                        <p>Client: ${clientName}</p>
+                        <hr>
+                        <div>
+            `;
+
+            tab.cart.forEach(item => {
+                receiptContent += `
+                    <div class="item">
+                        <span>${item.name} (x${item.quantity})</span>
+                        <span>${(item.price * item.quantity).toFixed(2)} FCFA</span>
+                    </div>
+                `;
+            });
+
+            receiptContent += `
+                        </div>
+                        <hr>
+                        <div class="total">
+                            <p>Sous-total: ${tab.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)} FCFA</p>
+                            <p>Remise: -${(tab.discountAmount || 0).toFixed(2)} FCFA</p>
+                            <p>Total: ${finalTotal.toFixed(2)} FCFA</p>
+                        </div>
+                        <div class="footer">
+                            <p>Merci de votre visite !</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            receiptWindow.document.write(receiptContent);
+            receiptWindow.document.close();
+            receiptWindow.focus();
+            receiptWindow.print();
+            receiptWindow.close();
         }
         
         // --- Event Listeners ---
@@ -518,14 +694,17 @@
             }
         });
         clearCartButton.addEventListener('click', clearCart);
+        discountBtn.addEventListener('click', openDiscountModal);
         searchInput.addEventListener('input', filterProducts);
         categoryFilter.addEventListener('change', filterProducts);
         payButton.addEventListener('click', openPaymentModal);
+        newTabBtn.addEventListener('click', addNewTab);
 
         clientSearchInput.addEventListener('input', async (e) => {
             const query = e.target.value;
             if (query.length < 2) {
                 clientSearchResults.innerHTML = '';
+                clientSearchResults.classList.add('hidden');
                 return;
             }
             try {
@@ -534,11 +713,12 @@
                 clientSearchResults.innerHTML = '';
                 clients.forEach(client => {
                     const resultDiv = document.createElement('div');
-                    resultDiv.className = 'p-2 cursor-pointer';
+                    resultDiv.className = 'p-2 cursor-pointer hover:bg-indigo-50';
                     resultDiv.textContent = client.nom;
                     resultDiv.addEventListener('click', () => selectClient(client));
                     clientSearchResults.appendChild(resultDiv);
                 });
+                clientSearchResults.classList.remove('hidden');
             } catch (error) {
                 console.error('Client search error:', error);
             }
@@ -551,9 +731,96 @@
             renderClientSection();
             renderTabs();
         });
+
+        const logoutForm = document.getElementById('logout-form');
+        if (logoutForm) {
+            logoutForm.addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevent default form submission
+
+                Swal.fire({
+                    title: 'Déconnexion',
+                    text: 'Êtes-vous sûr de vouloir vous déconnecter ?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Oui, déconnecter',
+                    cancelButtonText: 'Non, rester connecté',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        logoutForm.submit(); // Submit the form if confirmed
+                    }
+                });
+            });
+        }
     });
     /*]]>*/
 </script>
 
+<script>
+  // Initialize Vanta.js waves effect
+  VANTA.WAVES({
+      el: "#vanta-header",
+      mouseControls: true,
+      touchControls: true,
+      gyroControls: false,
+      minHeight: 200.00,
+      minWidth: 200.00,
+      scale: 1.00,
+      scaleMobile: 1.00,
+      color: 0x4f46e5,
+      shininess: 50.00,
+      waveHeight: 20.00,
+      waveSpeed: 0.50,
+      zoom: 0.65
+  });
+
+  function updateClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const dateOptions = { weekday: 'long', day: 'numeric', month: 'long' };
+      const date = now.toLocaleDateString('fr-FR', dateOptions);
+      
+      const clockElement = document.getElementById('clock');
+      if (clockElement) {
+          clockElement.innerHTML = `<div class="text-xs leading-tight">${date}</div><div class="font-bold">${hours}:${minutes}:${seconds}</div>`;
+      }
+  }
+
+  function checkConnectionStatus() {
+      const statusIndicator = document.getElementById('connection-status');
+      if (!statusIndicator) return;
+      
+      const statusDot = statusIndicator.querySelector('span:first-child');
+      const statusText = statusIndicator.querySelector('span:last-child');
+
+      fetch('/')
+          .then(response => {
+              if (response.ok) {
+                  statusDot.classList.remove('bg-red-500');
+                  statusDot.classList.add('bg-green-500', 'animate-pulse');
+                  statusText.textContent = 'En ligne';
+              }
+          })
+          .catch(() => {
+              statusDot.classList.remove('bg-green-500', 'animate-pulse');
+              statusDot.classList.add('bg-red-500');
+              statusText.textContent = 'Hors ligne';
+          });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+      if (typeof feather !== 'undefined') {
+          feather.replace();
+      }
+      
+      setInterval(updateClock, 1000);
+      updateClock();
+
+      setInterval(checkConnectionStatus, 15000); // Check every 15 seconds
+      checkConnectionStatus();
+  });
+</script>
 </body>
 </html>

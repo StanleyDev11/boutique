@@ -49,11 +49,9 @@
 <div class="auth-card w-full max-w-md p-8 sm:p-10">
     <div class="text-center mb-8">
         <div class="flex justify-center mb-4">
-            <div class="bg-primary p-3 rounded-full">
-                <i data-feather="lock" class="w-8 h-8 text-white"></i>
-            </div>
+            <img th:src="@{/loo.jpg}" alt="BELALUXE Logo" class="h-20 w-auto">
         </div>
-        <h1 class="text-2xl font-bold text-gray-800 mb-2">Bienvenue sur SecureAuth</h1>
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">Bienvenue chez BELALUXE</h1>
         <p class="text-gray-600">Veuillez vous connecter à votre compte</p>
     </div>
 
@@ -66,13 +64,7 @@
             </div>
         </div>
 
-        <!-- Logout Message -->
-        <div th:if="${param.logout}" class="bg-green-50 border-l-4 border-green-500 p-4">
-            <div class="flex items-center">
-                <i data-feather="check-circle" class="text-green-500 mr-2"></i>
-                <p class="text-green-700 font-medium">Vous avez été déconnecté avec succès</p>
-            </div>
-        </div>
+        
 
         <div class="input-field">
             <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Nom d'utilisateur</label>
@@ -93,20 +85,15 @@
                     <i data-feather="key" class="text-gray-400"></i>
                 </div>
                 <input type="password" id="password" name="password"
-                       class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                       class="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
                        placeholder="Entrez votre mot de passe" required>
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer" id="togglePassword">
+                    <i data-feather="eye-off" class="text-gray-400"></i>
+                </div>
             </div>
         </div>
 
-        <div class="flex items-center justify-between">
-            <div class="flex items-center">
-                <input id="remember-me" name="remember-me" type="checkbox"
-                       class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
-                <label for="remember-me" class="ml-2 block text-sm text-gray-700">Se souvenir de moi</label>
-            </div>
-            <div class="text-sm">
-                <a href="#" class="font-medium text-primary hover:text-primary-dark">Mot de passe oublié?</a>
-            </div>
+        <div class="flex items-center justify-end">
         </div>
 
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
@@ -117,12 +104,7 @@
         </button>
     </form>
 
-    <div class="mt-6 text-center">
-        <p class="text-sm text-gray-600">
-            Vous n'avez pas de compte?
-            <a href="#" class="font-medium text-secondary hover:text-secondary-dark">S'inscrire</a>
-        </p>
-    </div>
+    
 </div>
 
 <script>
@@ -139,6 +121,23 @@
                 input.style.transform = 'translateY(0)';
             }, 100 * index);
         });
+    });
+
+    const togglePassword = document.querySelector('#togglePassword');
+    const password = document.querySelector('#password');
+
+    togglePassword.addEventListener('click', function (e) {
+        // toggle the type attribute
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+        // toggle the eye icon
+        const icon = this.querySelector('i');
+        if (type === 'password') {
+            icon.setAttribute('data-feather', 'eye-off');
+        } else {
+            icon.setAttribute('data-feather', 'eye');
+        }
+        feather.replace(); // Re-render feather icons
     });
 </script>
 </body>

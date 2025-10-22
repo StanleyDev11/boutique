@@ -32,11 +32,16 @@
 
             <!-- User Info and Logout -->
             <div class="flex items-center space-x-5">
+                <div id="connection-status" class="flex items-center space-x-2">
+                    <span class="h-3 w-3 bg-green-500 rounded-full animate-pulse"></span>
+                    <span class="text-white text-sm font-medium">En ligne</span>
+                </div>
+                <div id="clock" class="text-white text-sm font-mono text-center"></div>
                 <div class="flex items-center">
                     <i class="fas fa-user-circle text-gray-300 mr-2 text-xl"></i>
                     <span class="text-base font-medium text-white" sec:authentication="name"></span>
                 </div>
-                <form th:action="@{/logout}" method="post" class="inline">
+                <form id="logout-form-header" th:action="@{/logout}" method="post" class="inline">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                     <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-base font-semibold transition duration-200 flex items-center">
                         <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
@@ -46,3 +51,75 @@
         </div>
     </div>
 </header>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    function updateClock() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const dateOptions = { weekday: 'long', day: 'numeric', month: 'long' };
+        const date = now.toLocaleDateString('fr-FR', dateOptions);
+        
+        const clockElement = document.getElementById('clock');
+        if (clockElement) {
+            clockElement.innerHTML = `<div class="text-xs leading-tight">${date}</div><div class="font-bold">${hours}:${minutes}:${seconds}</div>`;
+        }
+    }
+
+    function checkConnectionStatus() {
+        const statusIndicator = document.getElementById('connection-status');
+        if (!statusIndicator) return;
+        
+        const statusDot = statusIndicator.querySelector('span:first-child');
+        const statusText = statusIndicator.querySelector('span:last-child');
+
+        fetch('/')
+            .then(response => {
+                if (response.ok) {
+                    statusDot.classList.remove('bg-red-500');
+                    statusDot.classList.add('bg-green-500', 'animate-pulse');
+                    statusText.textContent = 'En ligne';
+                } else {
+                    throw new Error('Server not ok');
+                }
+            })
+            .catch(() => {
+                statusDot.classList.remove('bg-green-500', 'animate-pulse');
+                statusDot.classList.add('bg-red-500');
+                statusText.textContent = 'Hors ligne';
+            });
+    }
+
+    // Call functions directly, or with a small delay to ensure DOM is ready
+    setTimeout(function() {
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        setInterval(checkConnectionStatus, 15000); // Check every 15 seconds
+        checkConnectionStatus();
+
+        const logoutFormHeader = document.getElementById('logout-form-header');
+        if (logoutFormHeader) {
+            logoutFormHeader.addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevent default form submission
+
+                Swal.fire({
+                    title: 'Déconnexion',
+                    text: 'Êtes-vous sûr de vouloir vous déconnecter ?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Oui, déconnecter',
+                    cancelButtonText: 'Non, rester connecté',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        logoutFormHeader.submit(); // Submit the form if confirmed
+                    }
+                });
+            });
+        }
+    }, 0); // Small delay to ensure DOM is ready
+    /*]]>*/
+</script>

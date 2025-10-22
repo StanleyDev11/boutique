@@ -1,5 +1,7 @@
 package com.example.boutique.controller;
 
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import com.example.boutique.dto.VenteRequestDto;
 import com.example.boutique.model.Produit;
 import com.example.boutique.repository.ClientRepository;
@@ -31,10 +33,11 @@ public class CaissierController {
     }
 
     @GetMapping
-    public String caissier(Model model) {
+    public String caissier(Model model, @AuthenticationPrincipal UserDetails userDetails) {
         model.addAttribute("produits", produitRepository.findAll());
         model.addAttribute("categories", produitRepository.findAll().stream().map(Produit::getCategorie).distinct().collect(Collectors.toList()));
         model.addAttribute("clients", clientRepository.findAll());
+        model.addAttribute("user", userDetails);
         return "caissier";
     }
 

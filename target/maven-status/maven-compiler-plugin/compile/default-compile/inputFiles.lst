@@ -1,4 +1,5 @@
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\controller\ProduitController.java
+C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\model\Vente.java
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\model\Personnel.java
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\dto\ProduitVenteDto.java
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\service\StockService.java
@@ -9,6 +10,7 @@ C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\dto\CartItemDto.java
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\controller\StockController.java
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\controller\RapportController.java
+C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\repository\VenteRepository.java
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\model\Produit.java
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\config\CustomAuthenticationSuccessHandler.java
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\controller\AuthController.java
@@ -17,6 +19,8 @@ C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\service\JpaUserDetailsService.java
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\repository\ProduitRepository.java
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\enums\TypeMouvement.java
+C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\model\Client.java
+C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\controller\ClientController.java
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\controller\UtilisateurController.java
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\repository\UtilisateurRepository.java
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\repository\MouvementStockRepository.java
@@ -24,3 +28,4 @@ C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\config\SecurityConfig.java
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\controller\CaissierController.java
 C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\BoutiqueApplication.java
+C:\Users\ChamDev\Downloads\Boutique\Boutique\src\main\java\com\example\boutique\repository\ClientRepository.java
