@@ -29,7 +29,7 @@ public class SecurityConfig {
                 .requestMatchers("/stock/**").hasAnyRole("ADMIN", "GESTIONNAIRE")
                 .requestMatchers("/personnel/**").hasRole("ADMIN")
                 .requestMatchers("/utilisateurs/**").hasRole("ADMIN")
-                .requestMatchers("/rapports/**").hasRole("ADMIN")
+                .requestMatchers("/rapports/**").hasAnyRole("ADMIN", "GESTIONNAIRE")
                 .requestMatchers("/dashboard").hasRole("ADMIN")
                 .requestMatchers("/produits").hasAnyRole("ADMIN", "GESTIONNAIRE") // Admin et Gestionnaire peuvent voir les produits
                 .anyRequest().authenticated() // Toutes les autres pages nécessitent une connexion

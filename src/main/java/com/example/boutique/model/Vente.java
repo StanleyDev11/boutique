@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List; // Added
 
 @Data
 @Entity
@@ -20,6 +21,9 @@ public class Vente {
 
     @Column(nullable = false)
     private LocalDateTime dateVente;
+
+    @OneToMany(mappedBy = "vente", cascade = CascadeType.ALL, orphanRemoval = true) // Added
+    private List<LigneVente> ligneVentes; // Added
 
     @Column(name = "total", nullable = false)
     private BigDecimal total;

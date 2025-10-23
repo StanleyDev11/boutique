@@ -6,7 +6,10 @@ import com.example.boutique.enums.TypeMouvement;
 import com.example.boutique.model.Client;
 import com.example.boutique.model.MouvementStock;
 import com.example.boutique.model.Produit;
+import com.example.boutique.model.LigneVente;
 import com.example.boutique.model.Vente;
+
+
 import com.example.boutique.repository.ClientRepository;
 import com.example.boutique.repository.MouvementStockRepository;
 import com.example.boutique.repository.ProduitRepository;
@@ -26,12 +29,14 @@ public class StockService {
     private final ProduitRepository produitRepository;
     private final VenteRepository venteRepository;
     private final ClientRepository clientRepository;
+    private final com.example.boutique.repository.LigneVenteRepository ligneVenteRepository;
 
-    public StockService(MouvementStockRepository mouvementStockRepository, ProduitRepository produitRepository, VenteRepository venteRepository, ClientRepository clientRepository) {
+    public StockService(MouvementStockRepository mouvementStockRepository, ProduitRepository produitRepository, VenteRepository venteRepository, ClientRepository clientRepository, com.example.boutique.repository.LigneVenteRepository ligneVenteRepository) {
         this.mouvementStockRepository = mouvementStockRepository;
         this.produitRepository = produitRepository;
         this.venteRepository = venteRepository;
         this.clientRepository = clientRepository;
+        this.ligneVenteRepository = ligneVenteRepository;
     }
 
     public void enregistrerMouvement(MouvementStock mouvement) {
@@ -107,6 +112,14 @@ public class StockService {
         for (CartItemDto item : cartItems) {
             Produit produit = produitRepository.findById(item.getId())
                     .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé avec l'ID: " + item.getId())); // Should not happen as we checked before
+
+            LigneVente ligneVente = new LigneVente();
+            ligneVente.setVente(vente);
+            ligneVente.setProduit(produit);
+            ligneVente.setQuantite(item.getQuantity());
+            ligneVente.setPrixUnitaire(produit.getPrixVenteUnitaire());
+            ligneVente.setMontantTotal(produit.getPrixVenteUnitaire().multiply(new BigDecimal(item.getQuantity())));
+            ligneVenteRepository.save(ligneVente);
 
             // Update product stock
             produit.setQuantiteEnStock(produit.getQuantiteEnStock() - item.getQuantity());

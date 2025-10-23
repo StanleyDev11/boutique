@@ -28,6 +28,9 @@
                 <a th:href="@{/rapports/stock-bas}" class="text-base font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')">
                     <i class="fas fa-chart-bar mr-2"></i>Rapports
                 </a>
+                <a th:href="@{/rapports/ventes-historique}" class="text-base font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')">
+                    <i class="fas fa-history mr-2"></i>Historique Ventes
+                </a>
             </nav>
 
             <!-- User Info and Logout -->
