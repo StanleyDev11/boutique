@@ -223,11 +223,9 @@
                     <td class="px-6 py-4">
                         <div class="flex flex-wrap gap-2">
                             <span th:each="role : ${#strings.arraySplit(user.roles, ',')}"
-                                  th:classappend="${role == 'ROLE_ADMIN'} ? 'role-admin' :
-                                                 (role == 'ROLE_CAISSIER') ? 'role-caissier' : 'role-user'"
+                                  th:classappend="${#strings.trim(role) == 'ROLE_ADMIN' ? 'role-admin' : (#strings.trim(role) == 'ROLE_CAISSIER' ? 'role-caissier' : 'role-user')}"
                                   class="role-badge flex items-center">
-                                <i th:classappend="${role == 'ROLE_ADMIN'} ? 'fas fa-crown mr-1' :
-                                                   (role == 'ROLE_CAISSIER') ? 'fas fa-cash-register mr-1' : 'fas fa-user mr-1'"></i>
+                                <i th:classappend="${#strings.trim(role) == 'ROLE_ADMIN' ? 'fas fa-crown mr-1' : (#strings.trim(role) == 'ROLE_CAISSIER' ? 'fas fa-cash-register mr-1' : 'fas fa-user mr-1')}"></i>
                                 <span th:text="${#strings.replace(role, 'ROLE_', '')}"></span>
                             </span>
                         </div>

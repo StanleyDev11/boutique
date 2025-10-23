@@ -110,12 +110,10 @@
   <div class="absolute inset-0"></div>
   <div class="relative container mx-auto h-full flex items-center justify-between px-6">
     <div class="flex items-center">
-      <div class="flex items-center justify-center h-12 w-12 rounded-xl bg-white/10 backdrop-blur-sm mr-4">
-        <img th:src="@{/lo.png}" alt="Logo" class="h-8 w-auto">
-      </div>
+      <h1 class="text-2xl font-bold text-white italic mr-4">BelaLuxe</h1>
       <div>
         <h1 class="text-2xl font-bold text-white">
-          <i class="fas fa-cash-register mr-2"></i> Caissier Pro
+          <i class="fas fa-cash-register mr-2"></i> Caisse
         </h1>
         <p class="text-white/80 text-sm">Système de gestion de caisse</p>
       </div>
@@ -132,8 +130,9 @@
         <i class="fas fa-user text-white/80"></i>
         <span class="text-white font-medium" sec:authentication="name"></span>
       </div>
-      <a th:href="@{/dashboard}" sec:authorize="hasRole('ADMIN')" class="bg-white/10 hover:bg-white/20 text-white p-2 rounded-xl transition-all duration-300 hover:scale-110" title="Dashboard">
-        <i class="fas fa-tachometer-alt"></i>
+      <a th:href="@{/dashboard}" sec:authorize="hasRole('ADMIN')" class="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-xl transition-all duration-300 hover:scale-110 flex items-center" title="Dashboard">
+        <i class="fas fa-tachometer-alt mr-2"></i>
+        <span>Dashboard</span>
       </a>
       <form id="logout-form" th:action="@{/logout}" method="post" class="inline">
         <button type="submit" class="bg-white/10 hover:bg-white/20 text-white p-2 rounded-xl transition-all duration-300 hover:scale-110" title="Déconnexion">
@@ -209,9 +208,9 @@
   </aside>
 
   <!-- Main Content Area -->
-  <main class="flex-1 flex flex-col overflow-hidden">
+  <main class="flex-1 flex flex-col overflow-hidden min-h-0 h-full">
     <!-- Tabs Navigation -->
-    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-3 flex items-center overflow-x-auto border-b">
+    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-3 flex items-center overflow-x-auto border-b flex-shrink-0">
       <div id="tabs-container" class="flex space-x-2"></div>
       <button id="new-tab-btn" class="ml-2 p-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition-all duration-300 hover:scale-105 floating-action">
         <i class="fas fa-plus"></i>
@@ -219,7 +218,7 @@
     </div>
 
     <!-- Main Content -->
-    <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 overflow-hidden">
+    <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 overflow-hidden h-full">
       <!-- Product Details Panel -->
       <div id="sale-details" class="bg-white rounded-2xl shadow-lg p-6 hidden glass-card">
         <div class="flex justify-between items-center mb-6">
@@ -232,72 +231,76 @@
       </div>
 
       <!-- Cart Panel -->
-      <div class="bg-white rounded-2xl shadow-lg p-6 flex flex-col h-full glass-card">
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="text-xl font-bold text-gray-800">
-            <i class="fas fa-shopping-cart mr-3 text-indigo-500"></i> Panier d'achat
-          </h3>
-          <div class="flex space-x-2">
-            <button id="clear-cart-button" class="text-red-500 hover:text-red-700 transition-colors p-2 hover:bg-red-50 rounded-lg">
-              <i class="fas fa-trash mr-1"></i> Vider
-            </button>
-            <button id="discount-btn" class="text-indigo-600 hover:text-indigo-800 transition-colors p-2 hover:bg-indigo-50 rounded-lg">
-              <i class="fas fa-percentage mr-1"></i> Remise
-            </button>
-          </div>
-        </div>
-
-        <!-- Client Info -->
-        <div id="selected-client-display" class="hidden bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-xl mb-6 border border-indigo-100">
-          <div class="flex justify-between items-center">
-            <div>
-              <p class="text-xs text-indigo-500 font-medium">Client sélectionné</p>
-              <p class="font-bold text-gray-800" id="selected-client-name"></p>
+      <div class="bg-white rounded-2xl shadow-lg p-6 grid grid-rows-[auto_1fr_auto] gap-6 h-full glass-card">
+        <!-- Header and Client Section -->
+        <div>
+            <div class="flex justify-between items-center">
+              <h3 class="text-xl font-bold text-gray-800">
+                <i class="fas fa-shopping-cart mr-3 text-indigo-500"></i> Panier d'achat
+              </h3>
+              <div class="flex space-x-2">
+                <button id="clear-cart-button" class="text-red-500 hover:text-red-700 transition-colors p-2 hover:bg-red-50 rounded-lg">
+                  <i class="fas fa-trash mr-1"></i> Vider
+                </button>
+                <button id="discount-btn" class="text-indigo-600 hover:text-indigo-800 transition-colors p-2 hover:bg-indigo-50 rounded-lg">
+                  <i class="fas fa-percentage mr-1"></i> Remise
+                </button>
+              </div>
             </div>
-            <button id="remove-client-btn" class="text-red-500 hover:text-red-700 transition-colors p-1 hover:bg-red-50 rounded-lg">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-        </div>
 
-        <div id="client-search-section" class="mb-6">
-          <div class="relative">
-            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
-            <input type="text" id="client-search-input" placeholder="Rechercher un client..."
-                   class="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 glass-card">
-            <button id="add-client-btn" class="absolute right-2 top-2 bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 transition-colors">
-              <i class="fas fa-user-plus text-sm"></i>
-            </button>
-          </div>
-          <div id="client-search-results" class="mt-2 border border-gray-100 rounded-xl max-h-40 overflow-y-auto hidden glass-card"></div>
+            <!-- Client Info -->
+            <div id="selected-client-display" class="hidden bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-xl mt-6 border border-indigo-100">
+              <div class="flex justify-between items-center">
+                <div>
+                  <p class="text-xs text-indigo-500 font-medium">Client sélectionné</p>
+                  <p class="font-bold text-gray-800" id="selected-client-name"></p>
+                </div>
+                <button id="remove-client-btn" class="text-red-500 hover:text-red-700 transition-colors p-1 hover:bg-red-50 rounded-lg">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+
+            <div id="client-search-section" class="mt-6">
+              <div class="relative">
+                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                <input type="text" id="client-search-input" placeholder="Rechercher un client..."
+                       class="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 glass-card">
+                <button id="add-client-btn" class="absolute right-2 top-2 bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                  <i class="fas fa-user-plus text-sm"></i>
+                </button>
+              </div>
+              <div id="client-search-results" class="mt-2 border border-gray-100 rounded-xl max-h-40 overflow-y-auto hidden glass-card"></div>
+            </div>
         </div>
 
         <!-- Cart Items -->
-        <div id="cart-items" class="flex-grow overflow-y-auto space-y-4 mb-6 pr-2">
+        <div id="cart-items" class="overflow-y-auto space-y-4 pr-2">
           <!-- Cart items will be dynamically inserted here -->
         </div>
 
-        <!-- Totals -->
-        <div id="total-section" class="border-t pt-6 space-y-3">
-          <div class="flex justify-between text-gray-600">
-            <span>Sous-total:</span>
-            <span id="subtotal-amount">0.00 FCFA</span>
-          </div>
-          <div class="flex justify-between text-gray-600">
-            <span>Remise:</span>
-            <span id="discount-amount" class="text-red-500">-0.00 FCFA</span>
-          </div>
-          <div class="flex justify-between text-xl font-bold pt-3 border-t border-gray-200">
-            <span class="text-gray-800">Total:</span>
-            <span id="final-total" class="text-indigo-600">0.00 FCFA</span>
-          </div>
-        </div>
+        <!-- Totals and Payment Button -->
+        <div>
+            <div id="total-section" class="border-t pt-6 space-y-3">
+              <div class="flex justify-between text-gray-600">
+                <span>Sous-total:</span>
+                <span id="subtotal-amount">0.00 FCFA</span>
+              </div>
+              <div class="flex justify-between text-gray-600">
+                <span>Remise:</span>
+                <span id="discount-amount" class="text-red-500">-0.00 FCFA</span>
+              </div>
+              <div class="flex justify-between text-xl font-bold pt-3 border-t border-gray-200">
+                <span class="text-gray-800">Total:</span>
+                <span id="final-total" class="text-indigo-600">0.00 FCFA</span>
+              </div>
+            </div>
 
-        <!-- Payment Button -->
-        <button id="pay-button" class="w-full btn-primary text-white py-4 rounded-xl font-bold mt-6 shadow-lg transition-all duration-300 hover:shadow-xl flex items-center justify-center">
-          <i class="fas fa-credit-card mr-3 text-lg"></i>
-          <span class="text-lg">Procéder au Paiement</span>
-        </button>
+            <button id="pay-button" class="w-full btn-primary text-white py-4 rounded-xl font-bold mt-6 shadow-lg transition-all duration-300 hover:shadow-xl flex items-center justify-center">
+              <i class="fas fa-credit-card mr-3 text-lg"></i>
+              <span class="text-lg">Procéder au Paiement</span>
+            </button>
+        </div>
       </div>
     </div>
   </main>
