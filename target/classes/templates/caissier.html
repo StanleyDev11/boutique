@@ -101,6 +101,10 @@
       background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
       color: white;
     }
+
+    #cart-items {
+      max-height: 40vh; /* Hauteur maximale pour le panier */
+    }
   </style>
 </head>
 <body class="bg-gray-50">
@@ -218,7 +222,7 @@
     </div>
 
     <!-- Main Content -->
-    <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 overflow-hidden h-full">
+    <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 overflow-hidden">
       <!-- Product Details Panel -->
       <div id="sale-details" class="bg-white rounded-2xl shadow-lg p-6 hidden glass-card">
         <div class="flex justify-between items-center mb-6">
@@ -275,7 +279,7 @@
         </div>
 
         <!-- Cart Items -->
-        <div id="cart-items" class="overflow-y-auto space-y-4 pr-2">
+        <div id="cart-items" class="overflow-y-auto space-y-4 pr-2 min-h-0">
           <!-- Cart items will be dynamically inserted here -->
         </div>
 
@@ -330,11 +334,23 @@
 <!-- Scripts -->
 <script th:inline="javascript">
   /*<![CDATA[*/
-  // Votre code JavaScript existant reste exactement le même
-  // Il n'a pas été modifié pour préserver toutes les fonctionnalités
   const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
   const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
   const initialClients = /*[[${clients}]]*/ [];
+
+  // --- Global State ---
+  let tabs = [];
+  let activeTabIndex = 0;
+  let nextTabId = 1;
+
+  function saveState() {
+      const state = {
+          tabs: tabs,
+          activeTabIndex: activeTabIndex,
+          nextTabId: nextTabId
+      };
+      localStorage.setItem('cashierState', JSON.stringify(state));
+  }
 
   document.addEventListener('DOMContentLoaded', function() {
       // --- DOM Elements ---
@@ -345,7 +361,6 @@
       const productDetailsContent = document.getElementById('product-details-content');
       const closeDetailsBtn = document.getElementById('close-details');
       const cartItemsContainer = document.getElementById('cart-items');
-      const totalSection = document.getElementById('total-section');
       const subtotalAmount = document.getElementById('subtotal-amount');
       const discountAmount = document.getElementById('discount-amount');
       const finalTotal = document.getElementById('final-total');
@@ -362,15 +377,29 @@
       const removeClientBtn = document.getElementById('remove-client-btn');
       const clientSearchSection = document.getElementById('client-search-section');
 
-      // --- State ---
-      let tabs = [{ id: 1, cart: [], selectedClient: null, discountAmount: 0 }];
-      let activeTabIndex = 0;
-      let nextTabId = 2;
+      // --- State Loading ---
+      function loadState() {
+          const savedState = localStorage.getItem('cashierState');
+          if (savedState) {
+              const state = JSON.parse(savedState);
+              tabs = state.tabs;
+              activeTabIndex = state.activeTabIndex;
+              nextTabId = state.nextTabId;
+              if (activeTabIndex >= tabs.length) {
+                  activeTabIndex = tabs.length - 1;
+              }
+          }
+          if (tabs.length === 0) {
+              tabs = [{ id: 1, cart: [], selectedClient: null, discountAmount: 0 }];
+              activeTabIndex = 0;
+              nextTabId = 2;
+          }
+      }
 
       // --- Initialization ---
+      loadState();
       searchInput.focus();
-      renderTabs();
-      switchTab(0);
+      switchTab(activeTabIndex);
 
       const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true });
 
@@ -392,6 +421,7 @@
               tabButton.addEventListener('click', () => switchTab(index));
               tabsContainer.appendChild(tabButton);
           });
+          saveState();
       }
 
       function addNewTab() {
@@ -419,12 +449,10 @@
       productList.addEventListener('click', function(e) {
           const card = e.target.closest('.product-card');
           if (!card) return;
-
           const productId = card.dataset.id;
           const stock = parseInt(card.dataset.stock);
           const itemInCart = tabs[activeTabIndex].cart.find(item => item.id === productId);
           const qtyInCart = itemInCart ? itemInCart.quantity : 0;
-
           if (stock - qtyInCart <= 0) {
               Swal.fire('Stock épuisé', `Il ne reste plus de ${card.dataset.nom} en stock.`, 'warning');
               return;
@@ -437,7 +465,6 @@
           const itemInCart = tabs[activeTabIndex].cart.find(item => item.id === id);
           const qtyInCart = itemInCart ? itemInCart.quantity : 0;
           const availableStock = stock - qtyInCart;
-
           productDetailsContent.innerHTML = `
               <div class="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-xl mb-4">
                   <h3 class="font-bold text-lg text-gray-800">${nom}</h3>
@@ -461,7 +488,6 @@
               </button>
           `;
           saleDetails.classList.remove('hidden');
-
           const qtyInput = document.getElementById('quantity');
           qtyInput.addEventListener('input', () => {
               document.getElementById('total-price').textContent = (qtyInput.value * parseFloat(prix)).toFixed(2);
@@ -481,18 +507,15 @@
           const tab = tabs[activeTabIndex];
           const itemInCart = tab.cart.find(item => item.id === productId);
           const qtyInCart = itemInCart ? itemInCart.quantity : 0;
-
           if (qtyInCart + quantity > stock) {
               Swal.fire('Quantité insuffisante', `Seulement ${stock - qtyInCart} restant(s) en stock.`, 'error');
               return;
           }
-
           if (itemInCart) {
               itemInCart.quantity += quantity;
           } else {
               tab.cart.push({ id: productId, name: name, price: price, quantity: quantity });
           }
-
           renderActiveTabContent();
           renderTabs();
           Toast.fire({ icon: 'success', title: `${name} ajouté` });
@@ -503,15 +526,12 @@
           const tab = tabs[activeTabIndex];
           const item = tab.cart.find(i => i.id === productId);
           if (!item) return;
-
           const productCard = document.querySelector(`.product-card[data-id='${productId}']`);
           const stock = parseInt(productCard.dataset.stock);
-
           if (item.quantity + change > stock) {
               Toast.fire({ icon: 'error', title: 'Stock insuffisant' });
               return;
           }
-
           item.quantity += change;
           if (item.quantity <= 0) {
               tab.cart = tab.cart.filter(i => i.id !== productId);
@@ -531,17 +551,16 @@
               confirmButtonColor: '#d33',
               confirmButtonText: 'Oui, vider!',
               cancelButtonText: 'Annuler'
-          })
-              .then(result => {
-                  if (result.isConfirmed) {
-                      tab.cart = [];
-                      tab.discountAmount = 0;
-                      tab.selectedClient = null;
-                      renderActiveTabContent();
-                      renderTabs();
-                      Toast.fire({ icon: 'success', title: 'Panier vidé' });
-                  }
-              });
+          }).then(result => {
+              if (result.isConfirmed) {
+                  tab.cart = [];
+                  tab.discountAmount = 0;
+                  tab.selectedClient = null;
+                  renderActiveTabContent();
+                  renderTabs();
+                  Toast.fire({ icon: 'success', title: 'Panier vidé' });
+              }
+          });
       }
 
       // --- Client Management ---
@@ -591,7 +610,6 @@
                   }
               }
           });
-
           if (formValues) {
               try {
                   const response = await fetch('/api/clients', {
@@ -601,6 +619,7 @@
                   });
                   if (response.ok) {
                       const newClient = await response.json();
+                      initialClients.push(newClient);
                       selectClient(newClient);
                       Toast.fire({ icon: 'success', title: 'Client ajouté!' });
                   } else {
@@ -627,7 +646,6 @@
                   }
               }
           });
-
           if (amount) {
               tabs[activeTabIndex].discountAmount = parseFloat(amount);
               renderActiveTabContent();
@@ -639,47 +657,46 @@
           const tab = tabs[activeTabIndex];
           cartItemsContainer.innerHTML = '';
           let subTotal = 0;
-
-          tab.cart.forEach(item => {
-              const itemTotal = item.price * item.quantity;
-              subTotal += itemTotal;
-              const cartItemEl = document.createElement('div');
-              cartItemEl.className = 'cart-item flex justify-between items-center p-4 rounded-xl bg-gray-50 border border-gray-100';
-              cartItemEl.dataset.productId = item.id;
-              cartItemEl.innerHTML = `
-                  <div class="flex-grow">
-                      <p class="font-semibold text-gray-800">${item.name}</p>
-                      <p class="text-sm text-gray-500 mt-1">${item.price.toFixed(2)} FCFA × ${item.quantity}</p>
-                  </div>
-                  <div class="flex items-center space-x-3">
-                      <div class="flex items-center space-x-2 bg-white rounded-lg p-1">
-                          <button data-action="decrease" class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
-                              <i class="fas fa-minus text-gray-600 text-xs"></i>
-                          </button>
-                          <span class="font-medium w-8 text-center">${item.quantity}</span>
-                          <button data-action="increase" class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
-                              <i class="fas fa-plus text-gray-600 text-xs"></i>
-                          </button>
+          if (tab && tab.cart) {
+              tab.cart.forEach(item => {
+                  const itemTotal = item.price * item.quantity;
+                  subTotal += itemTotal;
+                  const cartItemEl = document.createElement('div');
+                  cartItemEl.className = 'cart-item flex justify-between items-center p-4 rounded-xl bg-gray-50 border border-gray-100';
+                  cartItemEl.dataset.productId = item.id;
+                  cartItemEl.innerHTML = `
+                      <div class="flex-grow">
+                          <p class="font-semibold text-gray-800">${item.name}</p>
+                          <p class="text-sm text-gray-500 mt-1">${item.price.toFixed(2)} FCFA × ${item.quantity}</p>
                       </div>
-                      <div class="text-right">
-                          <p class="font-bold text-gray-800">${itemTotal.toFixed(2)} FCFA</p>
-                          <button data-action="remove" class="text-red-400 hover:text-red-600 text-xs transition-colors mt-1">
-                              <i class="fas fa-trash mr-1"></i> Retirer
-                          </button>
+                      <div class="flex items-center space-x-3">
+                          <div class="flex items-center space-x-2 bg-white rounded-lg p-1">
+                              <button data-action="decrease" class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
+                                  <i class="fas fa-minus text-gray-600 text-xs"></i>
+                              </button>
+                              <span class="font-medium w-8 text-center">${item.quantity}</span>
+                              <button data-action="increase" class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
+                                  <i class="fas fa-plus text-gray-600 text-xs"></i>
+                              </button>
+                          </div>
+                          <div class="text-right">
+                              <p class="font-bold text-gray-800">${itemTotal.toFixed(2)} FCFA</p>
+                              <button data-action="remove" class="text-red-400 hover:text-red-600 text-xs transition-colors mt-1">
+                                  <i class="fas fa-trash mr-1"></i> Retirer
+                              </button>
+                          </div>
                       </div>
-                  </div>
-              `;
-              cartItemsContainer.appendChild(cartItemEl);
-          });
-
-          const discount = tab.discountAmount || 0;
+                  `;
+                  cartItemsContainer.appendChild(cartItemEl);
+              });
+          }
+          const discount = (tab && tab.discountAmount) || 0;
           const finalTotalValue = subTotal - discount > 0 ? subTotal - discount : 0;
-
           subtotalAmount.textContent = `${subTotal.toFixed(2)} FCFA`;
           discountAmount.textContent = `-${discount.toFixed(2)} FCFA`;
           finalTotal.textContent = `${finalTotalValue.toFixed(2)} FCFA`;
-
           renderClientSection();
+          saveState();
       }
 
       async function openPaymentModal() {
@@ -688,10 +705,8 @@
               Swal.fire({ icon: 'error', title: 'Panier vide', text: 'Veuillez ajouter des produits au panier avant de procéder au paiement.' });
               return;
           }
-
           const subTotal = tab.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
           const finalTotalValue = subTotal - (tab.discountAmount || 0) > 0 ? subTotal - (tab.discountAmount || 0) : 0;
-
           const { value: formValues } = await Swal.fire({
               title: 'Finaliser la vente',
               html: `
@@ -751,7 +766,6 @@
                   const creditRadio = document.getElementById('sale-credit');
                   const paymentMethodSection = cashRadio.closest('.mb-4');
                   const tenderedSection = document.getElementById('tendered-amount-section');
-
                   const updateTotal = () => {
                       const isCredit = creditRadio.checked;
                       const isCash = cashRadio.checked;
@@ -761,7 +775,6 @@
                       const change = tendered - finalTotalValue;
                       changeDisplay.textContent = (change > 0 ? change : 0).toFixed(2) + ' FCFA';
                   };
-
                   tenderedInput.addEventListener('input', updateTotal);
                   cashRadio.addEventListener('change', updateTotal);
                   cardRadio.addEventListener('change', updateTotal);
@@ -777,7 +790,6 @@
                   }
                   const paymentMethod = saleType === 'credit' ? 'credit' : document.querySelector('input[name="paymentMethod"]:checked').value;
                   const tenderedAmount = parseFloat(document.getElementById('swal-input-tendered').value) || 0;
-
                   if (saleType === 'direct' && paymentMethod === 'cash' && tenderedAmount < finalTotalValue) {
                       Swal.showValidationMessage('Le montant reçu est inférieur au total.');
                       return false;
@@ -801,6 +813,10 @@
               .then(res => res.json())
               .then(data => {
                   if (data.success) {
+                      const completedTab = JSON.parse(JSON.stringify(tab)); // Deep copy for receipt
+                      tabs[activeTabIndex] = { id: tabs[activeTabIndex].id, cart: [], selectedClient: null, discountAmount: 0 }; // Reset tab
+                      saveState(); // Save the cleared state
+
                       Swal.fire({
                           title: 'Vente enregistrée!',
                           text: data.message,
@@ -811,12 +827,10 @@
                           confirmButtonColor: '#4f46e5'
                       }).then((result) => {
                           if (result.isConfirmed) {
-                              printReceipt(tab, formValues, finalTotalValue);
+                              printReceipt(completedTab, formValues, finalTotalValue);
                           }
+                          location.reload(); // Reload the page
                       });
-                      tabs[activeTabIndex] = { id: tabs[activeTabIndex].id, cart: [], selectedClient: null, discountAmount: 0 }; // Reset tab
-                      renderActiveTabContent();
-                      renderTabs();
                   } else {
                       Swal.fire('Erreur!', data.message, 'error');
                   }
@@ -832,30 +846,16 @@
           const now = new Date();
           const receiptWindow = window.open('', 'PRINT', 'height=600,width=400');
           const clientName = tab.selectedClient ? tab.selectedClient.nom : 'Client de passage';
-
           let receiptContent = `
-              <html>
-              <head>
-                  <title>Reçu</title>
-                  <style>
-                      body { font-family: 'Courier New', monospace; font-size: 10pt; }
-                      .container { width: 90%; margin: auto; }
-                      h2 { text-align: center; }
-                      hr { border-top: 1px dashed #000; }
-                      .item { display: flex; justify-content: space-between; }
-                      .total { text-align: right; font-weight: bold; margin-top: 10px; }
-                      .footer { text-align: center; margin-top: 20px; }
-                  </style>
-              </head>
-              <body>
-                  <div class="container">
+              <html><head><title>Reçu</title><style>
+                      body { font-family: 'Courier New', monospace; font-size: 10pt; } .container { width: 90%; margin: auto; }
+                      h2 { text-align: center; } hr { border-top: 1px dashed #000; } .item { display: flex; justify-content: space-between; }
+                      .total { text-align: right; font-weight: bold; margin-top: 10px; } .footer { text-align: center; margin-top: 20px; }
+              </style></head><body><div class="container">
                       <h2>BELALUXE Supermarché</h2>
                       <p>Date: ${now.toLocaleDateString('fr-FR')} ${now.toLocaleTimeString('fr-FR')}</p>
-                      <p>Client: ${clientName}</p>
-                      <hr>
-                      <div>
+                      <p>Client: ${clientName}</p><hr><div>
           `;
-
           tab.cart.forEach(item => {
               receiptContent += `
                   <div class="item">
@@ -864,23 +864,14 @@
                   </div>
               `;
           });
-
           receiptContent += `
-                      </div>
-                      <hr>
-                      <div class="total">
+                      </div><hr><div class="total">
                           <p>Sous-total: ${tab.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)} FCFA</p>
                           <p>Remise: -${(tab.discountAmount || 0).toFixed(2)} FCFA</p>
                           <p>Total: ${finalTotal.toFixed(2)} FCFA</p>
-                      </div>
-                      <div class="footer">
-                          <p>Merci de votre visite !</p>
-                      </div>
-                  </div>
-              </body>
-              </html>
+                      </div><div class="footer"><p>Merci de votre visite !</p></div>
+                  </div></body></html>
           `;
-
           receiptWindow.document.write(receiptContent);
           receiptWindow.document.close();
           receiptWindow.focus();
@@ -895,7 +886,6 @@
           const action = button.dataset.action;
           const cartItemEl = button.closest('[data-product-id]');
           const productId = cartItemEl.dataset.productId;
-
           if (action === 'increase') updateCartItemQuantity(productId, 1);
           if (action === 'decrease') updateCartItemQuantity(productId, -1);
           if (action === 'remove') {
@@ -910,7 +900,6 @@
       categoryFilter.addEventListener('change', filterProducts);
       payButton.addEventListener('click', openPaymentModal);
       newTabBtn.addEventListener('click', addNewTab);
-
       clientSearchInput.addEventListener('input', async (e) => {
           const query = e.target.value;
           if (query.length < 2) {
@@ -934,20 +923,16 @@
               console.error('Client search error:', error);
           }
       });
-
       addClientBtn.addEventListener('click', openAddClientModal);
-
       removeClientBtn.addEventListener('click', () => {
           tabs[activeTabIndex].selectedClient = null;
           renderClientSection();
           renderTabs();
       });
-
       const logoutForm = document.getElementById('logout-form');
       if (logoutForm) {
           logoutForm.addEventListener('submit', function(event) {
-              event.preventDefault(); // Prevent default form submission
-
+              event.preventDefault();
               Swal.fire({
                   title: 'Déconnexion',
                   text: 'Êtes-vous sûr de vouloir vous déconnecter ?',
@@ -959,7 +944,7 @@
                   confirmButtonColor: '#4f46e5'
               }).then((result) => {
                   if (result.isConfirmed) {
-                      logoutForm.submit(); // Submit the form if confirmed
+                      logoutForm.submit();
                   }
               });
           });
