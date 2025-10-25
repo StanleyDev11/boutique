@@ -279,7 +279,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-mono" th:text="${produit.codeBarres}"></td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${produit.numeroFacture}"></td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-bold text-gray-900" th:text="${#numbers.formatDecimal(produit.prixVenteUnitaire, 1, 'COMMA', 2, 'POINT')} + ' €'"></div>
+                        <div class="text-sm font-bold text-gray-900" th:text="${#numbers.formatDecimal(produit.prixVenteUnitaire, 0, 'COMMA', 0, 'POINT')} + ' FCFA'"></div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span th:class="${produit.quantiteEnStock} == 0 ? 'stock-out' : (${produit.quantiteEnStock} <= 10 ? 'stock-low' : 'stock-normal')"

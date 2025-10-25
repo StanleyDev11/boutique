@@ -14,6 +14,7 @@ C:\Users\ChamDev\Desktop\MonApp\Boutique\src\main\java\com\example\boutique\enum
 C:\Users\ChamDev\Desktop\MonApp\Boutique\src\main\java\com\example\boutique\controller\StockController.java
 C:\Users\ChamDev\Desktop\MonApp\Boutique\src\main\java\com\example\boutique\controller\ProduitController.java
 C:\Users\ChamDev\Desktop\MonApp\Boutique\src\main\java\com\example\boutique\repository\ClientRepository.java
+C:\Users\ChamDev\Desktop\MonApp\Boutique\src\main\java\com\example\boutique\dto\CategorySales.java
 C:\Users\ChamDev\Desktop\MonApp\Boutique\src\main\java\com\example\boutique\controller\RapportController.java
 C:\Users\ChamDev\Desktop\MonApp\Boutique\src\main\java\com\example\boutique\service\JpaUserDetailsService.java
 C:\Users\ChamDev\Desktop\MonApp\Boutique\src\main\java\com\example\boutique\model\MouvementStock.java
@@ -31,5 +32,6 @@ C:\Users\ChamDev\Desktop\MonApp\Boutique\src\main\java\com\example\boutique\mode
 C:\Users\ChamDev\Desktop\MonApp\Boutique\src\main\java\com\example\boutique\controller\CaissierController.java
 C:\Users\ChamDev\Desktop\MonApp\Boutique\src\main\java\com\example\boutique\repository\LigneVenteRepository.java
 C:\Users\ChamDev\Desktop\MonApp\Boutique\src\main\java\com\example\boutique\model\Produit.java
+C:\Users\ChamDev\Desktop\MonApp\Boutique\src\main\java\com\example\boutique\dto\CategoryProductCount.java
 C:\Users\ChamDev\Desktop\MonApp\Boutique\src\main\java\com\example\boutique\model\Personnel.java
 C:\Users\ChamDev\Desktop\MonApp\Boutique\src\main\java\com\example\boutique\utils\ProductUtils.java

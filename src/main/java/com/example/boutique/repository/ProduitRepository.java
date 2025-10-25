@@ -1,9 +1,11 @@
 package com.example.boutique.repository;
 
+import com.example.boutique.dto.CategoryProductCount;
 import com.example.boutique.model.Produit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -26,4 +28,7 @@ public interface ProduitRepository extends JpaRepository<Produit, Long> {
 
     // Méthode pour compter les produits en stock bas
     long countByQuantiteEnStockLessThanEqual(int seuil);
+
+    @Query("SELECT p.categorie as category, COUNT(p) as productCount FROM Produit p GROUP BY p.categorie")
+    List<CategoryProductCount> countProductsByCategory();
 }

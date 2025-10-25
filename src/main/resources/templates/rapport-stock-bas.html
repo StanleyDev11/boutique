@@ -53,10 +53,10 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-gray-600">Valeur Stock Bas</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-2" th:text="${#numbers.formatDecimal(valeurStockBas, 1, 'POINT', 2, 'COMMA')} + ' €'">0</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2" th:text="${#numbers.formatDecimal(valeurStockBas, 0, 'POINT', 0, 'COMMA')} + ' FCFA'">0 FCFA</p>
                 </div>
                 <div class="bg-gray-100 p-3 rounded-lg">
-                    <i class="fas fa-euro-sign text-gray-500 text-xl"></i>
+                    <i class="fas fa-money-bill-wave text-gray-500 text-xl"></i>
                 </div>
             </div>
         </div>

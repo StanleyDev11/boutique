@@ -12,6 +12,7 @@ com\example\boutique\config\SecurityConfig.class
 com\example\boutique\controller\CaissierController.class
 com\example\boutique\dto\MouvementStatDto.class
 com\example\boutique\model\Vente.class
+com\example\boutique\dto\CategorySales.class
 com\example\boutique\model\Client.class
 com\example\boutique\repository\VenteRepository.class
 com\example\boutique\model\LigneVente.class
@@ -26,6 +27,7 @@ com\example\boutique\controller\ClientController.class
 com\example\boutique\controller\UtilisateurController.class
 com\example\boutique\model\Utilisateur.class
 com\example\boutique\dto\CartItemDto.class
+com\example\boutique\dto\CategoryProductCount.class
 com\example\boutique\enums\TypeMouvement.class
 com\example\boutique\dto\ProduitVenteDto.class
 com\example\boutique\service\StockService.class

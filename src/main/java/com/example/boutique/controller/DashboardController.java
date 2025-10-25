@@ -1,9 +1,12 @@
 package com.example.boutique.controller;
 
+import com.example.boutique.dto.CategoryProductCount;
+import com.example.boutique.dto.CategorySales;
 import com.example.boutique.dto.MouvementStatDto;
 import com.example.boutique.dto.ProduitVenteDto;
 import com.example.boutique.enums.TypeMouvement;
 import com.example.boutique.model.MouvementStock;
+import com.example.boutique.repository.LigneVenteRepository;
 import com.example.boutique.repository.MouvementStockRepository;
 import com.example.boutique.repository.PersonnelRepository;
 import com.example.boutique.repository.ProduitRepository;
@@ -14,6 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -33,14 +37,16 @@ public class DashboardController {
     private final PersonnelRepository personnelRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final MouvementStockRepository mouvementStockRepository;
+    private final LigneVenteRepository ligneVenteRepository;
 
     private static final int SEUIL_STOCK_BAS = 10;
 
-    public DashboardController(ProduitRepository produitRepository, PersonnelRepository personnelRepository, UtilisateurRepository utilisateurRepository, MouvementStockRepository mouvementStockRepository) {
+    public DashboardController(ProduitRepository produitRepository, PersonnelRepository personnelRepository, UtilisateurRepository utilisateurRepository, MouvementStockRepository mouvementStockRepository, LigneVenteRepository ligneVenteRepository) {
         this.produitRepository = produitRepository;
         this.personnelRepository = personnelRepository;
         this.utilisateurRepository = utilisateurRepository;
         this.mouvementStockRepository = mouvementStockRepository;
+        this.ligneVenteRepository = ligneVenteRepository;
     }
 
     @GetMapping
@@ -56,6 +62,12 @@ public class DashboardController {
 
         // 4. Données pour les produits les plus vendus
         addTopSellingProducts(model);
+
+        // 5. Données pour le graphique des catégories
+        addCategoryChartData(model);
+
+        // 6. Données pour le graphique des ventes par catégorie
+        addSalesByCategoryChartData(model);
 
         return "dashboard";
     }
@@ -132,5 +144,21 @@ public class DashboardController {
         // 3. Produits les plus vendus
         List<ProduitVenteDto> topProduits = mouvementStockRepository.findTopSellingProducts(PageRequest.of(0, 5));
         model.addAttribute("topProduits", topProduits);
+    }
+
+    private void addCategoryChartData(Model model) {
+        List<CategoryProductCount> categoryCounts = produitRepository.countProductsByCategory();
+        List<String> categoryLabels = categoryCounts.stream().map(CategoryProductCount::getCategory).collect(Collectors.toList());
+        List<Long> categoryData = categoryCounts.stream().map(CategoryProductCount::getProductCount).collect(Collectors.toList());
+        model.addAttribute("categoryLabels", categoryLabels);
+        model.addAttribute("categoryData", categoryData);
+    }
+
+    private void addSalesByCategoryChartData(Model model) {
+        List<CategorySales> salesByCategory = ligneVenteRepository.findTotalSalesByCategory();
+        List<String> salesByCategoryLabels = salesByCategory.stream().map(CategorySales::getCategory).collect(Collectors.toList());
+        List<BigDecimal> salesByCategoryData = salesByCategory.stream().map(CategorySales::getTotalSales).collect(Collectors.toList());
+        model.addAttribute("salesByCategoryLabels", salesByCategoryLabels);
+        model.addAttribute("salesByCategoryData", salesByCategoryData);
     }
 }
