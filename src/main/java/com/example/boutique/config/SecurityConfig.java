@@ -29,6 +29,9 @@ public class SecurityConfig {
                 .requestMatchers("/stock/**").hasAnyRole("ADMIN", "GESTIONNAIRE")
                 .requestMatchers("/personnel/**").hasRole("ADMIN")
                 .requestMatchers("/utilisateurs/**").hasRole("ADMIN")
+                .requestMatchers("/rapports/ventes-historique").hasAnyRole("ADMIN", "GESTIONNAIRE", "CAISSIER")
+                .requestMatchers("/rapports/sales-by-day").hasAnyRole("ADMIN", "GESTIONNAIRE", "CAISSIER")
+                .requestMatchers("/rapports/sales-by-category").hasAnyRole("ADMIN", "GESTIONNAIRE", "CAISSIER")
                 .requestMatchers("/rapports/**").hasAnyRole("ADMIN", "GESTIONNAIRE")
                 .requestMatchers("/dashboard").hasRole("ADMIN")
                 .requestMatchers("/produits").hasAnyRole("ADMIN", "GESTIONNAIRE") // Admin et Gestionnaire peuvent voir les produits

@@ -282,19 +282,10 @@
                         <div class="text-sm font-bold text-gray-900" th:text="${#numbers.formatDecimal(produit.prixVenteUnitaire, 1, 'COMMA', 2, 'POINT')} + ' €'"></div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center space-x-3">
-                            <div class="flex-1">
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div th:class="${produit.quantiteEnStock} == 0 ? 'bg-red-500' : (${produit.quantiteEnStock} <= 10 ? 'bg-orange-500' : 'bg-green-500')"
-                                         th:style="'width: ' + ${produit.quantiteEnStock > 50 ? 100 : (produit.quantiteEnStock * 2)} + '%;'"
-                                         class="h-2 rounded-full transition-all duration-300"></div>
-                                </div>
-                            </div>
-                            <span th:class="${produit.quantiteEnStock} == 0 ? 'stock-out' : (${produit.quantiteEnStock} <= 10 ? 'stock-low' : 'stock-normal')"
-                                  class="stock-badge">
-                                <span th:text="${produit.quantiteEnStock}"></span>
-                            </span>
-                        </div>
+                        <span th:class="${produit.quantiteEnStock} == 0 ? 'stock-out' : (${produit.quantiteEnStock} <= 10 ? 'stock-low' : 'stock-normal')"
+                              class="stock-badge">
+                            <span th:text="${produit.quantiteEnStock}"></span>
+                        </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span th:class="${produit.marge} < 0 ? 'marge-negative' : 'marge-positive'"
@@ -302,19 +293,19 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                            <button th:onclick="|openProductModal(${produit.id})|"
-                                    class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition duration-200 flex items-center justify-center font-medium">
-                                <i class="fas fa-edit mr-2"></i>Modifier
+                            <button th:onclick="|openProductModal(${produit.id})|" title="Modifier"
+                                    class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 p-3 rounded-lg transition duration-200 flex items-center justify-center font-medium">
+                                <i class="fas fa-edit"></i>
                             </button>
-                            <a th:href="@{/stock/history/{id}(id=${produit.id})}"
-                               class="text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 px-4 py-2 rounded-lg transition duration-200 flex items-center justify-center font-medium">
-                                <i class="fas fa-history mr-2"></i>Historique
+                            <a th:href="@{/stock/history/{id}(id=${produit.id})}" title="Historique"
+                               class="text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 p-3 rounded-lg transition duration-200 flex items-center justify-center font-medium">
+                                <i class="fas fa-history"></i>
                             </a>
-                            <button sec:authorize="hasRole('ADMIN')"
+                            <button sec:authorize="hasRole('ADMIN')" title="Supprimer"
                                     th:attr="data-product-id=${produit.id}, data-product-name=${produit.nom}"
                                     onclick="confirmDelete(this.getAttribute('data-product-id'), this.getAttribute('data-product-name'))"
-                                    class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg transition duration-200 flex items-center justify-center font-medium">
-                                <i class="fas fa-trash mr-2"></i>Supprimer
+                                    class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-3 rounded-lg transition duration-200 flex items-center justify-center font-medium">
+                                <i class="fas fa-trash"></i>
                             </button>
                         </div>
                         <form th:id="'deleteForm-' + ${produit.id}" th:action="@{/produits/delete/{id}(id=${produit.id})}" method="post" style="display: none;">

@@ -54,7 +54,7 @@ public class UtilisateurController {
         model.addAttribute("utilisateur", utilisateur);
         model.addAttribute("pageTitle", pageTitle);
         model.addAttribute("view", "fragment"); // Pour le rendu conditionnel dans le template
-        model.addAttribute("allRoles", List.of("ROLE_ADMIN", "ROLE_GESTIONNAIRE"));
+        model.addAttribute("allRoles", List.of("ROLE_ADMIN", "ROLE_GESTIONNAIRE", "ROLE_CAISSIER"));
         return "utilisateur-form :: form-content";
     }
 

@@ -9,7 +9,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.waves.min.js"></script>
+  
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -109,43 +109,7 @@
 </head>
 <body class="bg-gray-50">
 
-<!-- Header with Vanta.js background -->
-<header id="vanta-header" class="relative h-20 shadow-lg bg-gray-800">
-  <div class="absolute inset-0"></div>
-  <div class="relative container mx-auto h-full flex items-center justify-between px-6">
-    <div class="flex items-center">
-      <h1 class="text-2xl font-bold text-white italic mr-4">BelaLuxe</h1>
-      <div>
-        <h1 class="text-2xl font-bold text-white">
-          <i class="fas fa-cash-register mr-2"></i> Caisse
-        </h1>
-        <p class="text-white/80 text-sm">Système de gestion de caisse</p>
-      </div>
-    </div>
-    <div class="flex items-center space-x-6">
-      <div id="connection-status" class="flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1">
-        <span class="h-3 w-3 bg-green-400 rounded-full pulse-online"></span>
-        <span class="text-white text-sm font-medium">En ligne</span>
-      </div>
-      <div id="clock" class="text-white text-center bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2">
-        <!-- Clock will be inserted by JavaScript -->
-      </div>
-      <div class="hidden md:flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-1">
-        <i class="fas fa-user text-white/80"></i>
-        <span class="text-white font-medium" sec:authentication="name"></span>
-      </div>
-      <a th:href="@{/dashboard}" sec:authorize="hasRole('ADMIN')" class="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-xl transition-all duration-300 hover:scale-110 flex items-center" title="Dashboard">
-        <i class="fas fa-tachometer-alt mr-2"></i>
-        <span>Dashboard</span>
-      </a>
-      <form id="logout-form" th:action="@{/logout}" method="post" class="inline">
-        <button type="submit" class="bg-white/10 hover:bg-white/20 text-white p-2 rounded-xl transition-all duration-300 hover:scale-110" title="Déconnexion">
-          <i class="fas fa-sign-out-alt"></i>
-        </button>
-      </form>
-    </div>
-  </div>
-</header>
+<div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Caisse')}"></div>
 
 <div class="flex flex-col md:flex-row h-[calc(100vh-5rem)]">
   <!-- Left Sidebar - Product Navigation -->
@@ -967,91 +931,11 @@
           renderClientSection();
           renderTabs();
       });
-      const logoutForm = document.getElementById('logout-form');
-      if (logoutForm) {
-          logoutForm.addEventListener('submit', function(event) {
-              event.preventDefault();
-              Swal.fire({
-                  title: 'Déconnexion',
-                  text: 'Êtes-vous sûr de vouloir vous déconnecter ?',
-                  icon: 'question',
-                  showCancelButton: true,
-                  confirmButtonText: 'Oui, déconnecter',
-                  cancelButtonText: 'Non, rester connecté',
-                  reverseButtons: true,
-                  confirmButtonColor: '#4f46e5'
-              }).then((result) => {
-                  if (result.isConfirmed) {
-                      logoutForm.submit();
-                  }
-              });
-          });
-      }
+      
   });
   /*]]>*/
 </script>
 
-<script>
-  // Initialize Vanta.js waves effect
-  VANTA.WAVES({
-      el: "#vanta-header",
-      mouseControls: true,
-      touchControls: true,
-      gyroControls: false,
-      minHeight: 200.00,
-      minWidth: 200.00,
-      scale: 1.00,
-      scaleMobile: 1.00,
-      color: 0x4f46e5,
-      shininess: 50.00,
-      waveHeight: 20.00,
-      waveSpeed: 0.50,
-      zoom: 0.65
-  });
 
-  function updateClock() {
-      const now = new Date();
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const seconds = String(now.getSeconds()).padStart(2, '0');
-      const dateOptions = { weekday: 'long', day: 'numeric', month: 'long' };
-      const date = now.toLocaleDateString('fr-FR', dateOptions);
-
-      const clockElement = document.getElementById('clock');
-      if (clockElement) {
-          clockElement.innerHTML = `<div class="text-xs leading-tight text-white/80">${date}</div><div class="font-bold text-white">${hours}:${minutes}:${seconds}</div>`;
-      }
-  }
-
-  function checkConnectionStatus() {
-      const statusIndicator = document.getElementById('connection-status');
-      if (!statusIndicator) return;
-
-      const statusDot = statusIndicator.querySelector('span:first-child');
-      const statusText = statusIndicator.querySelector('span:last-child');
-
-      fetch('/')
-          .then(response => {
-              if (response.ok) {
-                  statusDot.classList.remove('bg-red-500');
-                  statusDot.classList.add('bg-green-400', 'pulse-online');
-                  statusText.textContent = 'En ligne';
-              }
-          })
-          .catch(() => {
-              statusDot.classList.remove('bg-green-400', 'pulse-online');
-              statusDot.classList.add('bg-red-500');
-              statusText.textContent = 'Hors ligne';
-          });
-  }
-
-  document.addEventListener('DOMContentLoaded', function() {
-      setInterval(updateClock, 1000);
-      updateClock();
-
-      setInterval(checkConnectionStatus, 15000); // Check every 15 seconds
-      checkConnectionStatus();
-  });
-</script>
 </body>
 </html>

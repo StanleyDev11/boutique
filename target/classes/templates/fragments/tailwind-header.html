@@ -4,7 +4,16 @@
         <div class="flex justify-between items-center py-5">
             <!-- Logo and Page Title -->
             <div class="flex items-center">
-                <a th:href="@{/dashboard}" class="flex items-center flex-shrink-0">
+                <a sec:authorize="hasRole('ADMIN')" th:href="@{/dashboard}" class="flex items-center flex-shrink-0">
+                    <img th:src="@{/lo.png}" alt="Logo" class="h-16 w-auto mr-4">
+                </a>
+                <a sec:authorize="!hasRole('ADMIN') and hasRole('GESTIONNAIRE')" th:href="@{/produits}" class="flex items-center flex-shrink-0">
+                    <img th:src="@{/lo.png}" alt="Logo" class="h-16 w-auto mr-4">
+                </a>
+                <a sec:authorize="!hasAnyRole('ADMIN', 'GESTIONNAIRE') and hasRole('CAISSIER')" th:href="@{/caissier}" class="flex items-center flex-shrink-0">
+                    <img th:src="@{/lo.png}" alt="Logo" class="h-16 w-auto mr-4">
+                </a>
+                <a sec:authorize="!hasAnyRole('ADMIN', 'GESTIONNAIRE', 'CAISSIER')" th:href="@{/dashboard}" class="flex items-center flex-shrink-0">
                     <img th:src="@{/lo.png}" alt="Logo" class="h-16 w-auto mr-4">
                 </a>
                 <h1 class="text-xl sm:text-2xl font-bold text-white hidden sm:block italic">BelaLuxe</h1>
@@ -20,7 +29,7 @@
                     <a th:href="@{/produits}" class="text-sm lg:text-base font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')">
                         <i class="fas fa-boxes mr-2"></i>Produits
                     </a>
-                    <a th:href="@{/caissier}" class="text-sm lg:text-base font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')">
+                    <a th:href="@{/caissier}" class="text-sm lg:text-base font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE', 'CAISSIER')">
                         <i class="fas fa-cash-register mr-2"></i>Caissier
                     </a>
                     <a th:href="@{/utilisateurs}" class="text-sm lg:text-base font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasRole('ADMIN')">
@@ -29,7 +38,7 @@
                     <a th:href="@{/rapports/stock-bas}" class="text-sm lg:text-base font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')">
                         <i class="fas fa-chart-bar mr-2"></i>Rapports
                     </a>
-                    <a th:href="@{/rapports/ventes-historique}" class="text-sm lg:text-base font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')">
+                    <a th:href="@{/rapports/ventes-historique}" class="text-sm lg:text-base font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE', 'CAISSIER')">
                         <i class="fas fa-history mr-2"></i>Historique
                     </a>
                 </nav>
@@ -40,7 +49,7 @@
                         <span class="h-3 w-3 bg-green-500 rounded-full animate-pulse"></span>
                         <span class="text-white text-sm font-medium">En ligne</span>
                     </div>
-                    <div id="clock" class="text-white text-sm font-mono text-center hidden lg:block"></div>
+                    <div id="clock" class="text-white text-sm font-mono text-center"></div>
                     <div class="flex items-center">
                         <i class="fas fa-user-circle text-gray-300 mr-2 text-xl"></i>
                         <span class="text-sm lg:text-base font-medium text-white" sec:authentication="name"></span>
