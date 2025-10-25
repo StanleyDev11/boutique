@@ -19,6 +19,7 @@ com\example\boutique\controller\RapportController.class
 com\example\boutique\utils\ProductUtils.class
 com\example\boutique\controller\DashboardController.class
 com\example\boutique\dto\VenteRequestDto.class
+com\example\boutique\utils\UserUtils.class
 com\example\boutique\model\Personnel.class
 com\example\boutique\repository\MouvementStockRepository.class
 com\example\boutique\controller\ClientController.class

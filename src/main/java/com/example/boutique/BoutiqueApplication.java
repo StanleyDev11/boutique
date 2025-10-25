@@ -9,7 +9,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 
+import java.awt.Desktop;
+import java.net.URI;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -18,7 +22,30 @@ import java.util.List;
 public class BoutiqueApplication {
 
     public static void main(String[] args) {
+        System.setProperty("java.awt.headless", "false");
         SpringApplication.run(BoutiqueApplication.class, args);
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void launchBrowser() {
+        try {
+            String url = "http://localhost:8084";
+            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                Desktop.getDesktop().browse(new URI(url));
+            } else {
+                Runtime rt = Runtime.getRuntime();
+                String os = System.getProperty("os.name").toLowerCase();
+                if (os.contains("win")) {
+                    rt.exec("rundll32 url.dll,FileProtocolHandler " + url);
+                } else if (os.contains("mac")) {
+                    rt.exec("open " + url);
+                } else if (os.contains("nix") || os.contains("nux")) {
+                    rt.exec("xdg-open " + url);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Bean

@@ -707,6 +707,7 @@
           }
           const subTotal = tab.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
           const finalTotalValue = subTotal - (tab.discountAmount || 0) > 0 ? subTotal - (tab.discountAmount || 0) : 0;
+
           const { value: formValues } = await Swal.fire({
               title: 'Finaliser la vente',
               html: `
@@ -727,9 +728,13 @@
                                   <input type="radio" id="sale-credit" name="saleType" value="credit" class="mr-2">
                                   <span>À crédit</span>
                               </label>
+                              <label class="flex items-center">
+                                  <input type="radio" id="sale-draft" name="saleType" value="draft" class="mr-2">
+                                  <span>Draft</span>
+                              </label>
                           </div>
                       </div>
-                      <div class="mb-4">
+                      <div id="payment-method-section" class="mb-4">
                           <strong class="block mb-2 text-gray-700">Moyen de paiement:</strong>
                           <div class="flex space-x-4">
                               <label class="flex items-center">
@@ -746,7 +751,7 @@
                           <label for="swal-input-tendered" class="block font-bold mb-2 text-gray-700">Montant reçu:</label>
                           <input id="swal-input-tendered" class="swal2-input text-center font-bold text-lg" type="number" placeholder="0.00" style="width: 12em;">
                       </div>
-                      <div class="text-center bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200">
+                      <div id="change-section" class="text-center bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200">
                           <strong class="block text-gray-700">Reliquat:</strong>
                           <span id="swal-change-display" class="text-2xl font-bold text-green-600">0.00 FCFA</span>
                       </div>
@@ -764,26 +769,47 @@
                   const cashRadio = document.getElementById('pay-cash');
                   const cardRadio = document.getElementById('pay-card');
                   const creditRadio = document.getElementById('sale-credit');
-                  const paymentMethodSection = cashRadio.closest('.mb-4');
+                  const directRadio = document.getElementById('sale-direct');
+                  const draftRadio = document.getElementById('sale-draft');
+                  
+                  const paymentMethodSection = document.getElementById('payment-method-section');
                   const tenderedSection = document.getElementById('tendered-amount-section');
+                  const changeSection = document.getElementById('change-section');
+                  const confirmButton = Swal.getConfirmButton();
+
                   const updateTotal = () => {
                       const isCredit = creditRadio.checked;
+                      const isDraft = draftRadio.checked;
                       const isCash = cashRadio.checked;
-                      paymentMethodSection.style.display = isCredit ? 'none' : 'block';
-                      tenderedSection.style.display = isCredit || !isCash ? 'none' : 'block';
+
+                      paymentMethodSection.style.display = isCredit || isDraft ? 'none' : 'block';
+                      tenderedSection.style.display = isCredit || isDraft || !isCash ? 'none' : 'block';
+                      changeSection.style.display = isCredit || isDraft || !isCash ? 'none' : 'block';
+
+                      if (isDraft) {
+                          confirmButton.textContent = 'Voir le ticket Draft';
+                      } else {
+                          confirmButton.textContent = 'Valider le paiement';
+                      }
+
                       const tendered = parseFloat(tenderedInput.value) || 0;
                       const change = tendered - finalTotalValue;
                       changeDisplay.textContent = (change > 0 ? change : 0).toFixed(2) + ' FCFA';
                   };
+
                   tenderedInput.addEventListener('input', updateTotal);
                   cashRadio.addEventListener('change', updateTotal);
                   cardRadio.addEventListener('change', updateTotal);
                   creditRadio.addEventListener('change', updateTotal);
-                  document.getElementById('sale-direct').addEventListener('change', updateTotal);
+                  directRadio.addEventListener('change', updateTotal);
+                  draftRadio.addEventListener('change', updateTotal);
                   updateTotal();
               },
               preConfirm: () => {
                   const saleType = document.querySelector('input[name="saleType"]:checked').value;
+                  if (saleType === 'draft') {
+                      return { saleType: 'draft' };
+                  }
                   if (saleType === 'credit' && !tab.selectedClient) {
                       Swal.showValidationMessage('Veuillez sélectionner un client pour une vente à crédit.');
                       return false;
@@ -799,6 +825,11 @@
           });
 
           if (formValues) {
+              if (formValues.saleType === 'draft') {
+                  printReceipt(tab, formValues, finalTotalValue, true);
+                  return;
+              }
+
               fetch('/caissier/vendre', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
@@ -813,9 +844,9 @@
               .then(res => res.json())
               .then(data => {
                   if (data.success) {
-                      const completedTab = JSON.parse(JSON.stringify(tab)); // Deep copy for receipt
-                      tabs[activeTabIndex] = { id: tabs[activeTabIndex].id, cart: [], selectedClient: null, discountAmount: 0 }; // Reset tab
-                      saveState(); // Save the cleared state
+                      const completedTab = JSON.parse(JSON.stringify(tab));
+                      tabs[activeTabIndex] = { id: tabs[activeTabIndex].id, cart: [], selectedClient: null, discountAmount: 0 };
+                      saveState();
 
                       Swal.fire({
                           title: 'Vente enregistrée!',
@@ -827,9 +858,9 @@
                           confirmButtonColor: '#4f46e5'
                       }).then((result) => {
                           if (result.isConfirmed) {
-                              printReceipt(completedTab, formValues, finalTotalValue);
+                              printReceipt(completedTab, formValues, finalTotalValue, false);
                           }
-                          location.reload(); // Reload the page
+                          location.reload();
                       });
                   } else {
                       Swal.fire('Erreur!', data.message, 'error');
@@ -842,17 +873,24 @@
           }
       }
 
-      function printReceipt(tab, saleData, finalTotal) {
+      function printReceipt(tab, saleData, finalTotal, isDraft = false) {
           const now = new Date();
           const receiptWindow = window.open('', 'PRINT', 'height=600,width=400');
           const clientName = tab.selectedClient ? tab.selectedClient.nom : 'Client de passage';
           let receiptContent = `
               <html><head><title>Reçu</title><style>
-                      body { font-family: 'Courier New', monospace; font-size: 10pt; } .container { width: 90%; margin: auto; }
-                      h2 { text-align: center; } hr { border-top: 1px dashed #000; } .item { display: flex; justify-content: space-between; }
-                      .total { text-align: right; font-weight: bold; margin-top: 10px; } .footer { text-align: center; margin-top: 20px; }
-              </style></head><body><div class="container">
-                      <h2>BELALUXE Supermarché</h2>
+                      body { font-family: 'Courier New', monospace; font-size: 10pt; position: relative; }
+                      .container { width: 90%; margin: auto; }
+                      h2 { text-align: center; } hr { border-top: 1px dashed #000; }
+                      .item { display: flex; justify-content: space-between; }
+                      .total { text-align: right; font-weight: bold; margin-top: 10px; }
+                      .footer { text-align: center; margin-top: 20px; }
+                      .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); 
+                                   font-size: 72px; color: rgba(0,0,0,0.1); font-weight: bold; pointer-events: none; z-index: -1; }
+              </style></head><body>
+                  ${isDraft ? '<div class="watermark">DRAFT</div>' : ''}
+                  <div class="container">
+                      <h2>${isDraft ? 'PROFORMA' : 'BELALUXE Supermarché'}</h2>
                       <p>Date: ${now.toLocaleDateString('fr-FR')} ${now.toLocaleTimeString('fr-FR')}</p>
                       <p>Client: ${clientName}</p><hr><div>
           `;
