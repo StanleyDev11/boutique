@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Ventes à Crédit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+
+<div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Ventes à Crédit de ' + ${client.nom})}"></div>
+
+<div class="w-full px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Ventes à crédit pour <span th:text="${client.nom}"></span></h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Vente</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant Total</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                <tr th:each="sale : ${creditSales}">
+                    <td class="px-6 py-4 whitespace-nowrap" th:text="${sale.getId()}"></td>
+                    <td class="px-6 py-4 whitespace-nowrap" th:text="${#temporals.format(sale.getDateVente(), 'dd/MM/yyyy HH:mm')}"></td>
+                    <td class="px-6 py-4 whitespace-nowrap" th:text="${#numbers.formatDecimal(sale.getTotalFinal(), 0, 'COMMA', 0, 'POINT')} + ' FCFA'"></td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <a th:href="@{/ventes/{id}(id=${sale.getId()})}" class="text-blue-600 hover:text-blue-900">Détails</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

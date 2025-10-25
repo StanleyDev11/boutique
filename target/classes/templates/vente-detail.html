@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Détail de la Vente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+
+<div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Détail de la Vente')}"></div>
+
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8 pb-4 border-b border-gray-200">
+            <h3 class="text-3xl font-bold text-gray-800 flex items-center">
+                <i class="fas fa-receipt mr-4 text-blue-500"></i>
+                <span>Détail de la Vente #<span th:text="${vente.id}"></span></span>
+            </h3>
+            <div class="flex items-center space-x-2">
+                <a th:href="@{/clients/{clientId}/credits(clientId=${vente.client.id})}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold transition duration-200 flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour
+                </a>
+                <button onclick="window.print()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition duration-200 flex items-center">
+                    <i class="fas fa-print mr-2"></i>Imprimer
+                </button>
+            </div>
+        </div>
+
+        <!-- Sale Info -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-gray-50 p-4 rounded-lg flex items-center">
+                <i class="fas fa-calendar-alt text-blue-500 text-2xl mr-4"></i>
+                <div>
+                    <p class="text-sm text-gray-500">Date</p>
+                    <p class="font-semibold text-gray-800" th:text="${#temporals.format(vente.dateVente, 'dd/MM/yyyy HH:mm')}"></p>
+                </div>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg flex items-center">
+                <i class="fas fa-user text-blue-500 text-2xl mr-4"></i>
+                <div>
+                    <p class="text-sm text-gray-500">Client</p>
+                    <p class="font-semibold text-gray-800" th:text="${vente.client.nom}"></p>
+                </div>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg flex items-center">
+                <i class="fas fa-credit-card text-blue-500 text-2xl mr-4"></i>
+                <div>
+                    <p class="text-sm text-gray-500">Type de Vente</p>
+                    <p class="font-semibold text-gray-800" th:text="${vente.typeVente}"></p>
+                </div>
+            </div>
+            <div class="bg-green-50 p-4 rounded-lg flex items-center">
+                <i class="fas fa-coins text-green-500 text-2xl mr-4"></i>
+                <div>
+                    <p class="text-sm text-green-700">Montant Total</p>
+                    <p class="font-bold text-xl text-green-800" th:text="${#numbers.formatDecimal(vente.totalFinal, 0, 'COMMA', 0, 'POINT')} + ' FCFA'"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Table -->
+        <h4 class="text-2xl font-bold text-gray-800 mb-4 flex items-center"><i class="fas fa-boxes-stacked mr-3 text-blue-500"></i>Produits</h4>
+        <div class="overflow-x-auto rounded-lg border border-gray-200">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produit</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Quantité</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Prix Unitaire</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                <tr th:each="ligne : ${vente.ligneVentes}" class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900" th:text="${ligne.produit.nom}"></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-gray-700" th:text="${ligne.quantite}"></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-gray-700" th:text="${#numbers.formatDecimal(ligne.prixUnitaire, 0, 'COMMA', 0, 'POINT')} + ' FCFA'"></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right font-semibold text-gray-800" th:text="${#numbers.formatDecimal(ligne.quantite * ligne.prixUnitaire, 0, 'COMMA', 0, 'POINT')} + ' FCFA'"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -23,10 +23,12 @@ com\example\boutique\dto\VenteRequestDto.class
 com\example\boutique\utils\UserUtils.class
 com\example\boutique\model\Personnel.class
 com\example\boutique\repository\MouvementStockRepository.class
+com\example\boutique\dto\VenteCreditDto.class
 com\example\boutique\controller\ClientController.class
 com\example\boutique\controller\UtilisateurController.class
 com\example\boutique\model\Utilisateur.class
 com\example\boutique\dto\CartItemDto.class
+com\example\boutique\controller\ClientViewController.class
 com\example\boutique\dto\CategoryProductCount.class
 com\example\boutique\enums\TypeMouvement.class
 com\example\boutique\dto\ProduitVenteDto.class
