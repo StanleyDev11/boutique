@@ -29,7 +29,7 @@ public class BoutiqueApplication {
     @EventListener(ApplicationReadyEvent.class)
     public void launchBrowser() {
         try {
-            String url = "http://localhost:8084";
+            String url = "http://localhost:8085";
             if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
                 Desktop.getDesktop().browse(new URI(url));
             } else {

@@ -151,7 +151,7 @@ public class RapportController {
                 .count();
 
         BigDecimal todaysRevenue = ligneVentes.stream()
-                .filter(lv -> lv.getVente().getDateVente().toLocalDate().isEqual(LocalDate.now()))
+                .filter(lv -> lv.getVente() != null && lv.getVente().getDateVente().toLocalDate().isEqual(LocalDate.now()))
                 .map(LigneVente::getMontantTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -164,6 +164,8 @@ public class RapportController {
             .reduce(BigDecimal.ZERO, BigDecimal::add);
         long previousMonthSales = lastMonthVentes.stream()
             .map(LigneVente::getVente)
+            .filter(java.util.Objects::nonNull)
+            .map(com.example.boutique.model.Vente::getId)
             .distinct()
             .count();
 
@@ -265,7 +267,7 @@ public class RapportController {
             writer.writeNext(header);
 
             // Write data
-            List<LigneVente> sales = ligneVenteRepository.findAll();
+            List<LigneVente> sales = ligneVenteRepository.findAllWithVente(Pageable.unpaged()).getContent();
             for (LigneVente sale : sales) {
                 String[] data = {
                         String.valueOf(sale.getVente().getId()),
@@ -332,7 +334,7 @@ public class RapportController {
             }
 
             // Create data rows
-            List<LigneVente> sales = ligneVenteRepository.findAll();
+            List<LigneVente> sales = ligneVenteRepository.findAllWithVente(Pageable.unpaged()).getContent();
             int rowNum = 1;
             for (LigneVente sale : sales) {
                 Row row = sheet.createRow(rowNum++);

@@ -13,13 +13,19 @@ import java.util.List;
 
 @Repository
 public interface LigneVenteRepository extends JpaRepository<LigneVente, Long> {
+    @Query("SELECT lv FROM LigneVente lv JOIN lv.vente v JOIN lv.produit p WHERE p.nom LIKE %:nomProduit%")
     Page<LigneVente> findByProduitNomContainingIgnoreCase(String nomProduit, Pageable pageable);
+
+    @Query("SELECT lv FROM LigneVente lv JOIN lv.vente v WHERE v.dateVente BETWEEN :startDate AND :endDate")
     Page<LigneVente> findByVenteDateVenteBetween(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
 
+    @Query("SELECT lv FROM LigneVente lv JOIN lv.vente")
+    Page<LigneVente> findAllWithVente(Pageable pageable);
+
     @Query("SELECT lv.produit, SUM(lv.quantite) AS totalQuantiteVendue " +
-           "FROM LigneVente lv GROUP BY lv.produit ORDER BY totalQuantiteVendue DESC")
+           "FROM LigneVente lv JOIN lv.vente GROUP BY lv.produit ORDER BY totalQuantiteVendue DESC")
     List<Object[]> findMostSoldProducts();
 
-    @Query("SELECT p.categorie as category, SUM(lv.montantTotal) as totalSales FROM LigneVente lv JOIN lv.produit p GROUP BY p.categorie")
+    @Query("SELECT p.categorie as category, SUM(lv.montantTotal) as totalSales FROM LigneVente lv JOIN lv.produit p JOIN lv.vente GROUP BY p.categorie")
     List<CategorySales> findTotalSalesByCategory();
 }

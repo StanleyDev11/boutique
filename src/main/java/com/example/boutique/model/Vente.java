@@ -1,12 +1,18 @@
 package com.example.boutique.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List; // Added
+import java.util.List;
+import java.util.Objects;
 
-@Data
+@Getter
+@Setter
+@ToString
 @Entity
 @Table(name = "ventes")
 public class Vente {
@@ -23,6 +29,7 @@ public class Vente {
     private LocalDateTime dateVente;
 
     @OneToMany(mappedBy = "vente", cascade = CascadeType.ALL, orphanRemoval = true) // Added
+    @ToString.Exclude
     private List<LigneVente> ligneVentes; // Added
 
     @Column(name = "total", nullable = false)
@@ -44,4 +51,21 @@ public class Vente {
 
     @Column(nullable = false)
     private String moyenPaiement; // "Espèces", "Carte", ou "Credit"
+
+    @ManyToOne
+    @JoinColumn(name = "utilisateur_id")
+    private Utilisateur utilisateur;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Vente vente = (Vente) o;
+        return id != null && id.equals(vente.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

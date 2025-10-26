@@ -8,6 +8,7 @@ import com.example.boutique.model.MouvementStock;
 import com.example.boutique.model.Produit;
 import com.example.boutique.model.LigneVente;
 import com.example.boutique.model.Vente;
+import com.example.boutique.model.Utilisateur;
 
 
 import com.example.boutique.repository.ClientRepository;
@@ -67,7 +68,7 @@ public class StockService {
         mouvementStockRepository.save(mouvement);
     }
 
-    public void enregistrerVente(VenteRequestDto venteRequest) {
+    public void enregistrerVente(VenteRequestDto venteRequest, Utilisateur utilisateur) {
         List<CartItemDto> cartItems = venteRequest.getCart();
         BigDecimal totalBrut = BigDecimal.ZERO;
 
@@ -106,6 +107,7 @@ public class StockService {
         vente.setTotalFinal(totalFinal);
         vente.setTypeVente(venteRequest.getSaleType());
         vente.setMoyenPaiement(venteRequest.getPaymentMethod());
+        vente.setUtilisateur(utilisateur);
         venteRepository.save(vente);
 
         // Then, update stock and create stock movements

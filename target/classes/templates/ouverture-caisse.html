@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ouverture de Caisse - BELALUXE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        supermarket: {
+                            primary: '#2563eb',
+                            accent: '#059669',
+                            light: '#f0f9ff'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            min-height: 100vh;
+        }
+        .main-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563eb 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+
+<div class="main-card w-full max-w-md p-8 sm:p-10">
+    <div class="text-center mb-8">
+        <div class="flex justify-center mb-4">
+             <i data-feather="sunrise" class="text-supermarket-primary h-16 w-16"></i>
+        </div>
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">Ouverture de la Caisse</h1>
+        <p class="text-gray-600">Veuillez saisir le fond de caisse initial pour commencer la journée.</p>
+    </div>
+
+    <form th:action="@{/caisse/ouvrir}" method="post" class="space-y-6">
+        
+        <div th:if="${error}" class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+            <div class="flex items-center">
+                <i data-feather="alert-circle" class="text-red-500 mr-2"></i>
+                <p class="text-red-700 font-medium" th:text="${error}"></p>
+            </div>
+        </div>
+
+        <div>
+            <label for="montantInitial" class="block text-sm font-medium text-gray-700 mb-1">Fond de caisse initial</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i data-feather="dollar-sign" class="text-gray-400"></i>
+                </div>
+                <input type="number" id="montantInitial" name="montantInitial"
+                       class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-supermarket-primary focus:border-transparent transition-all duration-300"
+                       placeholder="0.00" required autofocus step="0.01" min="0">
+            </div>
+        </div>
+
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+        <button type="submit"
+                class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white btn-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-supermarket-primary">
+            <i data-feather="play-circle" class="mr-2"></i> Démarrer la session
+        </button>
+    </form>
+</div>
+
+<script>
+    feather.replace();
+</script>
+</body>
+</html>

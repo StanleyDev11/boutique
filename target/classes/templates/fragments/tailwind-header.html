@@ -44,6 +44,9 @@
                     <a th:href="@{/rapports/ventes-historique}" class="text-sm lg:text-base font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE', 'CAISSIER')">
                         <i class="fas fa-history mr-2"></i>Historique
                     </a>
+                    <a th:href="@{/caisse/historique}" class="text-sm lg:text-base font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasRole('CAISSIER')">
+                        <i class="fas fa-clipboard-list mr-2"></i>Session
+                    </a>
                 </nav>
 
                 <!-- User Info and Logout -->
@@ -57,12 +60,17 @@
                         <i class="fas fa-user-circle text-gray-300 mr-2 text-xl"></i>
                         <span class="text-sm lg:text-base font-medium text-white" sec:authentication="name"></span>
                     </div>
-                    <form id="logout-form-header" th:action="@{/logout}" method="post" class="inline">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-semibold transition duration-200 flex items-center">
-                            <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
-                        </button>
-                    </form>
+                    <div class="flex items-center space-x-2">
+                        <a th:href="@{/caisse/fermer}" sec:authorize="hasRole('CAISSIER')" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-lg text-sm font-semibold transition duration-200 flex items-center">
+                            <i class="fas fa-door-closed mr-2"></i>Fermer Caisse
+                        </a>
+                        <form id="logout-form-header" th:action="@{/logout}" method="post" class="inline">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-semibold transition duration-200 flex items-center">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

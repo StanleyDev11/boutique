@@ -6,6 +6,7 @@ import com.example.boutique.dto.VenteRequestDto;
 import com.example.boutique.model.Produit;
 import com.example.boutique.repository.ClientRepository;
 import com.example.boutique.repository.ProduitRepository;
+import com.example.boutique.repository.UtilisateurRepository;
 import com.example.boutique.service.StockService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -25,11 +26,13 @@ public class CaissierController {
     private final ProduitRepository produitRepository;
     private final StockService stockService;
     private final ClientRepository clientRepository;
+    private final UtilisateurRepository utilisateurRepository;
 
-    public CaissierController(ProduitRepository produitRepository, StockService stockService, ClientRepository clientRepository) {
+    public CaissierController(ProduitRepository produitRepository, StockService stockService, ClientRepository clientRepository, UtilisateurRepository utilisateurRepository) {
         this.produitRepository = produitRepository;
         this.stockService = stockService;
         this.clientRepository = clientRepository;
+        this.utilisateurRepository = utilisateurRepository;
     }
 
     @GetMapping
@@ -42,9 +45,11 @@ public class CaissierController {
     }
 
     @PostMapping("/vendre")
-    public ResponseEntity<Map<String, Object>> vendre(@RequestBody VenteRequestDto venteRequest) {
+    public ResponseEntity<Map<String, Object>> vendre(@RequestBody VenteRequestDto venteRequest, @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            stockService.enregistrerVente(venteRequest);
+            var utilisateur = utilisateurRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new IllegalStateException("Utilisateur non trouvé"));
+            stockService.enregistrerVente(venteRequest, utilisateur);
             return ResponseEntity.ok(Map.of("success", true, "message", "Vente enregistrée avec succès !"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));

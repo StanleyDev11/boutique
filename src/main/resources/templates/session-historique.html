@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historique de la Session</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            background-color: #f9fafb;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Historique de Session')}"></div>
+
+<div class="container mx-auto mt-8 p-4">
+
+    <div class="card bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">Historique de la Session Actuelle</h2>
+        <p class="text-gray-600">Début de la session: <span class="font-semibold text-blue-600" th:text="${#temporals.format(session.dateOuverture, 'dd-MM-yyyy HH:mm:ss')}"></span></p>
+        <p class="text-gray-600">Caissier: <span class="font-semibold" th:text="${session.utilisateur?.username}"></span></p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8 border border-gray-100">
+        <div class="px-6 py-4 border-b border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-800">Ventes de la Session</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Vente</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                <tr th:each="vente : ${ventes}" class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${vente.id}"></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${#temporals.format(vente.dateVente, 'dd-MM-yyyy HH:mm')}"></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${vente.client != null ? vente.client.nom : 'Client de passage'}"></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-800" th:text="${#numbers.formatDecimal(vente.totalFinal, 0, 'COMMA', 2, 'POINT')} + ' FCFA'"></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(ventes)}">
+                    <td colspan="4" class="text-center py-4 text-gray-500">Aucune vente pour cette session.</td>
+                </tr>
+                </tbody>
+                <tfoot class="bg-gray-100">
+                    <tr>
+                        <td colspan="3" class="px-6 py-3 text-right text-sm font-bold text-gray-600 uppercase">Total de la Session</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-700" th:text="${#numbers.formatDecimal(ventes.stream().map(v -> v.totalFinal).reduce(T(java.math.BigDecimal).ZERO, (a,b) -> a.add(b)), 0, 'COMMA', 2, 'POINT')} + ' FCFA'"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
