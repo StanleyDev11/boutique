@@ -1,0 +1,35 @@
+services:
+  # Service de l'application Java
+  app:
+    image: belaluxe-app-1.0.0-snapshot:latest  # Utilise l'image déjà construite
+    restart: on-failure
+    ports:
+      - "8080:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/belaluxe_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: belaluxe_user
+      SPRING_DATASOURCE_PASSWORD: belaluxe_password  # Mot de passe défini
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Service de la base de données MySQL
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password        # mot de passe root non vide
+      MYSQL_DATABASE: belaluxe_db
+      MYSQL_USER: belaluxe_user
+      MYSQL_PASSWORD: belaluxe_password         # mot de passe utilisateur
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# Volumes pour la persistance des données
+volumes:
+  mysql-data:

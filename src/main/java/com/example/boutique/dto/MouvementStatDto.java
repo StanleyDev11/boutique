@@ -22,6 +22,26 @@ public class MouvementStatDto {
         this.count = count;
     }
 
+    // Fallback constructor to handle cases where Hibernate passes generic Object/Number types
+    public MouvementStatDto(Object dateObj, Number countObj) {
+        if (dateObj instanceof java.sql.Date) {
+            this.date = ((java.sql.Date) dateObj).toLocalDate();
+        } else if (dateObj instanceof java.time.LocalDate) {
+            this.date = (java.time.LocalDate) dateObj;
+        } else if (dateObj instanceof java.time.LocalDateTime) {
+            this.date = ((java.time.LocalDateTime) dateObj).toLocalDate();
+        } else if (dateObj != null) {
+            // Try parsing from string as last resort
+            this.date = java.time.LocalDate.parse(dateObj.toString());
+        }
+
+        if (countObj != null) {
+            this.count = countObj.longValue();
+        } else {
+            this.count = 0L;
+        }
+    }
+
     // Getters and Setters
     public LocalDate getDate() {
         return date;

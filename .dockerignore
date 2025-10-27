@@ -1,0 +1,22 @@
+.git
+.gitignore
+.vscode
+*.iml
+**/node_modules
+**/target/classes
+**/target/generated*
+**/target/test-classes
+**/target/*.jar.original
+**/target/*-sources.jar
+**/.m2
+**/build
+**/dist
+*.log
+# Keep only the final JAR in target (adjust name if needed)
+target/*
+!target/boutique-1.0.0-SNAPSHOT.jar
+
+# If you use a multi-stage build that needs pom.xml/.mvn/src, don't ignore them
+# (we ignore .mvn here because we build locally; if you let Docker run mvn, remove these)
+.mvn
+pom.xml
