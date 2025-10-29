@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ouverture de Caisse - BELALUXE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/feather-icons"></script>
     <script>
@@ -47,9 +48,11 @@
         }
     </style>
 </head>
-<body class="flex items-center justify-center p-4">
+<body class="bg-gray-100">
+<div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Ouverture de Caisse')}"></div>
+<div class="flex items-center justify-center p-4">
 
-<div class="main-card w-full max-w-md p-8 sm:p-10">
+<div class="main-card w-full max-w-2xl p-8 sm:p-10">
     <div class="text-center mb-8">
         <div class="flex justify-center mb-4">
              <i data-feather="sunrise" class="text-supermarket-primary h-16 w-16"></i>
@@ -71,10 +74,10 @@
             <label for="montantInitial" class="block text-sm font-medium text-gray-700 mb-1">Fond de caisse initial</label>
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i data-feather="dollar-sign" class="text-gray-400"></i>
+                    <span class="text-gray-500 sm:text-sm">Fcfa</span>
                 </div>
                 <input type="number" id="montantInitial" name="montantInitial"
-                       class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-supermarket-primary focus:border-transparent transition-all duration-300"
+                       class="block w-full pl-12 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-supermarket-primary focus:border-transparent transition-all duration-300"
                        placeholder="0.00" required autofocus step="0.01" min="0">
             </div>
         </div>
@@ -91,5 +94,6 @@
 <script>
     feather.replace();
 </script>
+</div>
 </body>
 </html>

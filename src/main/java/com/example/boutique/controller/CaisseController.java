@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
@@ -29,8 +27,6 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/caisse")
 public class CaisseController {
-
-    private static final Logger logger = LoggerFactory.getLogger(CaisseController.class);
 
     @Autowired
     private SessionCaisseRepository sessionCaisseRepository;
@@ -95,15 +91,13 @@ public class CaisseController {
         }
 
         SessionCaisse session = sessionOpt.get();
-        if (session.getMontantInitial() == null) {
-            session.setMontantInitial(BigDecimal.ZERO);
-        }
 
         BigDecimal ventesCalculees = venteRepository.sumTotalForUserSince(utilisateur, session.getDateOuverture());
         if (ventesCalculees == null) {
             ventesCalculees = BigDecimal.ZERO;
         }
 
+        System.out.println("Montant Initial from DB: " + session.getMontantInitial());
         model.addAttribute("session", session);
         model.addAttribute("ventesCalculees", ventesCalculees);
 
@@ -127,9 +121,6 @@ public class CaisseController {
         }
 
         SessionCaisse session = sessionOpt.get();
-        if (session.getMontantInitial() == null) {
-            session.setMontantInitial(BigDecimal.ZERO);
-        }
 
         BigDecimal ventesCalculees = venteRepository.sumTotalForUserSince(utilisateur, session.getDateOuverture());
         if (ventesCalculees == null) {
@@ -169,8 +160,6 @@ public class CaisseController {
         }
 
         SessionCaisse session = sessionOpt.get();
-        logger.info("Session found: {}", session);
-        logger.info("Utilisateur from session: {}", session.getUtilisateur());
         List<com.example.boutique.model.Vente> ventes = venteRepository.findByUtilisateurAndDateVenteAfter(utilisateur, session.getDateOuverture(), org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "dateVente"));
 
         model.addAttribute("session", session);

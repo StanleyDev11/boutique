@@ -51,7 +51,7 @@
                 <tfoot class="bg-gray-100">
                     <tr>
                         <td colspan="3" class="px-6 py-3 text-right text-sm font-bold text-gray-600 uppercase">Total de la Session</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-700" th:text="${#numbers.formatDecimal(ventes.stream().map(v -> v.totalFinal).reduce(T(java.math.BigDecimal).ZERO, (a,b) -> a.add(b)), 0, 'COMMA', 2, 'POINT')} + ' FCFA'"></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-700" th:text="${#lists.isEmpty(ventes) ? '0,00 FCFA' : #numbers.formatDecimal(#aggregates.sum(ventes.![totalFinal]), 0, 'COMMA', 2, 'POINT') + ' FCFA'}"></td>
                     </tr>
                 </tfoot>
             </table>
