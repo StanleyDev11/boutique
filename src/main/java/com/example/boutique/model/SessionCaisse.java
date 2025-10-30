@@ -19,7 +19,7 @@ public class SessionCaisse {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "montant_initial", nullable = false)
     private BigDecimal montantInitial;
 
     private BigDecimal montantFinal;

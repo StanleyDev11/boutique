@@ -97,9 +97,11 @@ public class CaisseController {
             ventesCalculees = BigDecimal.ZERO;
         }
 
-        System.out.println("Montant Initial from DB: " + session.getMontantInitial());
+        BigDecimal initialAmount = session.getMontantInitial();
+        System.out.println("Montant Initial from DB (explicitly added): " + initialAmount);
         model.addAttribute("session", session);
         model.addAttribute("ventesCalculees", ventesCalculees);
+        model.addAttribute("montantInitialFromController", initialAmount);
 
         return "fermeture-caisse";
     }

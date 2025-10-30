@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="caisse-form" class="w-full max-w-lg mx-auto p-8">
+    <h2 class="text-2xl font-bold mb-6" th:text="${caisse.id == null ? 'Nouvelle Caisse' : 'Modifier Caisse'}"></h2>
+
+    <form id="caisse-form" th:action="@{/gestion-caisses/save}" th:object="${caisse}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        <input type="hidden" th:field="*{id}" />
+
+        <div class="mb-4">
+            <label for="nom" class="block text-gray-700 text-sm font-bold mb-2">Nom de la caisse</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-cash-register text-gray-400"></i>
+                </div>
+                <input type="text" id="nom" th:field="*{nom}" class="pl-10 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required />
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label for="utilisateur" class="block text-gray-700 text-sm font-bold mb-2">Caissier</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-user text-gray-400"></i>
+                </div>
+                <select id="utilisateur" th:field="*{utilisateur}" class="pl-10 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="">Non assigné</option>
+                    <option th:each="caissier : ${caissiers}" th:value="${caissier.id}" th:text="${caissier.username}"></option>
+                </select>
+            </div>
+        </div>
+
+        
+    </form>
+</div>
+
+</body>
+</html>
