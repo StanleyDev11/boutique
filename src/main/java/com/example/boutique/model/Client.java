@@ -3,6 +3,8 @@ package com.example.boutique.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
 @Entity
 @Table(name = "clients")
@@ -19,4 +21,14 @@ public class Client {
     private String telephone;
 
     private String adresse;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDate dateInscription;
+
+    @PrePersist
+    protected void onCreate() {
+        if (dateInscription == null) {
+            dateInscription = LocalDate.now();
+        }
+    }
 }

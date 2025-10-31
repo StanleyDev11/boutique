@@ -3,6 +3,7 @@ C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutiqu
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\AuthController.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\CartItemDto.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\model\LigneVente.java
+C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\CaisseManagementController.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\CategorySales.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\repository\MouvementStockRepository.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\service\JpaUserDetailsService.java
@@ -15,12 +16,15 @@ C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutiqu
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\MouvementStatDto.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\CaisseController.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\CategoryProductCount.java
+C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\GlobalControllerAdvice.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\model\Client.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\BoutiqueApplication.java
+C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\model\Caisse.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\VenteRequestDto.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\repository\ClientRepository.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\ProduitVenteDto.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\VenteCreditDto.java
+C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\repository\CaisseRepository.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\UtilisateurController.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\config\CustomAuthenticationSuccessHandler.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\StockController.java
@@ -34,6 +38,7 @@ C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutiqu
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\ClientController.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\service\StockService.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\repository\VenteRepository.java
+C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\service\CaisseService.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\repository\LigneVenteRepository.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\model\MouvementStock.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\model\SessionCaisse.java

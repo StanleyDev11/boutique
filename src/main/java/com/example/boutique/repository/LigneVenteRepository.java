@@ -1,11 +1,13 @@
 package com.example.boutique.repository;
 
 import com.example.boutique.dto.CategorySales;
+import com.example.boutique.dto.ProduitVenteDto;
 import com.example.boutique.model.LigneVente;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -13,19 +15,24 @@ import java.util.List;
 
 @Repository
 public interface LigneVenteRepository extends JpaRepository<LigneVente, Long> {
-    @Query("SELECT lv FROM LigneVente lv JOIN lv.vente v JOIN lv.produit p WHERE p.nom LIKE %:nomProduit%")
-    Page<LigneVente> findByProduitNomContainingIgnoreCase(String nomProduit, Pageable pageable);
 
-    @Query("SELECT lv FROM LigneVente lv JOIN lv.vente v WHERE v.dateVente BETWEEN :startDate AND :endDate")
-    Page<LigneVente> findByVenteDateVenteBetween(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
+    
 
-    @Query("SELECT lv FROM LigneVente lv JOIN lv.vente")
-    Page<LigneVente> findAllWithVente(Pageable pageable);
+    List<LigneVente> findByVenteId(Long venteId);
 
-    @Query("SELECT lv.produit, SUM(lv.quantite) AS totalQuantiteVendue " +
-           "FROM LigneVente lv JOIN lv.vente GROUP BY lv.produit ORDER BY totalQuantiteVendue DESC")
+    @Query("SELECT p.categorie as category, sum(lv.prixUnitaire * lv.quantite) as totalSales FROM LigneVente lv JOIN lv.produit p GROUP BY p.categorie")
+    List<CategorySales> findTotalSalesByCategory();
+
+    @Query("SELECT lv FROM LigneVente lv WHERE LOWER(lv.produit.nom) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    Page<LigneVente> findByProduitNomContainingIgnoreCase(@Param("keyword") String keyword, Pageable pageable);
+
+    @Query("SELECT lv FROM LigneVente lv WHERE lv.vente.dateVente BETWEEN :start AND :end")
+    Page<LigneVente> findByVenteDateVenteBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end, Pageable pageable);
+
+    @Query("SELECT lv.produit, sum(lv.quantite) FROM LigneVente lv GROUP BY lv.produit ORDER BY sum(lv.quantite) DESC")
     List<Object[]> findMostSoldProducts();
 
-    @Query("SELECT p.categorie as category, SUM(lv.montantTotal) as totalSales FROM LigneVente lv JOIN lv.produit p JOIN lv.vente GROUP BY p.categorie")
-    List<CategorySales> findTotalSalesByCategory();
+    @Query(value = "SELECT lv FROM LigneVente lv JOIN FETCH lv.vente", countQuery = "SELECT count(lv) FROM LigneVente lv")
+    Page<LigneVente> findAllWithVente(Pageable pageable);
+
 }

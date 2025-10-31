@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Pagination</title>
+</head>
+<body>
+
+<div th:fragment="pagination(page, baseUrl)" th:if="${page.totalPages > 1}">
+    <nav aria-label="Page navigation">
+        <ul class="inline-flex items-center -space-x-px">
+            <li>
+                <a th:href="${page.first} ? '#' : ${baseUrl} + '&page=' + ${page.number - 1}" 
+                   th:class="${page.first} ? 'pointer-events-none text-gray-400' : ''"
+                   class="py-2 px-3 ml-0 leading-tight text-gray-500 bg-white rounded-l-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700">
+                    Précédent
+                </a>
+            </li>
+
+            <li th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}">
+                <a th:href="${baseUrl} + '&page=' + ${i}" 
+                   th:class="${page.number == i} ? 'bg-blue-50 text-blue-600' : ''"
+                   class="py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700">
+                    <span th:text="${i + 1}"></span>
+                </a>
+            </li>
+
+            <li>
+                <a th:href="${page.last} ? '#' : ${baseUrl} + '&page=' + ${page.number + 1}" 
+                   th:class="${page.last} ? 'pointer-events-none text-gray-400' : ''"
+                   class="py-2 px-3 leading-tight text-gray-500 bg-white rounded-r-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700">
+                    Suivant
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+</body>
+</html>

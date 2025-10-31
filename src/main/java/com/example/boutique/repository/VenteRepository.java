@@ -24,4 +24,5 @@ public interface VenteRepository extends JpaRepository<Vente, Long> {
 
     List<Vente> findByUtilisateurAndDateVenteAfter(Utilisateur utilisateur, LocalDateTime startDate, org.springframework.data.domain.Sort sort);
 
+    List<Vente> findByUtilisateurAndDateVenteBetween(Utilisateur utilisateur, LocalDateTime startDate, LocalDateTime endDate);
 }

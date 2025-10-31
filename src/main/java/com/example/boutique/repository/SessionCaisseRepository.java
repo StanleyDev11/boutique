@@ -7,6 +7,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,4 +23,22 @@ public interface SessionCaisseRepository extends JpaRepository<SessionCaisse, Lo
     Optional<SessionCaisse> findFirstByUtilisateurAndDateFermetureIsNullOrderByDateOuvertureDesc(Utilisateur utilisateur);
 
     List<SessionCaisse> findByUtilisateur(Utilisateur utilisateur);
+
+    Page<SessionCaisse> findByDateFermetureIsNull(Pageable pageable);
+
+    Page<SessionCaisse> findByDateFermetureIsNotNull(Pageable pageable);
+
+    Page<SessionCaisse> findByDateFermetureIsNullAndUtilisateurUsernameContainingIgnoreCase(String keyword, Pageable pageable);
+
+    Page<SessionCaisse> findByDateFermetureIsNotNullAndUtilisateurUsernameContainingIgnoreCase(String keyword, Pageable pageable);
+
+    @Query("SELECT sc FROM SessionCaisse sc WHERE sc.dateFermeture IS NOT NULL " +
+           "AND (LOWER(sc.utilisateur.username) LIKE LOWER(CONCAT('%', :keyword, '%')) OR :keyword IS NULL) " +
+           "AND (sc.dateFermeture >= :startDate OR :startDate IS NULL) " +
+           "AND (sc.dateFermeture <= :endDate OR :endDate IS NULL)")
+    Page<SessionCaisse> findClosedSessions(@Param("keyword") String keyword,
+                                           @Param("startDate") LocalDateTime startDate,
+                                           @Param("endDate") LocalDateTime endDate,
+                                           Pageable pageable);
+
 }

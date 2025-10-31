@@ -17,7 +17,6 @@ com\example\boutique\model\Client.class
 com\example\boutique\repository\VenteRepository.class
 com\example\boutique\controller\CaisseController.class
 com\example\boutique\model\LigneVente.class
-com\example\boutique\controller\RapportController.class
 com\example\boutique\utils\ProductUtils.class
 com\example\boutique\controller\DashboardController.class
 com\example\boutique\dto\VenteRequestDto.class
@@ -32,7 +31,7 @@ com\example\boutique\model\SessionCaisse.class
 com\example\boutique\repository\SessionCaisseRepository.class
 com\example\boutique\dto\CartItemDto.class
 com\example\boutique\controller\ClientViewController.class
-com\example\boutique\controller\VenteController.class
+com\example\boutique\controller\GlobalControllerAdvice.class
 com\example\boutique\dto\CategoryProductCount.class
 com\example\boutique\enums\TypeMouvement.class
 com\example\boutique\dto\ProduitVenteDto.class

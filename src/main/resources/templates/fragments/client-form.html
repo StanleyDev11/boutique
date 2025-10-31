@@ -1,0 +1,36 @@
+<div th:fragment="client-form" class="p-4 bg-gray-50 rounded-lg">
+    <form id="client-form" th:object="${client}" class="space-y-6">
+        <input type="hidden" th:field="*{id}"/>
+        
+        <div>
+            <label for="nom" class="block text-sm font-medium text-gray-700">Nom du Client</label>
+            <div class="mt-1 relative rounded-md shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-user text-gray-400"></i>
+                </div>
+                <input type="text" id="nom" th:field="*{nom}" required class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="John Doe">
+            </div>
+        </div>
+
+        <div>
+            <label for="telephone" class="block text-sm font-medium text-gray-700">Téléphone</label>
+            <div class="mt-1 relative rounded-md shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-phone text-gray-400"></i>
+                </div>
+                <input type="tel" id="telephone" th:field="*{telephone}" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="77 123 45 67">
+            </div>
+        </div>
+
+        <div>
+            <label for="adresse" class="block text-sm font-medium text-gray-700">Adresse</label>
+            <div class="mt-1 relative rounded-md shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-map-marker-alt text-gray-400"></i>
+                </div>
+                <input type="text" id="adresse" th:field="*{adresse}" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="123, Rue de Dakar">
+            </div>
+        </div>
+
+    </form>
+</div>

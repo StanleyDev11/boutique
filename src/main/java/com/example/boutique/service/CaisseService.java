@@ -1,12 +1,22 @@
 package com.example.boutique.service;
 
 import com.example.boutique.model.Caisse;
+import com.example.boutique.model.SessionCaisse;
 import com.example.boutique.model.Utilisateur;
 import com.example.boutique.repository.CaisseRepository;
 import com.example.boutique.repository.UtilisateurRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.boutique.repository.SessionCaisseRepository;
+import com.example.boutique.repository.VenteRepository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,13 +26,24 @@ public class CaisseService {
 
     private final CaisseRepository caisseRepository;
     private final UtilisateurRepository utilisateurRepository;
+    private final SessionCaisseRepository sessionCaisseRepository;
+    private final VenteRepository venteRepository;
 
-    public CaisseService(CaisseRepository caisseRepository, UtilisateurRepository utilisateurRepository) {
+    public CaisseService(CaisseRepository caisseRepository, UtilisateurRepository utilisateurRepository, SessionCaisseRepository sessionCaisseRepository, VenteRepository venteRepository) {
         this.caisseRepository = caisseRepository;
         this.utilisateurRepository = utilisateurRepository;
+        this.sessionCaisseRepository = sessionCaisseRepository;
+        this.venteRepository = venteRepository;
     }
 
     public List<Caisse> getAllCaisses() {
+        return caisseRepository.findAll();
+    }
+
+    public List<Caisse> searchCaisses(String keyword) {
+        if (keyword != null && !keyword.isEmpty()) {
+            return caisseRepository.findByNomContainingIgnoreCase(keyword);
+        }
         return caisseRepository.findAll();
     }
 
@@ -70,12 +91,32 @@ public class CaisseService {
         Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'id : " + utilisateurId));
 
-        // Optional: Check if the user has the 'CAISSIER' role
         if (!utilisateur.getRoles().contains("ROLE_CAISSIER")) {
             throw new RuntimeException("L'utilisateur n'a pas le rôle de caissier.");
         }
 
         caisse.setUtilisateur(utilisateur);
         return caisseRepository.save(caisse);
+    }
+
+    public Page<SessionCaisse> getOpenSessions(String keyword, Pageable pageable) {
+        if (keyword != null && !keyword.isEmpty()) {
+            return sessionCaisseRepository.findByDateFermetureIsNullAndUtilisateurUsernameContainingIgnoreCase(keyword, pageable);
+        }
+        return sessionCaisseRepository.findByDateFermetureIsNull(pageable);
+    }
+
+    public Page<SessionCaisse> getClosedSessions(String keyword, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : null;
+        LocalDateTime endDateTime = (endDate != null) ? endDate.atTime(LocalTime.MAX) : null;
+        return sessionCaisseRepository.findClosedSessions(keyword, startDateTime, endDateTime, pageable);
+    }
+
+    public List<com.example.boutique.model.Vente> getVentesBySessionCaisse(SessionCaisse sessionCaisse) {
+        return venteRepository.findByUtilisateurAndDateVenteBetween(
+                sessionCaisse.getUtilisateur(),
+                sessionCaisse.getDateOuverture(),
+                sessionCaisse.getDateFermeture() != null ? sessionCaisse.getDateFermeture() : LocalDateTime.now()
+        );
     }
 }

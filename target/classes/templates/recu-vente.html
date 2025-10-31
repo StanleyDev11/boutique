@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reçu de Vente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #receipt-container, #receipt-container * {
+                visibility: visible;
+            }
+            #receipt-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+<div class="w-full px-4 sm:px-6 lg:px-8 py-8">
+
+    <div class="no-print mb-6 flex justify-between">
+        <a th:href="@{/gestion-caisses/session-details/{id}(id=${vente.sessionCaisse.id})}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Retour à la Session
+        </a>
+        <button onclick="window.print()" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+            <i class="fas fa-print mr-2"></i>
+            Imprimer
+        </button>
+    </div>
+
+    <div id="receipt-container" class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
+
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-gray-900">NOM DE VOTRE BOUTIQUE</h1>
+            <p class="text-gray-500">Votre adresse, Ville, Code Postal</p>
+            <p class="text-gray-500">Votre numéro de téléphone</p>
+        </div>
+
+        <!-- Vente Info -->
+        <div class="flex justify-between items-center mb-6 pb-4 border-b-2 border-dashed">
+            <div>
+                <p class="text-gray-600 font-medium">Reçu N°: <span class="text-gray-900" th:text="${vente.id}"></span></p>
+                <p class="text-gray-600 font-medium">Date: <span class="text-gray-900" th:text="${#temporals.format(vente.dateVente, 'dd/MM/yyyy HH:mm')}"></span></p>
+            </div>
+            <div>
+                <p class="text-gray-600 font-medium">Caissier: <span class="text-gray-900" th:text="${vente.utilisateur.username}"></span></p>
+                <p class="text-gray-600 font-medium">Client: <span class="text-gray-900" th:text="${vente.client != null ? vente.client.nom : 'Client au comptant'}"></span></p>
+            </div>
+        </div>
+
+        <!-- Lignes de Vente -->
+        <div class="mb-6">
+            <table class="min-w-full">
+                <thead>
+                    <tr class="border-b">
+                        <th class="py-2 text-left text-sm font-semibold text-gray-700">Produit</th>
+                        <th class="py-2 text-center text-sm font-semibold text-gray-700">Qté</th>
+                        <th class="py-2 text-right text-sm font-semibold text-gray-700">Prix Unitaire</th>
+                        <th class="py-2 text-right text-sm font-semibold text-gray-700">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="ligne : ${ligneVentes}" class="border-b border-gray-100">
+                        <td class="py-2" th:text="${ligne.produit.nom}"></td>
+                        <td class="py-2 text-center" th:text="${ligne.quantite}"></td>
+                        <td class="py-2 text-right" th:text="${#numbers.formatInteger(ligne.prixUnitaire, 1, 'WHITESPACE')} + ' FCFA'"></td>
+                        <td class="py-2 text-right" th:text="${#numbers.formatInteger(ligne.quantite * ligne.prixUnitaire, 1, 'WHITESPACE')} + ' FCFA'"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Totals -->
+        <div class="flex justify-end mb-6">
+            <div class="w-full md:w-1/2">
+                <div class="flex justify-between py-2 border-b">
+                    <span class="font-medium text-gray-600">Sous-total</span>
+                    <span class="font-semibold text-gray-900" th:text="${#numbers.formatInteger(vente.total, 1, 'WHITESPACE')} + ' FCFA'"></span>
+                </div>
+                <div class="flex justify-between py-2 border-b">
+                    <span class="font-medium text-gray-600">Remise</span>
+                    <span class="font-semibold text-gray-900" th:text="${#numbers.formatInteger(vente.remise, 1, 'WHITESPACE')} + ' FCFA'"></span>
+                </div>
+                <div class="flex justify-between py-3 bg-gray-100 px-4 rounded-lg mt-2">
+                    <span class="font-bold text-lg text-gray-900">Total Final</span>
+                    <span class="font-bold text-lg text-gray-900" th:text="${#numbers.formatInteger(vente.totalFinal, 1, 'WHITESPACE')} + ' FCFA'"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="text-center mb-8">
+            <p class="text-gray-600 font-medium">Moyen de paiement</p>
+            <p class="text-lg font-semibold text-gray-800" th:text="${vente.moyenPaiement}"></p>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center pt-6 border-t">
+            <p class="text-gray-500 text-sm">Merci pour votre achat !</p>
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

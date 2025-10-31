@@ -5,53 +5,111 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Historique de la Session</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <style>
-        body {
-            background-color: #f9fafb;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body class="bg-gray-100">
+
 <div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Historique de Session')}"></div>
 
-<div class="container mx-auto mt-8 p-4">
-
-    <div class="card bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-6">
-        <h2 class="text-2xl font-bold text-gray-800 mb-2">Historique de la Session Actuelle</h2>
-        <p class="text-gray-600">Début de la session: <span class="font-semibold text-blue-600" th:text="${#temporals.format(session.dateOuverture, 'dd-MM-yyyy HH:mm:ss')}"></span></p>
-        <p class="text-gray-600">Caissier: <span class="font-semibold" th:text="${session.utilisateur?.username}"></span></p>
+<div class="w-full px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Back Button -->
+    <div class="mb-6">
+        <a th:href="@{/caissier}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Retour à la Caisse
+        </a>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8 border border-gray-100">
-        <div class="px-6 py-4 border-b border-gray-100">
-            <h3 class="text-lg font-semibold text-gray-800">Ventes de la Session</h3>
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 flex items-center">
+            <i class="fas fa-history text-blue-600 mr-3"></i>
+            Historique de ma Session Actuelle
+        </h1>
+        <p class="text-gray-600 mt-2">Détails des ventes effectuées pendant la session ouverte.</p>
+    </div>
+
+    <!-- Session Info and Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-4">
+            <div class="bg-blue-100 p-4 rounded-full">
+                <i class="fas fa-user text-2xl text-blue-600"></i>
+            </div>
+            <div>
+                <p class="text-gray-600">Caissier</p>
+                <p class="text-2xl font-bold text-gray-900" th:text="${session.utilisateur?.username}"></p>
+            </div>
         </div>
-        <div class="overflow-x-auto">
+        <div class="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-4">
+            <div class="bg-green-100 p-4 rounded-full">
+                <i class="fas fa-money-bill-wave text-2xl text-green-600"></i>
+            </div>
+            <div>
+                <p class="text-gray-600">Total des Ventes</p>
+                <p class="text-2xl font-bold text-gray-900" th:text="${#numbers.formatInteger(totalSalesAmount, 1, 'WHITESPACE')} + ' FCFA'"></p>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-4">
+            <div class="bg-yellow-100 p-4 rounded-full">
+                <i class="fas fa-receipt text-2xl text-yellow-600"></i>
+            </div>
+            <div>
+                <p class="text-gray-600">Nombre de Ventes</p>
+                <p class="text-2xl font-bold text-gray-900" th:text="${numberOfSales}"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sales Table -->
+    <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 sm:p-8">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-800">Ventes de la Session</h2>
+            <button class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg font-semibold transition duration-200 flex items-center shadow-md">
+                <i class="fas fa-file-export mr-2"></i>Exporter
+            </button>
+        </div>
+        <div th:if="${#lists.isEmpty(ventes)}" class="text-center py-16 text-gray-500">
+            <i class="fas fa-dolly-flatbed text-4xl mb-3"></i>
+            <p>Aucune vente enregistrée pour cette session.</p>
+        </div>
+        <div th:unless="${#lists.isEmpty(ventes)}" class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                 <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Vente</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><i class="fas fa-calendar-alt mr-2"></i>Date Vente</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><i class="fas fa-user-tie mr-2"></i>Client</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><i class="fas fa-credit-card mr-2"></i>Moyen Paiement</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"><i class="fas fa-money-bill-wave mr-2"></i>Total</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"><i class="fas fa-cogs mr-2"></i>Action</th>
                 </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                <tr th:each="vente : ${ventes}" class="hover:bg-gray-50">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${vente.id}"></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${#temporals.format(vente.dateVente, 'dd-MM-yyyy HH:mm')}"></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${vente.client != null ? vente.client.nom : 'Client de passage'}"></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-800" th:text="${#numbers.formatDecimal(vente.totalFinal, 0, 'COMMA', 2, 'POINT')} + ' FCFA'"></td>
-                </tr>
-                <tr th:if="${#lists.isEmpty(ventes)}">
-                    <td colspan="4" class="text-center py-4 text-gray-500">Aucune vente pour cette session.</td>
+                <tr th:each="vente, iterStat : ${ventes}" th:classappend="${iterStat.even ? 'bg-gray-50' : ''} + ' hover:bg-gray-100'">
+                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-700" th:text="${iterStat.count}"></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-700" th:text="${#temporals.format(vente.dateVente, 'dd/MM/yyyy HH:mm')}"></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-700" th:text="${vente.client != null ? vente.client.nom : 'Client au comptant'}"></td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span th:switch="${vente.moyenPaiement}" class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full">
+                            <span th:case="'ESPECES'" class="bg-green-100 text-green-800"><i class="fas fa-money-bill-wave mr-1"></i> Espèces</span>
+                            <span th:case="'CARTE'" class="bg-blue-100 text-blue-800"><i class="fas fa-credit-card mr-1"></i> Carte</span>
+                            <span th:case="'MOBILE'" class="bg-orange-100 text-orange-800"><i class="fas fa-mobile-alt mr-1"></i> Mobile</span>
+                            <span th:case="'CREDIT'" class="bg-red-100 text-red-800"><i class="fas fa-book mr-1"></i> Crédit</span>
+                            <span th:case="*" class="bg-gray-100 text-gray-800" th:text="${vente.moyenPaiement}"></span>
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right font-semibold text-gray-800" th:text="${#numbers.formatInteger(vente.totalFinal, 1, 'WHITESPACE')} + ' FCFA'"></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                        <a th:href="@{/ventes/recu/{id}(id=${vente.id})}" class="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                            <i class="fas fa-receipt mr-2"></i>Voir le reçu
+                        </a>
+                    </td>
                 </tr>
                 </tbody>
                 <tfoot class="bg-gray-100">
                     <tr>
-                        <td colspan="3" class="px-6 py-3 text-right text-sm font-bold text-gray-600 uppercase">Total de la Session</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-700" th:text="${#lists.isEmpty(ventes) ? '0,00 FCFA' : #numbers.formatDecimal(#aggregates.sum(ventes.![totalFinal]), 0, 'COMMA', 2, 'POINT') + ' FCFA'}"></td>
+                        <td colspan="5" class="px-6 py-3 text-right text-sm font-bold text-gray-600 uppercase">Total de la Session</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-blue-700" th:text="${#numbers.formatInteger(totalSalesAmount, 1, 'WHITESPACE')} + ' FCFA'"></td>
                     </tr>
                 </tfoot>
             </table>

@@ -164,8 +164,15 @@ public class CaisseController {
         SessionCaisse session = sessionOpt.get();
         List<com.example.boutique.model.Vente> ventes = venteRepository.findByUtilisateurAndDateVenteAfter(utilisateur, session.getDateOuverture(), org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "dateVente"));
 
+        BigDecimal totalSalesAmount = ventes.stream()
+                .map(com.example.boutique.model.Vente::getTotalFinal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        int numberOfSales = ventes.size();
+
         model.addAttribute("session", session);
         model.addAttribute("ventes", ventes);
+        model.addAttribute("totalSalesAmount", totalSalesAmount);
+        model.addAttribute("numberOfSales", numberOfSales);
 
         return "session-historique";
     }
