@@ -139,7 +139,7 @@
                         </tr>
                     </tbody>
                 </table>
-                <div th:replace="~{fragments/pagination :: pagination(page=${openSessionsPage}, baseUrl=@{/gestion-caisses(openKeyword=${openKeyword}, openSize=${openSessionsPage.size}, openSortField=${openSortField}, openSortDir=${openSortDir}, closedKeyword=${closedKeyword}, closedPage=${closedSessionsPage.number}, closedSize=${closedSessionsPage.size}, closedSortField=${closedSortField}, closedSortDir=${closedSortDir})})}"></div>
+                <div th:replace="~{fragments/pagination :: pagination(page=${openSessionsPage}, pageParamName='openPage', baseUrl=@{/gestion-caisses(tab='open-sessions', openKeyword=${openKeyword}, openSize=${openSessionsPage.size}, openSortField=${openSortField}, openSortDir=${openSortDir}, closedKeyword=${closedKeyword}, closedPage=${closedSessionsPage.number}, closedSize=${closedSessionsPage.size}, closedSortField=${closedSortField}, closedSortDir=${closedSortDir})})}"></div>
             </div>
         </div>
 
@@ -225,7 +225,7 @@
                         </tr>
                     </tbody>
                 </table>
-                <div th:replace="~{fragments/pagination :: pagination(page=${closedSessionsPage}, baseUrl=@{/gestion-caisses(openKeyword=${openKeyword}, openPage=${openSessionsPage.number}, openSize=${openSessionsPage.size}, openSortField=${openSortField}, openSortDir=${openSortDir}, closedKeyword=${closedKeyword}, closedSize=${closedSessionsPage.size}, closedSortField=${closedSortField}, closedSortDir=${closedSortDir})})}"></div>
+                <div th:replace="~{fragments/pagination :: pagination(page=${closedSessionsPage}, pageParamName='closedPage', baseUrl=@{/gestion-caisses(tab='closed-sessions', openKeyword=${openKeyword}, openPage=${openSessionsPage.number}, openSize=${openSessionsPage.size}, openSortField=${openSortField}, openSortDir=${openSortDir}, closedKeyword=${closedKeyword}, closedSize=${closedSessionsPage.size}, closedSortField=${closedSortField}, closedSortDir=${closedSortDir})})}"></div>
             </div>
         </div>
     </div>

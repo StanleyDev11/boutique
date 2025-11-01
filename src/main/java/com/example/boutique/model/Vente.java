@@ -56,6 +56,10 @@ public class Vente {
     @JoinColumn(name = "utilisateur_id")
     private Utilisateur utilisateur;
 
+    @ManyToOne
+    @JoinColumn(name = "session_caisse_id")
+    private SessionCaisse sessionCaisse;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

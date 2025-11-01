@@ -1,7 +1,9 @@
 package com.example.boutique.controller;
 
+import com.example.boutique.model.Caisse;
 import com.example.boutique.model.SessionCaisse;
 import com.example.boutique.model.Utilisateur;
+import com.example.boutique.repository.CaisseRepository;
 import com.example.boutique.repository.SessionCaisseRepository;
 import com.example.boutique.repository.UtilisateurRepository;
 import com.example.boutique.repository.VenteRepository;
@@ -37,23 +39,39 @@ public class CaisseController {
     @Autowired
     private VenteRepository venteRepository;
 
+    @Autowired
+    private CaisseRepository caisseRepository;
+
     @GetMapping("/ouvrir")
     public String showOuvertureForm(Model model) {
         return "ouverture-caisse";
     }
 
     @PostMapping("/ouvrir")
-    public String ouvrirCaisse(@RequestParam("montantInitial") BigDecimal montantInitial, RedirectAttributes redirectAttributes) {
+    public String ouvrirCaisse(@RequestParam("montantInitial") BigDecimal montantInitial, RedirectAttributes redirectAttributes, Model model) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         Optional<Utilisateur> utilisateurOpt = utilisateurRepository.findByUsername(username);
 
         if (utilisateurOpt.isEmpty()) {
-            redirectAttributes.addFlashAttribute("error", "Utilisateur non trouvé.");
-            return "redirect:/login";
+            model.addAttribute("error", "Utilisateur non trouvé.");
+            return "ouverture-caisse";
         }
 
         Utilisateur utilisateur = utilisateurOpt.get();
+
+        // Vérification de la caisse assignée et de son statut
+        Optional<Caisse> caisseOpt = caisseRepository.findByUtilisateur(utilisateur);
+        if (caisseOpt.isEmpty()) {
+            model.addAttribute("error", "Aucune caisse n'est assignée à votre compte. Veuillez contacter le gestionnaire.");
+            return "ouverture-caisse";
+        }
+
+        Caisse caisse = caisseOpt.get();
+        if (!caisse.isActive()) {
+            model.addAttribute("error", "Votre caisse est inactive. Veuillez contacter le gestionnaire.");
+            return "ouverture-caisse";
+        }
 
         Optional<SessionCaisse> openSession = sessionCaisseRepository.findFirstByUtilisateurAndDateFermetureIsNullOrderByDateOuvertureDesc(utilisateur);
         if (openSession.isPresent()) {
@@ -61,8 +79,8 @@ public class CaisseController {
         }
 
         if (montantInitial.compareTo(BigDecimal.ZERO) < 0) {
-            redirectAttributes.addFlashAttribute("error", "Le montant initial ne peut pas être négatif.");
-            return "redirect:/caisse/ouvrir";
+            model.addAttribute("error", "Le montant initial ne peut pas être négatif.");
+            return "ouverture-caisse";
         }
 
         SessionCaisse sessionCaisse = new SessionCaisse();

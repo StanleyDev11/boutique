@@ -3,18 +3,10 @@ package com.example.boutique.service;
 import com.example.boutique.dto.CartItemDto;
 import com.example.boutique.dto.VenteRequestDto;
 import com.example.boutique.enums.TypeMouvement;
-import com.example.boutique.model.Client;
-import com.example.boutique.model.MouvementStock;
-import com.example.boutique.model.Produit;
-import com.example.boutique.model.LigneVente;
-import com.example.boutique.model.Vente;
-import com.example.boutique.model.Utilisateur;
+import com.example.boutique.model.*;
 
 
-import com.example.boutique.repository.ClientRepository;
-import com.example.boutique.repository.MouvementStockRepository;
-import com.example.boutique.repository.ProduitRepository;
-import com.example.boutique.repository.VenteRepository;
+import com.example.boutique.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,14 +22,17 @@ public class StockService {
     private final ProduitRepository produitRepository;
     private final VenteRepository venteRepository;
     private final ClientRepository clientRepository;
-    private final com.example.boutique.repository.LigneVenteRepository ligneVenteRepository;
+    private final LigneVenteRepository ligneVenteRepository;
+    private final SessionCaisseRepository sessionCaisseRepository;
 
-    public StockService(MouvementStockRepository mouvementStockRepository, ProduitRepository produitRepository, VenteRepository venteRepository, ClientRepository clientRepository, com.example.boutique.repository.LigneVenteRepository ligneVenteRepository) {
+
+    public StockService(MouvementStockRepository mouvementStockRepository, ProduitRepository produitRepository, VenteRepository venteRepository, ClientRepository clientRepository, LigneVenteRepository ligneVenteRepository, SessionCaisseRepository sessionCaisseRepository) {
         this.mouvementStockRepository = mouvementStockRepository;
         this.produitRepository = produitRepository;
         this.venteRepository = venteRepository;
         this.clientRepository = clientRepository;
         this.ligneVenteRepository = ligneVenteRepository;
+        this.sessionCaisseRepository = sessionCaisseRepository;
     }
 
     public void enregistrerMouvement(MouvementStock mouvement) {
@@ -69,13 +64,16 @@ public class StockService {
     }
 
     public void enregistrerVente(VenteRequestDto venteRequest, Utilisateur utilisateur) {
+        SessionCaisse sessionCaisse = sessionCaisseRepository.findFirstByUtilisateurAndDateFermetureIsNullOrderByDateOuvertureDesc(utilisateur)
+                .orElseThrow(() -> new IllegalStateException("Aucune session de caisse active trouvée pour cet utilisateur. Veuillez ouvrir une caisse."));
+
         List<CartItemDto> cartItems = venteRequest.getCart();
         BigDecimal totalBrut = BigDecimal.ZERO;
 
         // First, validate stock and calculate total from backend data for security
         for (CartItemDto item : cartItems) {
             Produit produit = produitRepository.findById(item.getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé avec l'ID: " + item.getId()));
+                    .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé avec l'''ID: " + item.getId()));
             if (produit.getQuantiteEnStock() < item.getQuantity()) {
                 throw new IllegalStateException("Stock insuffisant pour le produit: " + produit.getNom());
             }
@@ -108,12 +106,13 @@ public class StockService {
         vente.setTypeVente(venteRequest.getSaleType());
         vente.setMoyenPaiement(venteRequest.getPaymentMethod());
         vente.setUtilisateur(utilisateur);
+        vente.setSessionCaisse(sessionCaisse);
         venteRepository.save(vente);
 
         // Then, update stock and create stock movements
         for (CartItemDto item : cartItems) {
             Produit produit = produitRepository.findById(item.getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé avec l'ID: " + item.getId())); // Should not happen as we checked before
+                    .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé avec l'''ID: " + item.getId())); // Should not happen as we checked before
 
             LigneVente ligneVente = new LigneVente();
             ligneVente.setVente(vente);
@@ -138,3 +137,4 @@ public class StockService {
         }
     }
 }
+
