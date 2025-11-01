@@ -12,7 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -49,13 +51,16 @@ public class StockService {
                 break;
             case SORTIE_VENTE:
             case SORTIE_PERTE:
+            case PERIME:
+            case CASSE_DEFECTUEUX:
+            case AVOIR:
                 if (stockActuel < quantiteMouvement) {
                     throw new IllegalStateException("Quantité en stock insuffisante pour le produit: " + produit.getNom());
                 }
                 nouveauStock = stockActuel - quantiteMouvement;
                 break;
             default:
-                throw new IllegalArgumentException("Type de mouvement non supporté");
+                throw new IllegalArgumentException("Type de mouvement non supporté: " + mouvement.getTypeMouvement());
         }
 
         produit.setQuantiteEnStock(nouveauStock);
@@ -69,15 +74,19 @@ public class StockService {
 
         List<CartItemDto> cartItems = venteRequest.getCart();
         BigDecimal totalBrut = BigDecimal.ZERO;
+        Map<Long, Produit> produitsVerrouilles = new HashMap<>();
 
-        // First, validate stock and calculate total from backend data for security
+        // 1. Verrouiller les produits, valider le stock et calculer le total
         for (CartItemDto item : cartItems) {
-            Produit produit = produitRepository.findById(item.getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé avec l'''ID: " + item.getId()));
+            Produit produit = produitRepository.findByIdForUpdate(item.getId()) // Utilise la méthode de verrouillage
+                    .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé avec l'ID: " + item.getId()));
+
             if (produit.getQuantiteEnStock() < item.getQuantity()) {
                 throw new IllegalStateException("Stock insuffisant pour le produit: " + produit.getNom());
             }
+
             totalBrut = totalBrut.add(produit.getPrixVenteUnitaire().multiply(new BigDecimal(item.getQuantity())));
+            produitsVerrouilles.put(item.getId(), produit);
         }
 
         // Handle discount
@@ -111,8 +120,7 @@ public class StockService {
 
         // Then, update stock and create stock movements
         for (CartItemDto item : cartItems) {
-            Produit produit = produitRepository.findById(item.getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé avec l'''ID: " + item.getId())); // Should not happen as we checked before
+            Produit produit = produitsVerrouilles.get(item.getId()); // Récupère le produit depuis la Map
 
             LigneVente ligneVente = new LigneVente();
             ligneVente.setVente(vente);

@@ -341,6 +341,43 @@
       const removeClientBtn = document.getElementById('remove-client-btn');
       const clientSearchSection = document.getElementById('client-search-section');
 
+      // --- Barcode Scanner Logic ---
+      let barcodeBuffer = '';
+      let barcodeTimer = null;
+
+      document.addEventListener('keydown', function(e) {
+          // Ignore input if user is typing in a text field
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+              return;
+          }
+
+          if (e.key === 'Enter') {
+              if (barcodeBuffer.length > 2) { // Basic validation for barcode length
+                  handleScan(barcodeBuffer);
+              }
+              barcodeBuffer = '';
+              e.preventDefault();
+          } else if (e.key.length === 1) { // Append character keys
+              barcodeBuffer += e.key;
+          }
+
+          // Clear buffer after a short delay to distinguish from manual typing
+          clearTimeout(barcodeTimer);
+          barcodeTimer = setTimeout(() => {
+              barcodeBuffer = '';
+          }, 100); // 100ms delay
+      });
+
+      function handleScan(barcode) {
+          const productCard = document.querySelector(`.product-card[data-codebarres="${barcode}"]`);
+          if (productCard) {
+              const { id, nom, prix, stock } = productCard.dataset;
+              addToCart(id, nom, parseFloat(prix), 1, parseInt(stock));
+          } else {
+              Toast.fire({ icon: 'error', title: 'Produit non trouvé', text: `Aucun produit avec le code-barres ${barcode}` });
+          }
+      }
+
       // --- State Loading ---
       function loadState() {
           const savedState = localStorage.getItem('cashierState');

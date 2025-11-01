@@ -6,10 +6,17 @@ import com.example.boutique.model.Produit;
 import com.example.boutique.repository.MouvementStockRepository;
 import com.example.boutique.repository.ProduitRepository;
 import com.example.boutique.service.StockService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/stock")
@@ -32,8 +39,28 @@ public class StockController {
             produitRepository.findById(produitId).ifPresent(mouvement::setProduit);
         }
 
+        List<Produit> produits = produitRepository.findAll();
+        List<Map<String, Object>> productMaps = new ArrayList<>();
+        for (Produit p : produits) {
+            Map<String, Object> productMap = new HashMap<>();
+            productMap.put("id", p.getId());
+            productMap.put("name", p.getNom());
+            productMap.put("barcode", p.getCodeBarres());
+            productMap.put("stock", p.getQuantiteEnStock());
+            productMaps.add(productMap);
+        }
+
+        ObjectMapper mapper = new ObjectMapper();
+        String produitsJson = "[]";
+        try {
+            produitsJson = mapper.writeValueAsString(productMaps);
+        } catch (JsonProcessingException e) {
+            // Gérer l'erreur de sérialisation, par exemple en loggant
+        }
+
         model.addAttribute("mouvement", mouvement);
-        model.addAttribute("produits", produitRepository.findAll());
+        model.addAttribute("produitsJson", produitsJson);
+        model.addAttribute("produits", produits); // On peut le garder pour d'autres usages si nécessaire
         model.addAttribute("typesMouvement", TypeMouvement.values());
         return "stock-form";
     }

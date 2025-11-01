@@ -505,6 +505,54 @@
                     document.getElementById('product-list-container').innerHTML = newContent;
                 });
         });
+
+        // --- Barcode Scanner Logic ---
+        let barcodeBuffer = '';
+        let barcodeTimer = null;
+
+        document.addEventListener('keydown', function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.closest('.swal2-container')) {
+                return;
+            }
+
+            if (e.key === 'Enter') {
+                if (barcodeBuffer.length > 2) {
+                    handleScan(barcodeBuffer);
+                }
+                barcodeBuffer = '';
+                e.preventDefault();
+            } else if (e.key.length === 1) {
+                barcodeBuffer += e.key;
+            }
+
+            clearTimeout(barcodeTimer);
+            barcodeTimer = setTimeout(() => {
+                barcodeBuffer = '';
+            }, 100);
+        });
+
+        function handleScan(barcode) {
+            // Check if the product form modal is open
+            if (Swal.isVisible()) {
+                const barcodeInputInModal = document.getElementById('codeBarres');
+                if (barcodeInputInModal) {
+                    barcodeInputInModal.value = barcode;
+                    // Optional: Give a visual feedback
+                    barcodeInputInModal.focus();
+                    barcodeInputInModal.classList.add('bg-yellow-100');
+                    setTimeout(() => barcodeInputInModal.classList.remove('bg-yellow-100'), 1000);
+                }
+            } else {
+                // If modal is not open, perform a search on the main page
+                const searchInput = document.getElementById('search-input');
+                if (searchInput) {
+                    searchInput.value = barcode;
+                    if (searchInput.form) {
+                        searchInput.form.submit();
+                    }
+                }
+            }
+        }
     });
     /*]]>*/
 </script>

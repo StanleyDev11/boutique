@@ -4,18 +4,24 @@ import com.example.boutique.dto.CategoryProductCount;
 import com.example.boutique.model.Produit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ProduitRepository extends JpaRepository<Produit, Long> {
 
     // Méthode pour la recherche par nom
     Page<Produit> findByNomContainingIgnoreCase(String nom, Pageable pageable);
+
+    Page<Produit> findByNomContainingIgnoreCaseOrCodeBarresContaining(String nom, String codeBarres, Pageable pageable);
 
     // Méthode paginée pour le rapport de stock bas
     Page<Produit> findAllByQuantiteEnStockLessThanEqual(int seuil, Pageable pageable);
@@ -31,4 +37,8 @@ public interface ProduitRepository extends JpaRepository<Produit, Long> {
 
     @Query("SELECT p.categorie as category, COUNT(p) as productCount FROM Produit p GROUP BY p.categorie")
     List<CategoryProductCount> countProductsByCategory();
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Produit p WHERE p.id = :id")
+    Optional<Produit> findByIdForUpdate(@Param("id") Long id);
 }

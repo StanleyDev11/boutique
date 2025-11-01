@@ -40,7 +40,7 @@ public class ProduitController {
         Page<Produit> pageProduits;
 
         if (keyword != null && !keyword.isEmpty()) {
-            pageProduits = produitRepository.findByNomContainingIgnoreCase(keyword, pageable);
+            pageProduits = produitRepository.findByNomContainingIgnoreCaseOrCodeBarresContaining(keyword, keyword, pageable);
         } else {
             pageProduits = produitRepository.findAll(pageable);
         }
