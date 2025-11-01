@@ -67,7 +67,19 @@ public class CaisseService {
     }
 
     public void deleteCaisse(Long id) {
-        caisseRepository.deleteById(id);
+        Caisse caisse = caisseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Caisse non trouvée avec l'id : " + id));
+
+        Utilisateur utilisateur = caisse.getUtilisateur();
+
+        if (utilisateur != null) {
+            Optional<SessionCaisse> openSession = sessionCaisseRepository.findFirstByUtilisateurAndDateFermetureIsNullOrderByDateOuvertureDesc(utilisateur);
+            if (openSession.isPresent()) {
+                throw new IllegalStateException("Impossible de supprimer la caisse '" + caisse.getNom() + "' car une session est actuellement ouverte par le caissier '" + utilisateur.getUsername() + "'.");
+            }
+        }
+
+        caisseRepository.delete(caisse);
     }
 
     public Caisse activateCaisse(Long id) {
@@ -80,6 +92,16 @@ public class CaisseService {
     public Caisse deactivateCaisse(Long id) {
         Caisse caisse = caisseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Caisse non trouvée avec l'id : " + id));
+
+        Utilisateur utilisateur = caisse.getUtilisateur();
+
+        if (utilisateur != null) {
+            Optional<SessionCaisse> openSession = sessionCaisseRepository.findFirstByUtilisateurAndDateFermetureIsNullOrderByDateOuvertureDesc(utilisateur);
+            if (openSession.isPresent()) {
+                throw new IllegalStateException("Impossible de désactiver la caisse '" + caisse.getNom() + "' car une session est actuellement ouverte par le caissier '" + utilisateur.getUsername() + "'.");
+            }
+        }
+
         caisse.setActive(false);
         return caisseRepository.save(caisse);
     }

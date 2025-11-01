@@ -25,6 +25,9 @@ public class Client {
     @Column(nullable = false, updatable = false)
     private LocalDate dateInscription;
 
+    @Column(nullable = false)
+    private java.math.BigDecimal soldeCredit = java.math.BigDecimal.ZERO;
+
     @PrePersist
     protected void onCreate() {
         if (dateInscription == null) {

@@ -123,9 +123,9 @@ public class CaisseManagementController {
             caisseService.deleteCaisse(id);
             redirectAttributes.addFlashAttribute("successMessage", "Caisse supprimée avec succès !");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Erreur lors de la suppression de la caisse.");
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-        return "redirect:/gestion-caisses";
+        return "redirect:/gestion-caisses?tab=caisses";
     }
 
     @PostMapping("/activate/{id}")
@@ -137,8 +137,12 @@ public class CaisseManagementController {
 
     @PostMapping("/deactivate/{id}")
     public String deactivateCaisse(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        caisseService.deactivateCaisse(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Caisse désactivée avec succès !");
+        try {
+            caisseService.deactivateCaisse(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Caisse désactivée avec succès !");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
         return "redirect:/gestion-caisses?tab=caisses";
     }
 

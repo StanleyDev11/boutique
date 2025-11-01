@@ -563,13 +563,18 @@
               confirmButtonText: 'Ajouter',
               preConfirm: () => {
                   const nom = document.getElementById('swal-input-name').value;
+                  const telephone = document.getElementById('swal-input-phone').value;
                   if (!nom) {
                       Swal.showValidationMessage('Le nom est obligatoire');
                       return false;
                   }
+                  if (telephone && telephone.length < 8) {
+                      Swal.showValidationMessage('Le numéro de téléphone doit contenir au moins 8 chiffres.');
+                      return false;
+                  }
                   return {
                       nom: nom,
-                      telephone: document.getElementById('swal-input-phone').value,
+                      telephone: telephone,
                       adresse: document.getElementById('swal-input-address').value
                   }
               }
@@ -839,40 +844,91 @@
 
       function printReceipt(tab, saleData, finalTotal, isDraft = false) {
           const now = new Date();
+          const cashierName = /*[[${user.username}]]*/ 'N/A';
           const receiptWindow = window.open('', 'PRINT', 'height=600,width=400');
           const clientName = tab.selectedClient ? tab.selectedClient.nom : 'Client de passage';
+          
           let receiptContent = `
-              <html><head><title>Reçu</title><style>
-                      body { font-family: 'Courier New', monospace; font-size: 10pt; position: relative; }
-                      .container { width: 90%; margin: auto; }
-                      h2 { text-align: center; } hr { border-top: 1px dashed #000; }
-                      .item { display: flex; justify-content: space-between; }
-                      .total { text-align: right; font-weight: bold; margin-top: 10px; }
-                      .footer { text-align: center; margin-top: 20px; }
+              <html>
+              <head>
+                  <title>Reçu</title>
+                  <style>
+                      body { font-family: 'Arial', sans-serif; font-size: 10pt; color: #000; }
+                      .container { width: 95%; margin: auto; }
+                      .center { text-align: center; }
+                      .header h1 { font-size: 14pt; margin: 5px 0; }
+                      .header p { margin: 2px 0; font-size: 8pt; }
+                      hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
+                      .info p { display: flex; justify-content: space-between; margin: 3px 0; font-size: 9pt; }
+                      table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+                      th, td { padding: 4px 2px; }
+                      th { text-align: left; border-bottom: 1px solid #000; }
+                      .qty { text-align: center; }
+                      .price { text-align: right; }
+                      .totals { margin-top: 10px; font-size: 10pt; }
+                      .totals p { display: flex; justify-content: space-between; margin: 4px 0; }
+                      .totals .grand-total { font-weight: bold; font-size: 12pt; border-top: 1px solid #000; padding-top: 5px; }
+                      .footer { text-align: center; margin-top: 15px; font-size: 8pt; }
                       .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); 
-                                   font-size: 72px; color: rgba(0,0,0,0.1); font-weight: bold; pointer-events: none; z-index: -1; }
-              </style></head><body>
+                                   font-size: 60px; color: rgba(0,0,0,0.08); font-weight: bold; pointer-events: none; z-index: -1; }
+                  </style>
+              </head>
+              <body>
                   ${isDraft ? '<div class="watermark">DRAFT</div>' : ''}
                   <div class="container">
-                      <h2>${isDraft ? 'PROFORMA' : 'BELALUXE Supermarché'}</h2>
-                      <p>Date: ${now.toLocaleDateString('fr-FR')} ${now.toLocaleTimeString('fr-FR')}</p>
-                      <p>Client: ${clientName}</p><hr><div>
-          `;
+                      <div class="header center">
+                          <h1>SUPERMARCHE BELALUXE</h1>
+                          <p>Bd. Jean Paul II, Près de la TDE, Hédzranawoé</p>
+                          <p>Lomé - Togo</p>
+                          <p>Tél: (+228) 96 00 01 89 / 90 12 34 30</p>
+                      </div>
+                      <hr>
+                      <div class="info">
+                          <p><span>Date:</span> <span>${now.toLocaleDateString('fr-FR')} ${now.toLocaleTimeString('fr-FR')}</span></p>
+                          <p><span>Caissier:</span> <span>${cashierName}</span></p>
+                          <p><span>Client:</span> <span>${clientName}</span></p>
+                      </div>
+                      <hr>
+                      <table>
+                          <thead>
+                              <tr>
+                                  <th>Produit</th>
+                                  <th class="qty">Qté</th>
+                                  <th class="price">P.U.</th>
+                                  <th class="price">Total</th>
+                              </tr>
+                          </thead>
+                          <tbody>`;
+
           tab.cart.forEach(item => {
               receiptContent += `
-                  <div class="item">
-                      <span>${item.name} (x${item.quantity})</span>
-                      <span>${(item.price * item.quantity).toFixed(2)} FCFA</span>
-                  </div>
+                  <tr>
+                      <td>${item.name}</td>
+                      <td class="qty">${item.quantity}</td>
+                      <td class="price">${item.price.toFixed(0)}</td>
+                      <td class="price">${(item.price * item.quantity).toFixed(0)}</td>
+                  </tr>
               `;
           });
+
           receiptContent += `
-                      </div><hr><div class="total">
-                          <p>Sous-total: ${tab.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)} FCFA</p>
-                          <p>Remise: -${(tab.discountAmount || 0).toFixed(2)} FCFA</p>
-                          <p>Total: ${finalTotal.toFixed(2)} FCFA</p>
-                      </div><div class="footer"><p>Merci de votre visite !</p></div>
-                  </div></body></html>
+                          </tbody>
+                      </table>
+                      <hr>
+                      <div class="totals">
+                          <p><span>Sous-total:</span> <span>${tab.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(0)} FCFA</span></p>
+                          <p><span>Remise:</span> <span>-${(tab.discountAmount || 0).toFixed(0)} FCFA</span></p>
+                          <p class="grand-total"><span>TOTAL:</span> <span>${finalTotal.toFixed(0)} FCFA</span></p>
+                      </div>
+                      <hr>
+                      <div class="footer">
+                          <p>Payé par: ${saleData.paymentMethod}</p>
+                          <p>Merci pour votre visite !</p>
+                          <p>L'article acheté n'est ni repris, ni échangé.</p>
+                      </div>
+                  </div>
+              </body>
+              </html>
           `;
           receiptWindow.document.write(receiptContent);
           receiptWindow.document.close();
