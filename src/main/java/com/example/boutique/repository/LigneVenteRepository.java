@@ -3,6 +3,7 @@ package com.example.boutique.repository;
 import com.example.boutique.dto.CategorySales;
 import com.example.boutique.dto.ProduitVenteDto;
 import com.example.boutique.model.LigneVente;
+import com.example.boutique.model.Vente;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,6 +20,8 @@ public interface LigneVenteRepository extends JpaRepository<LigneVente, Long> {
     
 
     List<LigneVente> findByVenteId(Long venteId);
+
+    List<LigneVente> findByVente(Vente vente);
 
     @Query("SELECT p.categorie as category, sum(lv.prixUnitaire * lv.quantite) as totalSales FROM LigneVente lv JOIN lv.produit p GROUP BY p.categorie")
     List<CategorySales> findTotalSalesByCategory();

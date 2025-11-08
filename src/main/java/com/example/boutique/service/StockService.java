@@ -116,6 +116,7 @@ public class StockService {
         vente.setMoyenPaiement(venteRequest.getPaymentMethod());
         vente.setUtilisateur(utilisateur);
         vente.setSessionCaisse(sessionCaisse);
+        vente.setStatus(com.example.boutique.enums.VenteStatus.COMPLETED);
         venteRepository.save(vente);
 
         // Then, update stock and create stock movements
@@ -142,6 +143,37 @@ public class StockService {
             mouvementStock.setDateMouvement(LocalDateTime.now());
             mouvementStock.setDescription("Vente de " + item.getQuantity() + " unités. Réf Vente ID: " + vente.getId());
             mouvementStockRepository.save(mouvementStock);
+        }
+    }
+
+    public void annulerVente(Long venteId) {
+        Vente vente = venteRepository.findById(venteId)
+                .orElseThrow(() -> new IllegalArgumentException("Vente non trouvée avec l'ID: " + venteId));
+
+        if (vente.getStatus() == com.example.boutique.enums.VenteStatus.CANCELLED) {
+            throw new IllegalStateException("Cette vente a déjà été annulée.");
+        }
+
+        vente.setStatus(com.example.boutique.enums.VenteStatus.CANCELLED);
+        venteRepository.save(vente);
+
+        List<LigneVente> lignesVente = ligneVenteRepository.findByVente(vente);
+
+        for (LigneVente ligne : lignesVente) {
+            Produit produit = produitRepository.findByIdForUpdate(ligne.getProduit().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé: " + ligne.getProduit().getNom()));
+
+            // Créer le mouvement de stock pour l'annulation (comme une entrée)
+            MouvementStock mouvementStock = new MouvementStock();
+            mouvementStock.setProduit(produit);
+            mouvementStock.setQuantite(ligne.getQuantite());
+            mouvementStock.setTypeMouvement(TypeMouvement.ENTREE); // Utiliser ENTREE
+            mouvementStock.setDateMouvement(LocalDateTime.now());
+            mouvementStock.setDescription("Retour de stock suite à l'annulation de la vente #" + vente.getId());
+            mouvementStock.setUtilisateur(vente.getUtilisateur());
+
+            // La méthode enregistrerMouvement gère déjà la logique d'addition au stock pour le type ENTREE
+            enregistrerMouvement(mouvementStock);
         }
     }
 }

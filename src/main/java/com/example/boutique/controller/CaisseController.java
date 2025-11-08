@@ -183,9 +183,12 @@ public class CaisseController {
         List<com.example.boutique.model.Vente> ventes = venteRepository.findByUtilisateurAndDateVenteAfter(utilisateur, session.getDateOuverture(), org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "dateVente"));
 
         BigDecimal totalSalesAmount = ventes.stream()
+                .filter(v -> v.getStatus() == com.example.boutique.enums.VenteStatus.COMPLETED)
                 .map(com.example.boutique.model.Vente::getTotalFinal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        int numberOfSales = ventes.size();
+        long numberOfSales = ventes.stream()
+                .filter(v -> v.getStatus() == com.example.boutique.enums.VenteStatus.COMPLETED)
+                .count();
 
         model.addAttribute("session", session);
         model.addAttribute("ventes", ventes);

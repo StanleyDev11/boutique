@@ -4,13 +4,17 @@ import com.example.boutique.model.LigneVente;
 import com.example.boutique.model.Vente;
 import com.example.boutique.repository.LigneVenteRepository;
 import com.example.boutique.repository.VenteRepository;
+import com.example.boutique.service.StockService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/ventes")
@@ -18,10 +22,12 @@ public class VenteController {
 
     private final VenteRepository venteRepository;
     private final LigneVenteRepository ligneVenteRepository;
+    private final StockService stockService;
 
-    public VenteController(VenteRepository venteRepository, LigneVenteRepository ligneVenteRepository) {
+    public VenteController(VenteRepository venteRepository, LigneVenteRepository ligneVenteRepository, StockService stockService) {
         this.venteRepository = venteRepository;
         this.ligneVenteRepository = ligneVenteRepository;
+        this.stockService = stockService;
     }
 
     @GetMapping("/{id}")
@@ -40,5 +46,15 @@ public class VenteController {
         model.addAttribute("ligneVentes", ligneVentes);
 
         return "recu-vente";
+    }
+
+    @PostMapping("/{id}/annuler")
+    public ResponseEntity<?> annulerVente(@PathVariable Long id) {
+        try {
+            stockService.annulerVente(id);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Vente annulée avec succès."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
     }
 }

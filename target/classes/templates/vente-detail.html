@@ -19,7 +19,7 @@
                 <span>Détail de la Vente #<span th:text="${vente.id}"></span></span>
             </h3>
             <div class="flex items-center space-x-2">
-                <a th:href="@{/clients/{clientId}/credits(clientId=${vente.client.id})}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold transition duration-200 flex items-center">
+                <a th:href="@{/rapports/ventes-historique}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold transition duration-200 flex items-center">
                     <i class="fas fa-arrow-left mr-2"></i>Retour
                 </a>
                 <button onclick="window.print()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition duration-200 flex items-center">
@@ -41,7 +41,7 @@
                 <i class="fas fa-user text-blue-500 text-2xl mr-4"></i>
                 <div>
                     <p class="text-sm text-gray-500">Client</p>
-                    <p class="font-semibold text-gray-800" th:text="${vente.client.nom}"></p>
+                    <p class="font-semibold text-gray-800" th:text="${vente.client != null ? vente.client.nom : 'Client de passage'}"></p>
                 </div>
             </div>
             <div class="bg-gray-50 p-4 rounded-lg flex items-center">

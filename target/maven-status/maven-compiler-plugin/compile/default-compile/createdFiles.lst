@@ -20,6 +20,7 @@ com\example\boutique\controller\CaisseController.class
 com\example\boutique\model\LigneVente.class
 com\example\boutique\controller\RapportController.class
 com\example\boutique\utils\ProductUtils.class
+com\example\boutique\enums\VenteStatus.class
 com\example\boutique\controller\DashboardController.class
 com\example\boutique\dto\ProductBatchDto.class
 com\example\boutique\dto\VenteRequestDto.class

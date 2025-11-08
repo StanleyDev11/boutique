@@ -1,5 +1,6 @@
 package com.example.boutique.model;
 
+import com.example.boutique.enums.VenteStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -51,6 +52,10 @@ public class Vente {
 
     @Column(nullable = false)
     private String moyenPaiement; // "Espèces", "Carte", ou "Credit"
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private VenteStatus status;
 
     @ManyToOne
     @JoinColumn(name = "utilisateur_id")

@@ -36,6 +36,7 @@ public class SecurityConfig {
                 .requestMatchers("/dashboard").hasRole("ADMIN")
                 .requestMatchers("/produits").hasAnyRole("ADMIN", "GESTIONNAIRE") // Admin et Gestionnaire peuvent voir les produits
                 .requestMatchers("/gestion-caisses/**").hasAnyRole("ADMIN", "GESTIONNAIRE")
+                .requestMatchers("/ventes/*/annuler").hasAnyRole("ADMIN", "GESTIONNAIRE")
                 .anyRequest().authenticated() // Toutes les autres pages nécessitent une connexion
             )
             .formLogin(form -> form

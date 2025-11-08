@@ -1,8 +1,11 @@
 package com.example.boutique.repository;
 
 import com.example.boutique.dto.VenteCreditDto;
+import com.example.boutique.enums.VenteStatus;
 import com.example.boutique.model.Utilisateur;
 import com.example.boutique.model.Vente;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,7 +17,9 @@ import java.util.List;
 
 @Repository
 public interface VenteRepository extends JpaRepository<Vente, Long> {
+    Page<Vente> findByDateVenteBetween(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
     List<Vente> findByDateVenteBetween(LocalDateTime startDate, LocalDateTime endDate);
+
 
     @Query("SELECT v.id as id, v.dateVente as dateVente, v.totalFinal as totalFinal, c.nom as nomClient FROM Vente v JOIN v.client c WHERE c.id = :clientId AND v.typeVente = 'CREDIT'")
     List<VenteCreditDto> findCreditSalesByClientId(Long clientId);
@@ -25,4 +30,8 @@ public interface VenteRepository extends JpaRepository<Vente, Long> {
     List<Vente> findByUtilisateurAndDateVenteAfter(Utilisateur utilisateur, LocalDateTime startDate, org.springframework.data.domain.Sort sort);
 
     List<Vente> findByUtilisateurAndDateVenteBetween(Utilisateur utilisateur, LocalDateTime startDate, LocalDateTime endDate);
+
+    long countByStatus(VenteStatus status);
+
+    List<Vente> findAllByDateVenteAfter(LocalDateTime date);
 }

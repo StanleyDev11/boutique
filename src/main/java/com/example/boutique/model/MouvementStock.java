@@ -37,6 +37,10 @@ public class MouvementStock {
 
     private String description;
 
+    @ManyToOne
+    @JoinColumn(name = "utilisateur_id")
+    private Utilisateur utilisateur;
+
     @PrePersist
     protected void onCreate() {
         this.dateMouvement = LocalDateTime.now();
