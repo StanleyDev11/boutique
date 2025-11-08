@@ -76,6 +76,9 @@ public class ProduitController {
     public String getFormFragment(@RequestParam(required = false) Long id,
                                   @RequestParam(defaultValue = "false") boolean batch,
                                   Model model) {
+        List<String> categories = produitRepository.findDistinctCategories();
+        model.addAttribute("categories", categories);
+
         if (batch) {
             model.addAttribute("productBatchDto", new ProductBatchDto());
             model.addAttribute("pageTitle", "Ajouter des produits par lot");

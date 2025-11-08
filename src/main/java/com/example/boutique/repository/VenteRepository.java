@@ -24,7 +24,7 @@ public interface VenteRepository extends JpaRepository<Vente, Long> {
     @Query("SELECT v.id as id, v.dateVente as dateVente, v.totalFinal as totalFinal, c.nom as nomClient FROM Vente v JOIN v.client c WHERE c.id = :clientId AND v.typeVente = 'CREDIT'")
     List<VenteCreditDto> findCreditSalesByClientId(Long clientId);
 
-    @Query("SELECT SUM(v.totalFinal) FROM Vente v WHERE v.utilisateur = :utilisateur AND v.dateVente >= :startDate")
+    @Query("SELECT SUM(v.totalFinal) FROM Vente v WHERE v.utilisateur = :utilisateur AND v.dateVente >= :startDate AND v.typeVente != 'credit'")
     BigDecimal sumTotalForUserSince(@Param("utilisateur") Utilisateur utilisateur, @Param("startDate") LocalDateTime startDate);
 
     List<Vente> findByUtilisateurAndDateVenteAfter(Utilisateur utilisateur, LocalDateTime startDate, org.springframework.data.domain.Sort sort);

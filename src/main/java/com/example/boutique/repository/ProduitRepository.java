@@ -41,4 +41,7 @@ public interface ProduitRepository extends JpaRepository<Produit, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Produit p WHERE p.id = :id")
     Optional<Produit> findByIdForUpdate(@Param("id") Long id);
+
+    @Query("SELECT DISTINCT p.categorie FROM Produit p WHERE p.categorie IS NOT NULL AND p.categorie != '' ORDER BY p.categorie")
+    List<String> findDistinctCategories();
 }

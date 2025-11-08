@@ -183,17 +183,22 @@ public class CaisseController {
         List<com.example.boutique.model.Vente> ventes = venteRepository.findByUtilisateurAndDateVenteAfter(utilisateur, session.getDateOuverture(), org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "dateVente"));
 
         BigDecimal totalSalesAmount = ventes.stream()
-                .filter(v -> v.getStatus() == com.example.boutique.enums.VenteStatus.COMPLETED)
+                .filter(v -> v.getStatus() == com.example.boutique.enums.VenteStatus.COMPLETED && !"credit".equals(v.getTypeVente()))
                 .map(com.example.boutique.model.Vente::getTotalFinal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         long numberOfSales = ventes.stream()
-                .filter(v -> v.getStatus() == com.example.boutique.enums.VenteStatus.COMPLETED)
+                .filter(v -> v.getStatus() == com.example.boutique.enums.VenteStatus.COMPLETED && !"credit".equals(v.getTypeVente()))
+                .count();
+
+        long numberOfCreditSales = ventes.stream()
+                .filter(v -> "credit".equals(v.getTypeVente()))
                 .count();
 
         model.addAttribute("session", session);
         model.addAttribute("ventes", ventes);
         model.addAttribute("totalSalesAmount", totalSalesAmount);
         model.addAttribute("numberOfSales", numberOfSales);
+        model.addAttribute("numberOfCreditSales", numberOfCreditSales);
 
         return "session-historique";
     }
