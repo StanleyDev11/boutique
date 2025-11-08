@@ -44,4 +44,6 @@ public interface ProduitRepository extends JpaRepository<Produit, Long> {
 
     @Query("SELECT DISTINCT p.categorie FROM Produit p WHERE p.categorie IS NOT NULL AND p.categorie != '' ORDER BY p.categorie")
     List<String> findDistinctCategories();
+
+    Optional<Produit> findByCodeBarres(String codeBarres);
 }

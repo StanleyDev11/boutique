@@ -5,7 +5,7 @@ import com.example.boutique.dto.ProduitDto;
 import com.example.boutique.model.MouvementStock;
 import com.example.boutique.model.Produit;
 import com.example.boutique.repository.ProduitRepository;
-import com.example.boutique.service.StockService;
+import com.example.boutique.service.ProduitService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,12 +29,12 @@ import java.util.Optional;
 public class ProduitController {
 
     private final ProduitRepository produitRepository;
-    private final StockService stockService;
+    private final ProduitService produitService;
 
 
-    public ProduitController(ProduitRepository produitRepository, StockService stockService) {
+    public ProduitController(ProduitRepository produitRepository, ProduitService produitService) {
         this.produitRepository = produitRepository;
-        this.stockService = stockService;
+        this.produitService = produitService;
     }
 
     @GetMapping
@@ -104,41 +104,13 @@ public class ProduitController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> saveBatch(@ModelAttribute ProductBatchDto productBatchDto) {
         try {
-            List<Produit> produits = new ArrayList<>();
-            for (ProduitDto dto : productBatchDto.getProduits()) {
-                Produit produit = new Produit();
-                produit.setNom(dto.getNom());
-                produit.setCodeBarres(dto.getCodeBarres());
-                produit.setPrixAchat(BigDecimal.valueOf(dto.getPrixAchat()));
-                produit.setPrixVenteUnitaire(BigDecimal.valueOf(dto.getPrixVenteUnitaire()));
-                produit.setCategorie(dto.getCategorie());
-                produit.setQuantiteEnStock(0); // Initial stock is 0 before movement
-                produit.setDatePeremption(dto.getDatePeremption());
-                produit.setNomFournisseur(productBatchDto.getNomFournisseur());
-                produit.setNumeroFacture(productBatchDto.getNumeroFacture());
-                produits.add(produit);
-            }
-
-            List<Produit> savedProduits = produitRepository.saveAll(produits);
-
-            for (int i = 0; i < savedProduits.size(); i++) {
-                Produit produit = savedProduits.get(i);
-                ProduitDto dto = productBatchDto.getProduits().get(i);
-
-                if (dto.getQuantiteEnStock() > 0) {
-                    MouvementStock mouvement = new MouvementStock();
-                    mouvement.setProduit(produit);
-                    mouvement.setQuantite(dto.getQuantiteEnStock());
-                    mouvement.setTypeMouvement(TypeMouvement.ENTREE);
-                    mouvement.setDateMouvement(LocalDateTime.now());
-                    mouvement.setDescription("Stock initial");
-                    stockService.enregistrerMouvement(mouvement);
-                }
-            }
-
+            produitService.saveNewProductBatch(productBatchDto);
             return ResponseEntity.ok(Map.of("success", true, "message", "Les produits ont été sauvegardés avec succès !"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur lors de la sauvegarde des produits."));
+            // Log the exception e
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Une erreur inattendue est survenue lors de la sauvegarde des produits."));
         }
     }
 
@@ -147,10 +119,13 @@ public class ProduitController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> saveProduit(@ModelAttribute("produit") Produit produit) {
         try {
-            produitRepository.save(produit);
+            produitService.saveProduit(produit);
             return ResponseEntity.ok(Map.of("success", true, "message", "Le produit a été sauvegardé avec succès !"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur lors de la sauvegarde du produit."));
+            // Log the exception e
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Une erreur inattendue est survenue lors de la sauvegarde du produit."));
         }
     }
 
