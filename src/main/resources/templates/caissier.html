@@ -391,7 +391,7 @@
               }
           }
           if (tabs.length === 0) {
-              tabs = [{ id: 1, cart: [], selectedClient: null, discountAmount: 0 }];
+              tabs = [{ id: 1, cart: [], selectedClient: null, discountAmount: 0, discountPercentage: 0 }];
               activeTabIndex = 0;
               nextTabId = 2;
           }
@@ -426,7 +426,7 @@
       }
 
       function addNewTab() {
-          tabs.push({ id: nextTabId++, cart: [], selectedClient: null, discountAmount: 0 });
+          tabs.push({ id: nextTabId++, cart: [], selectedClient: null, discountAmount: 0, discountPercentage: 0 });
           switchTab(tabs.length - 1);
       }
 
@@ -640,20 +640,30 @@
 
       // --- Discount Management ---
       async function openDiscountModal() {
-          const { value: amount } = await Swal.fire({
+          const tab = tabs[activeTabIndex];
+          const subTotal = tab.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+          const { value: percentage } = await Swal.fire({
               title: 'Appliquer une remise',
-              input: 'number',
-              inputLabel: 'Montant de la remise en FCFA',
-              inputValue: tabs[activeTabIndex].discountAmount || 0,
+              input: 'text',
+              inputLabel: 'Pourcentage de la remise (%)',
+              inputValue: tab.discountPercentage || 0,
+              inputPlaceholder: 'Ex: 5 pour 5%',
               showCancelButton: true,
+              confirmButtonText: 'Appliquer',
+              cancelButtonText: 'Annuler',
               inputValidator: (value) => {
-                  if (value === '' || parseFloat(value) < 0) {
-                      return 'Veuillez entrer un montant valide'
+                  const percent = parseFloat(value);
+                  if (isNaN(percent) || percent < 0 || percent > 100) {
+                      return 'Veuillez entrer un pourcentage valide entre 0 et 100'
                   }
               }
           });
-          if (amount) {
-              tabs[activeTabIndex].discountAmount = parseFloat(amount);
+
+          if (percentage) {
+              const percentValue = parseFloat(percentage);
+              tab.discountPercentage = percentValue;
+              tab.discountAmount = (subTotal * percentValue) / 100;
               renderActiveTabContent();
           }
       }

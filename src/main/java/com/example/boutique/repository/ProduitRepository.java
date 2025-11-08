@@ -21,7 +21,7 @@ public interface ProduitRepository extends JpaRepository<Produit, Long> {
     // Méthode pour la recherche par nom
     Page<Produit> findByNomContainingIgnoreCase(String nom, Pageable pageable);
 
-    Page<Produit> findByNomContainingIgnoreCaseOrCodeBarresContaining(String nom, String codeBarres, Pageable pageable);
+    Page<Produit> findByNomContainingIgnoreCaseOrCodeBarresContainingOrNumeroFactureContainingIgnoreCase(String nom, String codeBarres, String numeroFacture, Pageable pageable);
 
     // Méthode paginée pour le rapport de stock bas
     Page<Produit> findAllByQuantiteEnStockLessThanEqual(int seuil, Pageable pageable);

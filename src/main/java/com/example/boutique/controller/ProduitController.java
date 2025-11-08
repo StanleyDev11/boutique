@@ -1,7 +1,11 @@
 package com.example.boutique.controller;
 
+import com.example.boutique.dto.ProductBatchDto;
+import com.example.boutique.dto.ProduitDto;
+import com.example.boutique.model.MouvementStock;
 import com.example.boutique.model.Produit;
 import com.example.boutique.repository.ProduitRepository;
+import com.example.boutique.service.StockService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -11,7 +15,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import com.example.boutique.enums.TypeMouvement;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -20,9 +29,12 @@ import java.util.Optional;
 public class ProduitController {
 
     private final ProduitRepository produitRepository;
+    private final StockService stockService;
 
-    public ProduitController(ProduitRepository produitRepository) {
+
+    public ProduitController(ProduitRepository produitRepository, StockService stockService) {
         this.produitRepository = produitRepository;
+        this.stockService = stockService;
     }
 
     @GetMapping
@@ -40,7 +52,7 @@ public class ProduitController {
         Page<Produit> pageProduits;
 
         if (keyword != null && !keyword.isEmpty()) {
-            pageProduits = produitRepository.findByNomContainingIgnoreCaseOrCodeBarresContaining(keyword, keyword, pageable);
+            pageProduits = produitRepository.findByNomContainingIgnoreCaseOrCodeBarresContainingOrNumeroFactureContainingIgnoreCase(keyword, keyword, keyword, pageable);
         } else {
             pageProduits = produitRepository.findAll(pageable);
         }
@@ -61,7 +73,15 @@ public class ProduitController {
     }
 
     @GetMapping("/form")
-    public String getFormFragment(@RequestParam(required = false) Long id, Model model) {
+    public String getFormFragment(@RequestParam(required = false) Long id,
+                                  @RequestParam(defaultValue = "false") boolean batch,
+                                  Model model) {
+        if (batch) {
+            model.addAttribute("productBatchDto", new ProductBatchDto());
+            model.addAttribute("pageTitle", "Ajouter des produits par lot");
+            return "produit-form :: form-content";
+        }
+
         Produit produit;
         String pageTitle;
         if (id != null) {
@@ -77,6 +97,48 @@ public class ProduitController {
         model.addAttribute("view", "fragment"); // Pour le rendu conditionnel dans le template
         return "produit-form :: form-content";
     }
+    @PostMapping("/save-batch")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> saveBatch(@ModelAttribute ProductBatchDto productBatchDto) {
+        try {
+            List<Produit> produits = new ArrayList<>();
+            for (ProduitDto dto : productBatchDto.getProduits()) {
+                Produit produit = new Produit();
+                produit.setNom(dto.getNom());
+                produit.setCodeBarres(dto.getCodeBarres());
+                produit.setPrixAchat(BigDecimal.valueOf(dto.getPrixAchat()));
+                produit.setPrixVenteUnitaire(BigDecimal.valueOf(dto.getPrixVenteUnitaire()));
+                produit.setCategorie(dto.getCategorie());
+                produit.setQuantiteEnStock(0); // Initial stock is 0 before movement
+                produit.setDatePeremption(dto.getDatePeremption());
+                produit.setNomFournisseur(productBatchDto.getNomFournisseur());
+                produit.setNumeroFacture(productBatchDto.getNumeroFacture());
+                produits.add(produit);
+            }
+
+            List<Produit> savedProduits = produitRepository.saveAll(produits);
+
+            for (int i = 0; i < savedProduits.size(); i++) {
+                Produit produit = savedProduits.get(i);
+                ProduitDto dto = productBatchDto.getProduits().get(i);
+
+                if (dto.getQuantiteEnStock() > 0) {
+                    MouvementStock mouvement = new MouvementStock();
+                    mouvement.setProduit(produit);
+                    mouvement.setQuantite(dto.getQuantiteEnStock());
+                    mouvement.setTypeMouvement(TypeMouvement.ENTREE);
+                    mouvement.setDateMouvement(LocalDateTime.now());
+                    mouvement.setDescription("Stock initial");
+                    stockService.enregistrerMouvement(mouvement);
+                }
+            }
+
+            return ResponseEntity.ok(Map.of("success", true, "message", "Les produits ont été sauvegardés avec succès !"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur lors de la sauvegarde des produits."));
+        }
+    }
+
 
     @PostMapping("/save")
     @ResponseBody

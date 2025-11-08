@@ -139,7 +139,7 @@
                 <p class="text-gray-600 mt-2">Gérez l'inventaire et le catalogue de votre boutique</p>
             </div>
             <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-                <button onclick="openProductModal()" class="btn-primary text-white px-6 py-3 rounded-xl flex items-center justify-center font-semibold shadow-lg">
+                <button onclick="openProductModal(null, true)" class="btn-primary text-white px-6 py-3 rounded-xl flex items-center justify-center font-semibold shadow-lg">
                     <i class="fas fa-plus-circle mr-3 text-lg"></i>
                     Nouveau Produit
                 </button>
@@ -293,7 +293,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                            <button th:onclick="|openProductModal(${produit.id})|" title="Modifier"
+                            <button th:onclick="|openProductModal(${produit.id}, false)|" title="Modifier"
                                     class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 p-3 rounded-lg transition duration-200 flex items-center justify-center font-medium">
                                 <i class="fas fa-edit"></i>
                             </button>
@@ -362,7 +362,7 @@
             </div>
             <h3 class="text-2xl font-bold text-gray-900 mb-2">Aucun produit trouvé</h3>
             <p class="text-gray-600 mb-6">Commencez par ajouter votre premier produit à l'inventaire.</p>
-            <button onclick="openProductModal()" class="btn-primary text-white px-8 py-3 rounded-xl font-semibold inline-flex items-center">
+            <button onclick="openProductModal(null, true)" class="btn-primary text-white px-8 py-3 rounded-xl font-semibold inline-flex items-center">
                 <i class="fas fa-plus-circle mr-3 text-lg"></i>Ajouter un produit
             </button>
         </div>
@@ -375,8 +375,13 @@
     const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
     const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
 
-    async function openProductModal(productId) {
-        const url = productId ? `/produits/form?id=${productId}` : '/produits/form';
+    async function openProductModal(productId, batch = false) {
+        let url;
+        if (batch) {
+            url = '/produits/form?batch=true';
+        } else {
+            url = productId ? `/produits/form?id=${productId}` : '/produits/form';
+        }
 
         try {
             const response = await fetch(url);
@@ -387,7 +392,7 @@
 
             Swal.fire({
                 html: formHtml,
-                width: '800px',
+                width: batch ? '90%' : '800px',
                 showCancelButton: true,
                 showConfirmButton: true,
                 confirmButtonText: '<i class="fas fa-save mr-2"></i>Sauvegarder',
@@ -395,17 +400,83 @@
                 confirmButtonColor: '#2563eb',
                 cancelButtonColor: '#6b7280',
                 showLoaderOnConfirm: true,
+                didOpen: () => {
+                    if (batch) {
+                        // Initialize dynamic form script if it's a batch form
+                        const container = document.getElementById('product-lines-container');
+                        const addProductBtn = document.getElementById('add-product-btn');
+                        let productIndex = 0;
+
+                        function addNewProductLine() {
+                            const productLineHtml = `
+                                <div class="product-line border-t pt-6 mt-6">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <h4 class="text-lg font-semibold text-gray-700">Produit #${productIndex + 1}</h4>
+                                        <button type="button" class="remove-product-btn text-red-500 hover:text-red-700 font-semibold">
+                                            <i class="fas fa-trash-alt mr-1"></i>Supprimer
+                                        </button>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div class="md:col-span-1">
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Nom du produit *</label>
+                                            <input type="text" name="produits[${productIndex}].nom" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <label class="block text-sm font-medium text-gray-700 mt-4 mb-1">Famille</label>
+                                            <input type="text" name="produits[${productIndex}].categorie" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        </div>
+                                        <div class="md:col-span-1 grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Prix d'achat *</label>
+                                                <input type="number" step="0.01" name="produits[${productIndex}].prixAchat" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Prix de vente *</label>
+                                                <input type="number" step="0.01" name="produits[${productIndex}].prixVenteUnitaire" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            </div>
+                                        </div>
+                                        <div class="md:col-span-1 grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Quantité *</label>
+                                                <input type="number" name="produits[${productIndex}].quantiteEnStock" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Péremption</label>
+                                                <input type="date" name="produits[${productIndex}].datePeremption" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            </div>
+                                        </div>
+                                    </div>
+                                     <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
+                                      <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Code-barres</label>
+                                                <input type="text" name="produits[${productIndex}].codeBarres" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            </div>
+                                     </div>
+                                </div>
+                            `;
+                            container.insertAdjacentHTML('beforeend', productLineHtml);
+                            productIndex++;
+                        }
+
+                        addProductBtn.addEventListener('click', addNewProductLine);
+
+                        container.addEventListener('click', function(e) {
+                            if (e.target.closest('.remove-product-btn')) {
+                                e.target.closest('.product-line').remove();
+                            }
+                        });
+
+                        addNewProductLine();
+                    }
+                },
                 preConfirm: () => {
-                    const form = document.getElementById('product-form');
+                    const form = batch ? document.getElementById('product-batch-form') : document.getElementById('product-form');
                     if (!form.checkValidity()) {
                         form.reportValidity();
-                        return false; // Prevent Swal from closing
+                        return false;
                     }
                     const formData = new FormData(form);
-                    const csrfTokenValue = document.querySelector('input[name="_csrf"]').value;
-                    const csrfHeaderName = document.querySelector('input[name="_csrf"]').name;
+                    const url = batch ? '/produits/save-batch' : '/produits/save';
 
-                    return fetch('/produits/save', {
+                    return fetch(url, {
                         method: 'POST',
                         headers: {
                             [csrfHeader]: csrfToken
@@ -433,7 +504,7 @@
                         timer: 2000,
                         showConfirmButton: false
                     }).then(() => {
-                        location.reload(); // Reload the page to see changes
+                        location.reload();
                     });
                 }
             });
