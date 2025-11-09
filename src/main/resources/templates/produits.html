@@ -269,6 +269,18 @@
                             </a>
                         </th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider sortable-header">
+                            <a th:href="@{/produits(size=${produitsPage.size}, keyword=${keyword}, sortField='prixPromotionnel', sortDir=${sortField == 'prixPromotionnel' ? reverseSortDir : 'asc'})}" class="flex items-center hover:text-blue-600">
+                                <i class="fas fa-tags mr-2"></i>Prix Promo
+                                <i class="fas ml-2 text-xs" th:classappend="${sortField == 'prixPromotionnel' ? (sortDir == 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort'}"></i>
+                            </a>
+                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider sortable-header">
+                            <a th:href="@{/produits(size=${produitsPage.size}, keyword=${keyword}, sortField='promotionActive', sortDir=${sortField == 'promotionActive' ? reverseSortDir : 'asc'})}" class="flex items-center hover:text-blue-600">
+                                <i class="fas fa-toggle-on mr-2"></i>Promo Active
+                                <i class="fas ml-2 text-xs" th:classappend="${sortField == 'promotionActive' ? (sortDir == 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort'}"></i>
+                            </a>
+                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider sortable-header">
                             <a th:href="@{/produits(size=${produitsPage.size}, keyword=${keyword}, sortField='quantiteEnStock', sortDir=${sortField == 'quantiteEnStock' ? reverseSortDir : 'asc'})}" class="flex items-center hover:text-blue-600">
                                 <i class="fas fa-boxes mr-2"></i>Stock
                                 <i class="fas ml-2 text-xs" th:classappend="${sortField == 'quantiteEnStock' ? (sortDir == 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort'}"></i>
@@ -300,6 +312,17 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${produit.numeroFacture}"></td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm font-bold text-gray-900" th:text="${#numbers.formatDecimal(produit.prixVenteUnitaire, 0, 'COMMA', 0, 'POINT')} + ' FCFA'"></div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div th:if="${produit.prixPromotionnel != null}" class="text-sm font-bold text-blue-600" th:text="${#numbers.formatDecimal(produit.prixPromotionnel, 0, 'COMMA', 0, 'POINT')} + ' FCFA'"></div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <span th:if="${produit.promotionActive}" class="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-green-500 rounded-full">
+                                <i class="fas fa-check"></i>
+                            </span>
+                            <span th:unless="${produit.promotionActive}" class="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+                                <i class="fas fa-times"></i>
+                            </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                         <span th:class="${produit.quantiteEnStock} == 0 ? 'stock-out' : (${produit.quantiteEnStock} <= 10 ? 'stock-low' : 'stock-normal')"

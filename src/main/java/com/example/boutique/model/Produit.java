@@ -26,6 +26,10 @@ public class Produit {
     @Column(nullable = false)
     private BigDecimal prixVenteUnitaire;
 
+    private BigDecimal prixPromotionnel;
+
+    private boolean promotionActive;
+
     private String categorie;
 
     @Column(nullable = false)

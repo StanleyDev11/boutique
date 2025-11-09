@@ -10,6 +10,8 @@ public class ProduitDto {
     private String codeBarres;
     private double prixAchat;
     private double prixVenteUnitaire;
+    private Double prixPromotionnel;
+    private boolean promotionActive;
     private String categorie;
     private int quantiteEnStock;
     private LocalDate datePeremption;
