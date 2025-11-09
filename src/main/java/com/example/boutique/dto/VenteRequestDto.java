@@ -9,6 +9,7 @@ public class VenteRequestDto {
     private String paymentMethod;
     private Long clientId;
     private BigDecimal discountAmount;
+    private String codeCaissier;
 
     public List<CartItemDto> getCart() {
         return cart;
@@ -48,5 +49,13 @@ public class VenteRequestDto {
 
     public void setDiscountAmount(BigDecimal discountAmount) {
         this.discountAmount = discountAmount;
+    }
+
+    public String getCodeCaissier() {
+        return codeCaissier;
+    }
+
+    public void setCodeCaissier(String codeCaissier) {
+        this.codeCaissier = codeCaissier;
     }
 }

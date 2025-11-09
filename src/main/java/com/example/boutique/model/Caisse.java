@@ -17,8 +17,4 @@ public class Caisse {
 
     @Column(nullable = false)
     private boolean active = true;
-
-    @ManyToOne
-    @JoinColumn(name = "utilisateur_id")
-    private Utilisateur utilisateur;
 }

@@ -62,6 +62,7 @@ public class UtilisateurController {
     public String showCreateForm(Model model) {
         model.addAttribute("utilisateur", new Utilisateur());
         model.addAttribute("pageTitle", "Ajouter un utilisateur");
+        model.addAttribute("allRoles", List.of("ROLE_ADMIN", "ROLE_GESTIONNAIRE", "ROLE_CAISSIER"));
         return "utilisateur-form";
     }
 
@@ -73,6 +74,7 @@ public class UtilisateurController {
             utilisateur.setPassword(""); // Ne jamais envoyer le hash au formulaire
             model.addAttribute("utilisateur", utilisateur);
             model.addAttribute("pageTitle", "Modifier l'utilisateur");
+            model.addAttribute("allRoles", List.of("ROLE_ADMIN", "ROLE_GESTIONNAIRE", "ROLE_CAISSIER"));
             return "utilisateur-form";
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
@@ -84,19 +86,40 @@ public class UtilisateurController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> saveUtilisateur(@ModelAttribute("utilisateur") Utilisateur utilisateur, @RequestParam(name = "roles", required = false) List<String> roles) {
         try {
-            // Si c'est une modification et que le mot de passe est vide, on garde l'ancien
+            // Gestion des rôles
+            if (roles != null) {
+                utilisateur.setRoles(String.join(",", roles));
+            } else {
+                utilisateur.setRoles(""); // ou une valeur par défaut si nécessaire
+            }
+
+            // Gestion du code caissier
+            if (utilisateur.getRoles().contains("ROLE_CAISSIER")) {
+                if (utilisateur.getCode() == null || utilisateur.getCode().trim().isEmpty()) {
+                    return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Le code caissier est obligatoire pour ce rôle."));
+                }
+                // Vérifier l'unicité du code
+                utilisateurRepository.findByCode(utilisateur.getCode()).ifPresent(existingUser -> {
+                    if (!existingUser.getId().equals(utilisateur.getId())) {
+                        throw new IllegalStateException("Le code caissier '" + utilisateur.getCode() + "' est déjà utilisé par un autre utilisateur.");
+                    }
+                });
+            } else {
+                utilisateur.setCode(null); // Assurer que le code est nul si l'utilisateur n'est pas caissier
+            }
+
+            // Gestion du mot de passe
             if (utilisateur.getId() != null && (utilisateur.getPassword() == null || utilisateur.getPassword().isEmpty())) {
                 Utilisateur existingUser = utilisateurRepository.findById(utilisateur.getId()).orElseThrow();
                 utilisateur.setPassword(existingUser.getPassword());
             } else {
-                // Sinon, on chiffre le nouveau mot de passe
                 utilisateur.setPassword(passwordEncoder.encode(utilisateur.getPassword()));
             }
-            if (roles != null) {
-                utilisateur.setRoles(String.join(",", roles));
-            }
+
             utilisateurRepository.save(utilisateur);
             return ResponseEntity.ok(Map.of("success", true, "message", "L'utilisateur a été sauvegardé avec succès !"));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur lors de la sauvegarde de l'utilisateur."));
         }

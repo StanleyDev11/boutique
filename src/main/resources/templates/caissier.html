@@ -112,12 +112,12 @@
 <div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Caisse')}"></div>
 
 <div class="flex flex-col md:flex-row h-[calc(100vh-5rem)]">
-  <!-- Left Sidebar - Product Navigation -->
-  <aside class="w-full md:w-[42rem] bg-white shadow-lg p-6 overflow-y-auto">
-    <div class="mb-8">
-      <h2 class="text-xl font-bold mb-4 text-gray-800 flex items-center">
-        <i class="fas fa-filter mr-3 text-indigo-500"></i> Filtres de recherche
-      </h2>
+      <!-- Left Sidebar - Product Navigation -->
+      <aside class="w-full md:w-[42rem] bg-white shadow-lg p-6 overflow-y-auto">
+        <div class="mb-8">
+          <h2 class="text-xl font-bold mb-4 text-gray-800 flex items-center">
+            <i class="fas fa-filter mr-3 text-indigo-500"></i> Filtres de recherche
+          </h2>
       <div class="space-y-4">
         <div class="relative">
           <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
@@ -293,6 +293,7 @@
   <div class="text-xs text-gray-500">
     BELALUXE Supermarché &copy; 2025
   </div>
+</div>
 </div>
 
 <!-- Scripts -->
@@ -734,6 +735,11 @@
                       </div>
                       <hr class="my-4">
                       <div class="mb-4">
+                          <label for="swal-input-code" class="block font-bold mb-2 text-gray-700 text-center">Votre Code Caissier</label>
+                          <input id="swal-input-code" class="swal2-input text-center font-bold text-lg" type="password" placeholder="••••••" style="width: 12em; margin: auto;">
+                      </div>
+                      <hr class="my-4">
+                      <div class="mb-4">
                           <strong class="block mb-2 text-gray-700">Type de vente:</strong>
                           <div class="flex space-x-4">
                               <label class="flex items-center">
@@ -822,9 +828,15 @@
                   updateTotal();
               },
               preConfirm: () => {
+                  const codeCaissier = document.getElementById('swal-input-code').value;
+                  if (!codeCaissier) {
+                      Swal.showValidationMessage('Votre code personnel est requis pour valider la vente.');
+                      return false;
+                  }
+
                   const saleType = document.querySelector('input[name="saleType"]:checked').value;
                   if (saleType === 'draft') {
-                      return { saleType: 'draft' };
+                      return { saleType: 'draft', codeCaissier: codeCaissier };
                   }
                   if (saleType === 'credit' && !tab.selectedClient) {
                       Swal.showValidationMessage('Veuillez sélectionner un client pour une vente à crédit.');
@@ -836,7 +848,7 @@
                       Swal.showValidationMessage('Le montant reçu est inférieur au total.');
                       return false;
                   }
-                  return { saleType, paymentMethod, tenderedAmount };
+                  return { saleType, paymentMethod, tenderedAmount, codeCaissier };
               }
           });
 
@@ -854,7 +866,8 @@
                       saleType: formValues.saleType,
                       paymentMethod: formValues.paymentMethod,
                       clientId: tab.selectedClient ? tab.selectedClient.id : null,
-                      discountAmount: tab.discountAmount
+                      discountAmount: tab.discountAmount,
+                      codeCaissier: formValues.codeCaissier
                   })
               })
               .then(res => res.json())
@@ -1038,7 +1051,6 @@
   });
   /*]]>*/
 </script>
-
 
 </body>
 </html>

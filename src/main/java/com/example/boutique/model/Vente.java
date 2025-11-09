@@ -65,6 +65,9 @@ public class Vente {
     @JoinColumn(name = "session_caisse_id")
     private SessionCaisse sessionCaisse;
 
+    @Column(name = "motif_annulation")
+    private String motifAnnulation;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

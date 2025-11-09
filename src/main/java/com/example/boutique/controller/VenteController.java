@@ -11,6 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -49,9 +50,13 @@ public class VenteController {
     }
 
     @PostMapping("/{id}/annuler")
-    public ResponseEntity<?> annulerVente(@PathVariable Long id) {
+    public ResponseEntity<?> annulerVente(@PathVariable Long id, @RequestBody Map<String, String> body) {
         try {
-            stockService.annulerVente(id);
+            String motif = body.get("motif");
+            if (motif == null || motif.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Le motif d'annulation est obligatoire."));
+            }
+            stockService.annulerVente(id, motif);
             return ResponseEntity.ok(Map.of("success", true, "message", "Vente annulée avec succès."));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));

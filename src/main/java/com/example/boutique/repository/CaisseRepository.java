@@ -12,6 +12,4 @@ import java.util.Optional;
 @Repository
 public interface CaisseRepository extends JpaRepository<Caisse, Long> {
     List<Caisse> findByNomContainingIgnoreCase(String nom);
-
-    Optional<Caisse> findByUtilisateur(Utilisateur utilisateur);
 }

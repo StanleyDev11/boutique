@@ -69,8 +69,9 @@ public class StockService {
     }
 
     public void enregistrerVente(VenteRequestDto venteRequest, Utilisateur utilisateur) {
-        SessionCaisse sessionCaisse = sessionCaisseRepository.findFirstByUtilisateurAndDateFermetureIsNullOrderByDateOuvertureDesc(utilisateur)
-                .orElseThrow(() -> new IllegalStateException("Aucune session de caisse active trouvée pour cet utilisateur. Veuillez ouvrir une caisse."));
+        // Récupère la seule session de caisse ouverte, peu importe qui l'a ouverte
+        SessionCaisse sessionCaisse = sessionCaisseRepository.findFirstByDateFermetureIsNull()
+                .orElseThrow(() -> new IllegalStateException("Aucune session de caisse active n'a été trouvée. Veuillez ouvrir une session avant de faire une vente."));
 
         List<CartItemDto> cartItems = venteRequest.getCart();
         BigDecimal totalBrut = BigDecimal.ZERO;
@@ -146,7 +147,7 @@ public class StockService {
         }
     }
 
-    public void annulerVente(Long venteId) {
+    public void annulerVente(Long venteId, String motifAnnulation) {
         Vente vente = venteRepository.findById(venteId)
                 .orElseThrow(() -> new IllegalArgumentException("Vente non trouvée avec l'ID: " + venteId));
 
@@ -155,6 +156,7 @@ public class StockService {
         }
 
         vente.setStatus(com.example.boutique.enums.VenteStatus.CANCELLED);
+        vente.setMotifAnnulation(motifAnnulation);
         venteRepository.save(vente);
 
         List<LigneVente> lignesVente = ligneVenteRepository.findByVente(vente);

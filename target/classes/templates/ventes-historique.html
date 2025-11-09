@@ -184,7 +184,7 @@
     </style>
 </head>
 <body>
-<div th:replace="fragments/tailwind-header :: tailwind-header('Historique des Ventes')"></div>
+<div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Historique des Ventes')}"></div>
 
 <div class="container mx-auto mt-8 p-4">
     <!-- Header with title and actions -->
@@ -381,6 +381,7 @@
                 <tr>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Vente</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Caissier</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
@@ -391,6 +392,7 @@
                 <tr th:each="vente : ${ventesPage.content}" class="hover:bg-gray-50 transition-colors">
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${vente.id}"></td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${vente.client != null ? vente.client.nom : 'Client de passage'}"></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${vente.utilisateur != null ? vente.utilisateur.username : 'N/A'}"></td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${#temporals.format(vente.dateVente, 'dd-MM-yyyy HH:mm')}"></td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${#numbers.formatDecimal(vente.totalFinal, 0, 'COMMA', 2, 'POINT')} + ' FCFA'"></td>
                     <td class="px-6 py-4 whitespace-nowrap">
@@ -410,7 +412,7 @@
                     </td>
                 </tr>
                 <tr th:if="${ventesPage.empty}">
-                    <td colspan="6" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Aucune vente trouvée.</td>
+                    <td colspan="7" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Aucune vente trouvée.</td>
                 </tr>
                 </tbody>
             </table>
@@ -744,46 +746,42 @@
             button.addEventListener('click', function() {
                 const venteId = this.getAttribute('data-vente-id');
                 Swal.fire({
-                    title: 'Êtes-vous sûr?',
+                    title: 'Annuler la vente',
                     text: "Vous êtes sur le point d'annuler cette vente. Le stock sera réajusté. Cette action est irréversible.",
+                    input: 'textarea',
+                    inputPlaceholder: 'Motif de l\'annulation...',
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return 'Veuillez entrer un motif pour l\'annulation.'
+                        }
+                    },
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#d33',
                     cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Oui, annuler la vente!',
-                    cancelButtonText: 'Non, garder la vente'
+                    confirmButtonText: 'Oui, annuler!',
+                    cancelButtonText: 'Non'
                 }).then((result) => {
                     if (result.isConfirmed) {
+                        const motif = result.value;
                         fetch(`/ventes/${venteId}/annuler`, {
                             method: 'POST',
                             headers: {
+                                'Content-Type': 'application/json',
                                 [csrfHeader]: csrfToken
-                            }
+                            },
+                            body: JSON.stringify({ motif: motif })
                         })
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                Swal.fire(
-                                    'Annulée!',
-                                    'La vente a été annulée avec succès.',
-                                    'success'
-                                ).then(() => {
-                                    location.reload();
-                                });
+                                Swal.fire('Annulée!', 'La vente a été annulée.', 'success').then(() => location.reload());
                             } else {
-                                Swal.fire(
-                                    'Erreur!',
-                                    data.message || 'Une erreur est survenue.',
-                                    'error'
-                                );
+                                Swal.fire('Erreur!', data.message || 'Une erreur est survenue.', 'error');
                             }
                         })
                         .catch(error => {
-                            Swal.fire(
-                                'Erreur de connexion!',
-                                'Impossible de communiquer avec le serveur.',
-                                'error'
-                            );
+                            Swal.fire('Erreur de connexion!', 'Impossible de communiquer avec le serveur.', 'error');
                         });
                     }
                 });
