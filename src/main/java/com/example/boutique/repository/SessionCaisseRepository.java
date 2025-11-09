@@ -20,6 +20,8 @@ public interface SessionCaisseRepository extends JpaRepository<SessionCaisse, Lo
     @Query("SELECT sc FROM SessionCaisse sc JOIN FETCH sc.utilisateur u WHERE u = :utilisateur AND sc.dateFermeture IS NULL ORDER BY sc.dateOuverture DESC")
     Optional<SessionCaisse> findOpenSessionWithUser(@Param("utilisateur") Utilisateur utilisateur);
 
+    Optional<SessionCaisse> findFirstByDateFermetureIsNull();
+
     Optional<SessionCaisse> findFirstByUtilisateurAndDateFermetureIsNullOrderByDateOuvertureDesc(Utilisateur utilisateur);
 
     List<SessionCaisse> findByUtilisateur(Utilisateur utilisateur);
@@ -32,10 +34,14 @@ public interface SessionCaisseRepository extends JpaRepository<SessionCaisse, Lo
 
     Page<SessionCaisse> findByDateFermetureIsNotNullAndUtilisateurUsernameContainingIgnoreCase(String keyword, Pageable pageable);
 
+    @Query("SELECT sc FROM SessionCaisse sc WHERE sc.dateFermeture IS NULL " +
+           "AND (:keyword IS NULL OR :keyword = '' OR LOWER(sc.utilisateur.username) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<SessionCaisse> findOpenSessions(@Param("keyword") String keyword, Pageable pageable);
+
     @Query("SELECT sc FROM SessionCaisse sc WHERE sc.dateFermeture IS NOT NULL " +
-           "AND (LOWER(sc.utilisateur.username) LIKE LOWER(CONCAT('%', :keyword, '%')) OR :keyword IS NULL) " +
-           "AND (sc.dateFermeture >= :startDate OR :startDate IS NULL) " +
-           "AND (sc.dateFermeture <= :endDate OR :endDate IS NULL)")
+           "AND (:keyword IS NULL OR :keyword = '' OR LOWER(sc.utilisateur.username) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND (:startDate IS NULL OR sc.dateFermeture >= :startDate) " +
+           "AND (:endDate IS NULL OR sc.dateFermeture <= :endDate)")
     Page<SessionCaisse> findClosedSessions(@Param("keyword") String keyword,
                                            @Param("startDate") LocalDateTime startDate,
                                            @Param("endDate") LocalDateTime endDate,

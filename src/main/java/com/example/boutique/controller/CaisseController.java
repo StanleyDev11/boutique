@@ -48,7 +48,9 @@ public class CaisseController {
     }
 
     @PostMapping("/ouvrir")
-    public String ouvrirCaisse(@RequestParam("montantInitial") BigDecimal montantInitial, RedirectAttributes redirectAttributes, Model model) {
+    public String ouvrirCaisse(@RequestParam("montantInitial") BigDecimal montantInitial,
+                               @RequestParam("codeCaissier") String codeCaissier,
+                               RedirectAttributes redirectAttributes, Model model) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         Optional<Utilisateur> utilisateurOpt = utilisateurRepository.findByUsername(username);
@@ -60,22 +62,17 @@ public class CaisseController {
 
         Utilisateur utilisateur = utilisateurOpt.get();
 
-        // Vérification de la caisse assignée et de son statut
-        Optional<Caisse> caisseOpt = caisseRepository.findByUtilisateur(utilisateur);
-        if (caisseOpt.isEmpty()) {
-            model.addAttribute("error", "Aucune caisse n'est assignée à votre compte. Veuillez contacter le gestionnaire.");
+        // Vérifier si le code fourni correspond au code de l'utilisateur
+        if (utilisateur.getCode() == null || !utilisateur.getCode().equals(codeCaissier)) {
+            model.addAttribute("error", "Le code personnel est incorrect.");
             return "ouverture-caisse";
         }
 
-        Caisse caisse = caisseOpt.get();
-        if (!caisse.isActive()) {
-            model.addAttribute("error", "Votre caisse est inactive. Veuillez contacter le gestionnaire.");
+        // Vérifier si une session est déjà ouverte dans tout le système
+        Optional<SessionCaisse> anyOpenSession = sessionCaisseRepository.findFirstByDateFermetureIsNull();
+        if (anyOpenSession.isPresent()) {
+            model.addAttribute("error", "Une session de caisse est déjà ouverte. Veuillez la fermer avant d'en ouvrir une nouvelle.");
             return "ouverture-caisse";
-        }
-
-        Optional<SessionCaisse> openSession = sessionCaisseRepository.findFirstByUtilisateurAndDateFermetureIsNullOrderByDateOuvertureDesc(utilisateur);
-        if (openSession.isPresent()) {
-            return "redirect:/caissier";
         }
 
         if (montantInitial.compareTo(BigDecimal.ZERO) < 0) {
@@ -94,15 +91,7 @@ public class CaisseController {
 
     @GetMapping("/fermer")
     public String showFermetureForm(Model model, RedirectAttributes redirectAttributes) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Optional<Utilisateur> utilisateurOpt = utilisateurRepository.findByUsername(authentication.getName());
-
-        if (utilisateurOpt.isEmpty()) {
-            return "redirect:/login";
-        }
-        Utilisateur utilisateur = utilisateurOpt.get();
-
-        Optional<SessionCaisse> sessionOpt = sessionCaisseRepository.findOpenSessionWithUser(utilisateur);
+        Optional<SessionCaisse> sessionOpt = sessionCaisseRepository.findFirstByDateFermetureIsNull();
         if (sessionOpt.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Aucune session de caisse n'est actuellement ouverte.");
             return "redirect:/caisse/ouvrir";
@@ -110,22 +99,25 @@ public class CaisseController {
 
         SessionCaisse session = sessionOpt.get();
 
-        BigDecimal ventesCalculees = venteRepository.sumTotalForUserSince(utilisateur, session.getDateOuverture());
+        BigDecimal ventesCalculees = venteRepository.sumTotalForSession(session);
         if (ventesCalculees == null) {
             ventesCalculees = BigDecimal.ZERO;
         }
 
-        BigDecimal initialAmount = session.getMontantInitial();
-        System.out.println("Montant Initial from DB (explicitly added): " + initialAmount);
         model.addAttribute("session", session);
         model.addAttribute("ventesCalculees", ventesCalculees);
-        model.addAttribute("montantInitialFromController", initialAmount);
+        model.addAttribute("montantInitialFromController", session.getMontantInitial());
 
         return "fermeture-caisse";
     }
 
     @PostMapping("/fermer")
-    public String fermerCaisse(@RequestParam("montantFinal") BigDecimal montantFinal, HttpServletRequest request, HttpServletResponse response, RedirectAttributes redirectAttributes) {
+    public String fermerCaisse(@RequestParam("montantFinal") BigDecimal montantFinal,
+                               @RequestParam("codeCaissier") String codeCaissier,
+                               HttpServletRequest request,
+                               HttpServletResponse response,
+                               Model model,
+                               RedirectAttributes redirectAttributes) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Optional<Utilisateur> utilisateurOpt = utilisateurRepository.findByUsername(authentication.getName());
 
@@ -134,15 +126,31 @@ public class CaisseController {
         }
         Utilisateur utilisateur = utilisateurOpt.get();
 
-        Optional<SessionCaisse> sessionOpt = sessionCaisseRepository.findOpenSessionWithUser(utilisateur);
+        Optional<SessionCaisse> sessionOpt = sessionCaisseRepository.findFirstByDateFermetureIsNull();
         if (sessionOpt.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Aucune session de caisse n'est actuellement ouverte.");
             return "redirect:/caisse/ouvrir";
         }
-
         SessionCaisse session = sessionOpt.get();
 
-        BigDecimal ventesCalculees = venteRepository.sumTotalForUserSince(utilisateur, session.getDateOuverture());
+        // Valider le code du caissier qui ferme la caisse
+        if (utilisateur.getCode() == null || !utilisateur.getCode().equals(codeCaissier)) {
+            model.addAttribute("error", "Le code personnel est incorrect.");
+            model.addAttribute("montantFinal", montantFinal);
+
+            // Re-populate model attributes for the view
+            BigDecimal ventesCalculees = venteRepository.sumTotalForSession(session);
+            if (ventesCalculees == null) {
+                ventesCalculees = BigDecimal.ZERO;
+            }
+            model.addAttribute("session", session);
+            model.addAttribute("ventesCalculees", ventesCalculees);
+            model.addAttribute("montantInitialFromController", session.getMontantInitial());
+
+            return "fermeture-caisse";
+        }
+
+        BigDecimal ventesCalculees = venteRepository.sumTotalForSession(session);
         if (ventesCalculees == null) {
             ventesCalculees = BigDecimal.ZERO;
         }
@@ -154,6 +162,7 @@ public class CaisseController {
         session.setVentesCalculees(ventesCalculees);
         session.setEcart(ecart);
         session.setDateFermeture(LocalDateTime.now());
+        session.setFermeParUtilisateur(utilisateur);
 
         sessionCaisseRepository.save(session);
 
@@ -165,22 +174,17 @@ public class CaisseController {
 
     @GetMapping("/historique")
     public String showSessionHistorique(Model model, RedirectAttributes redirectAttributes) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Optional<Utilisateur> utilisateurOpt = utilisateurRepository.findByUsername(authentication.getName());
-
-        if (utilisateurOpt.isEmpty()) {
-            return "redirect:/login";
-        }
-        Utilisateur utilisateur = utilisateurOpt.get();
-
-        Optional<SessionCaisse> sessionOpt = sessionCaisseRepository.findOpenSessionWithUser(utilisateur);
+        // Récupérer la session globale ouverte, peu importe qui l'a ouverte
+        Optional<SessionCaisse> sessionOpt = sessionCaisseRepository.findFirstByDateFermetureIsNull();
         if (sessionOpt.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Aucune session de caisse n'est actuellement ouverte.");
             return "redirect:/caisse/ouvrir";
         }
 
         SessionCaisse session = sessionOpt.get();
-        List<com.example.boutique.model.Vente> ventes = venteRepository.findByUtilisateurAndDateVenteAfter(utilisateur, session.getDateOuverture(), org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "dateVente"));
+        // Note: The original logic fetched sales for a specific user.
+        // The new logic should probably fetch ALL sales for the session.
+        List<com.example.boutique.model.Vente> ventes = venteRepository.findBySessionCaisse(session, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "dateVente"));
 
         BigDecimal totalSalesAmount = ventes.stream()
                 .filter(v -> v.getStatus() == com.example.boutique.enums.VenteStatus.COMPLETED && !"credit".equals(v.getTypeVente()))

@@ -37,6 +37,10 @@ public class SessionCaisse {
     @JoinColumn(name = "utilisateur_id", nullable = false)
     private Utilisateur utilisateur;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ferme_par_utilisateur_id")
+    private Utilisateur fermeParUtilisateur;
+
     @PrePersist
     protected void onCreate() {
         this.dateOuverture = LocalDateTime.now();

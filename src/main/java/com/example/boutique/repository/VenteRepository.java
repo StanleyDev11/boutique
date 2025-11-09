@@ -2,10 +2,12 @@ package com.example.boutique.repository;
 
 import com.example.boutique.dto.VenteCreditDto;
 import com.example.boutique.enums.VenteStatus;
+import com.example.boutique.model.SessionCaisse;
 import com.example.boutique.model.Utilisateur;
 import com.example.boutique.model.Vente;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -27,7 +29,13 @@ public interface VenteRepository extends JpaRepository<Vente, Long> {
     @Query("SELECT SUM(v.totalFinal) FROM Vente v WHERE v.utilisateur = :utilisateur AND v.dateVente >= :startDate AND v.typeVente != 'credit'")
     BigDecimal sumTotalForUserSince(@Param("utilisateur") Utilisateur utilisateur, @Param("startDate") LocalDateTime startDate);
 
+    @Query("SELECT SUM(v.totalFinal) FROM Vente v WHERE v.sessionCaisse = :sessionCaisse AND v.typeVente != 'credit'")
+    BigDecimal sumTotalForSession(@Param("sessionCaisse") SessionCaisse sessionCaisse);
+
     List<Vente> findByUtilisateurAndDateVenteAfter(Utilisateur utilisateur, LocalDateTime startDate, org.springframework.data.domain.Sort sort);
+
+    @EntityGraph(attributePaths = {"ligneVentes", "ligneVentes.produit", "utilisateur"})
+    List<Vente> findBySessionCaisse(SessionCaisse sessionCaisse, org.springframework.data.domain.Sort sort);
 
     List<Vente> findByUtilisateurAndDateVenteBetween(Utilisateur utilisateur, LocalDateTime startDate, LocalDateTime endDate);
 

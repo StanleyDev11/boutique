@@ -43,13 +43,13 @@ public class CaisseManagementController {
     public String listCaisses(Model model,
                               @RequestParam(required = false) String caisseKeyword,
                               @RequestParam(required = false) String openKeyword,
+                              @RequestParam(required = false) String closedKeyword,
+                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
                               @RequestParam(defaultValue = "0") int openPage,
                               @RequestParam(defaultValue = "10") int openSize,
                               @RequestParam(defaultValue = "dateOuverture") String openSortField,
                               @RequestParam(defaultValue = "desc") String openSortDir,
-                              @RequestParam(required = false) String closedKeyword,
-                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
                               @RequestParam(defaultValue = "0") int closedPage,
                               @RequestParam(defaultValue = "10") int closedSize,
                               @RequestParam(defaultValue = "dateFermeture") String closedSortField,
@@ -59,6 +59,7 @@ public class CaisseManagementController {
         model.addAttribute("caisses", caisses);
         model.addAttribute("caisseKeyword", caisseKeyword);
 
+        // Open sessions pagination
         Sort openSort = openSortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(openSortField).ascending() : Sort.by(openSortField).descending();
         Pageable openPageable = PageRequest.of(openPage, openSize, openSort);
         Page<SessionCaisse> openSessionsPage = caisseService.getOpenSessions(openKeyword, openPageable);
@@ -68,6 +69,7 @@ public class CaisseManagementController {
         model.addAttribute("openSortDir", openSortDir);
         model.addAttribute("openReverseSortDir", openSortDir.equals("asc") ? "desc" : "asc");
 
+        // Closed sessions pagination
         Sort closedSort = closedSortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(closedSortField).ascending() : Sort.by(closedSortField).descending();
         Pageable closedPageable = PageRequest.of(closedPage, closedSize, closedSort);
         Page<SessionCaisse> closedSessionsPage = caisseService.getClosedSessions(closedKeyword, startDate, endDate, closedPageable);
@@ -79,22 +81,13 @@ public class CaisseManagementController {
         model.addAttribute("closedSortDir", closedSortDir);
         model.addAttribute("closedReverseSortDir", closedSortDir.equals("asc") ? "desc" : "asc");
 
-        // Pass all params to pagination URLs
-        model.addAttribute("openPage", openPage);
-        model.addAttribute("closedPage", closedPage);
-        model.addAttribute("openSize", openSize);
-        model.addAttribute("closedSize", closedSize);
-
-
         return "gestion-caisses";
     }
 
     @GetMapping("/form")
     public String showCaisseForm(@RequestParam(required = false) Long id, Model model) {
         Caisse caisse = id != null ? caisseService.getCaisseById(id).orElse(new Caisse()) : new Caisse();
-        List<Utilisateur> caissiers = utilisateurRepository.findByRolesContaining("ROLE_CAISSIER");
         model.addAttribute("caisse", caisse);
-        model.addAttribute("caissiers", caissiers);
         return "fragments/caisse-form :: caisse-form";
     }
 
@@ -102,9 +95,6 @@ public class CaisseManagementController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> saveCaisse(@ModelAttribute Caisse caisse) {
         try {
-            if (caisse.getUtilisateur() != null && caisse.getUtilisateur().getId() == null) {
-                caisse.setUtilisateur(null);
-            }
             Caisse savedCaisse = caisseService.createCaisse(caisse);
             String successMessage = "La caisse '" + savedCaisse.getNom() + "' a été enregistrée avec succès.";
             return ResponseEntity.ok(Map.of("success", true, "message", successMessage));
@@ -143,19 +133,6 @@ public class CaisseManagementController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-        return "redirect:/gestion-caisses?tab=caisses";
-    }
-
-    @PostMapping("/assigner")
-    public String assignerCaissier(@RequestParam Long caisseId, @RequestParam(required=false) Long utilisateurId, RedirectAttributes redirectAttributes) {
-        if (utilisateurId == null) {
-            Caisse caisse = caisseService.getCaisseById(caisseId).orElseThrow(() -> new RuntimeException("Caisse non trouvée"));
-            caisse.setUtilisateur(null);
-            caisseService.createCaisse(caisse);
-        } else {
-            caisseService.assignerCaissier(caisseId, utilisateurId);
-        }
-        redirectAttributes.addFlashAttribute("successMessage", "Caissier assigné avec succès !");
         return "redirect:/gestion-caisses?tab=caisses";
     }
 

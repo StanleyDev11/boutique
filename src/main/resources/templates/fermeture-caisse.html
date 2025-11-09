@@ -44,6 +44,11 @@
 
     <form th:action="@{/caisse/fermer}" method="post" class="space-y-6">
 
+        <div th:if="${error}" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg" role="alert">
+            <p class="font-bold">Erreur</p>
+            <p th:text="${error}"></p>
+        </div>
+
         <div class="space-y-4 bg-gray-50 p-6 rounded-xl">
             <div class="flex justify-between items-center">
                 <span class="font-medium text-gray-600">Fond de caisse initial:</span>
@@ -66,7 +71,17 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <i data-feather="dollar-sign" class="text-gray-400"></i>
                 </div>
-                <input type="number" id="montantFinal" name="montantFinal" class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0.00" required step="0.01" min="0">
+                <input type="number" id="montantFinal" name="montantFinal" th:value="${montantFinal}" class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0.00" required step="0.01" min="0">
+            </div>
+        </div>
+
+        <div>
+            <label for="codeCaissier" class="block text-sm font-medium text-gray-700 mb-1">Code Caissier</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i data-feather="key" class="text-gray-400"></i>
+                </div>
+                <input type="password" id="codeCaissier" name="codeCaissier" class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Entrez votre code" required>
             </div>
         </div>
 
