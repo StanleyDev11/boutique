@@ -1,5 +1,6 @@
 package com.example.boutique.controller;
 
+import com.example.boutique.dto.FactureInfoDTO;
 import com.example.boutique.dto.ProductBatchDto;
 import com.example.boutique.dto.ProduitDto;
 import com.example.boutique.model.MouvementStock;
@@ -20,9 +21,11 @@ import com.example.boutique.enums.TypeMouvement;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/produits")
@@ -30,15 +33,18 @@ public class ProduitController {
 
     private final ProduitRepository produitRepository;
     private final ProduitService produitService;
+    private final com.example.boutique.repository.MouvementStockRepository mouvementStockRepository;
 
 
-    public ProduitController(ProduitRepository produitRepository, ProduitService produitService) {
+    public ProduitController(ProduitRepository produitRepository, ProduitService produitService, com.example.boutique.repository.MouvementStockRepository mouvementStockRepository) {
         this.produitRepository = produitRepository;
         this.produitService = produitService;
+        this.mouvementStockRepository = mouvementStockRepository;
     }
 
     @GetMapping
     public String listProduits(Model model,
+                               @RequestParam(defaultValue = "produits") String tab,
                                @RequestParam(required = false) String keyword,
                                @RequestParam(defaultValue = "0") int page,
                                @RequestParam(defaultValue = "10") int size,
@@ -46,30 +52,86 @@ public class ProduitController {
                                @RequestParam(defaultValue = "asc") String sortDir,
                                @RequestHeader(value = "X-Requested-With", required = false) String requestedWith) {
 
-        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortField).ascending() :
-                Sort.by(sortField).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
-        Page<Produit> pageProduits;
+        model.addAttribute("activeTab", tab);
 
-        if (keyword != null && !keyword.isEmpty()) {
-            pageProduits = produitRepository.findByNomContainingIgnoreCaseOrCodeBarresContainingOrNumeroFactureContainingIgnoreCase(keyword, keyword, keyword, pageable);
+        if ("factures".equals(tab)) {
+            List<FactureInfoDTO> factures = produitRepository.findFactureInfos();
+
+            // Search
+            if (keyword != null && !keyword.isEmpty()) {
+                String keywordLower = keyword.toLowerCase();
+                factures = factures.stream()
+                        .filter(f -> (f.getNumeroFacture() != null && f.getNumeroFacture().toLowerCase().contains(keywordLower)) ||
+                                     (f.getNomFournisseur() != null && f.getNomFournisseur().toLowerCase().contains(keywordLower)))
+                        .collect(Collectors.toList());
+            }
+
+            // Sorting
+            String finalSortField = "factures".equals(tab) && "nom".equals(sortField) ? "dateFacture" : sortField;
+            Comparator<FactureInfoDTO> comparator = switch (finalSortField) {
+                case "numeroFacture" -> Comparator.comparing(FactureInfoDTO::getNumeroFacture, Comparator.nullsLast(String::compareToIgnoreCase));
+                case "nomFournisseur" -> Comparator.comparing(FactureInfoDTO::getNomFournisseur, Comparator.nullsLast(String::compareToIgnoreCase));
+                case "montantTotal" -> Comparator.comparing(FactureInfoDTO::getMontantTotal, Comparator.nullsLast(BigDecimal::compareTo));
+                default -> Comparator.comparing(FactureInfoDTO::getDateFacture, Comparator.nullsLast(LocalDateTime::compareTo));
+            };
+
+            if ("desc".equalsIgnoreCase(sortDir)) {
+                comparator = comparator.reversed();
+            }
+            factures.sort(comparator);
+
+            model.addAttribute("facturesInfos", factures);
+            sortField = finalSortField;
+
         } else {
-            pageProduits = produitRepository.findAll(pageable);
+            Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortField).ascending() :
+                    Sort.by(sortField).descending();
+            Pageable pageable = PageRequest.of(page, size, sort);
+            Page<Produit> pageProduits;
+
+            if (keyword != null && !keyword.isEmpty()) {
+                pageProduits = produitRepository.findByNomContainingIgnoreCaseOrCodeBarresContainingOrNumeroFactureContainingIgnoreCase(keyword, keyword, keyword, pageable);
+            } else {
+                pageProduits = produitRepository.findAll(pageable);
+            }
+
+            model.addAttribute("produitsPage", pageProduits);
+            model.addAttribute("totalPages", pageProduits.getTotalPages());
         }
 
-        model.addAttribute("produitsPage", pageProduits);
         model.addAttribute("keyword", keyword);
         model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", pageProduits.getTotalPages());
         model.addAttribute("sortField", sortField);
         model.addAttribute("sortDir", sortDir);
         model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
 
         if ("XMLHttpRequest".equals(requestedWith)) {
-            return "produits :: #product-list-container"; // Return only the fragment
+            if ("factures".equals(tab)) {
+                return "produits :: #facture-list-container";
+            }
+            return "produits :: #product-list-container";
         }
 
-        return "produits"; // Return the full page
+        return "produits";
+    }
+
+    @GetMapping("/facture/{numeroFacture}")
+    public String viewFactureDetails(@PathVariable String numeroFacture, Model model, RedirectAttributes redirectAttributes) {
+        List<Produit> produits = produitRepository.findByNumeroFacture(numeroFacture);
+        Optional<FactureInfoDTO> factureInfoOpt = produitRepository.findFactureInfoByNumeroFacture(numeroFacture);
+
+        if (factureInfoOpt.isEmpty() || produits.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Détails de la facture non trouvés pour le numéro : " + numeroFacture);
+            return "redirect:/produits?tab=factures";
+        }
+
+        List<MouvementStock> mouvements = mouvementStockRepository.findByProduitNumeroFactureAndTypeMouvementOrderByProduitNomAsc(numeroFacture, TypeMouvement.ENTREE);
+
+        model.addAttribute("produits", produits);
+        model.addAttribute("factureInfo", factureInfoOpt.get());
+        model.addAttribute("mouvements", mouvements);
+        model.addAttribute("numeroFacture", numeroFacture);
+        return "facture-details";
     }
 
     @GetMapping("/form")

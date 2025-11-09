@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Détails de la Facture</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #invoice-print, #invoice-print * {
+                visibility: visible;
+            }
+            #invoice-print {
+                display: block !important; /* Assure que le div est visible */
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                font-family: 'Arial', sans-serif;
+                font-size: 12px;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+<!-- Section pour l'affichage à l'écran -->
+<div id="screen-view" class="no-print">
+    <div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Détails de la Facture')}"></div>
+
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+            <!-- Header -->
+            <div class="flex justify-between items-start mb-8 pb-4 border-b border-gray-200">
+                <div>
+                    <h3 class="text-3xl font-bold text-gray-800 flex items-center">
+                        <i class="fas fa-file-invoice mr-4 text-blue-500"></i>
+                        <span>Facture d'achat #<span th:text="${factureInfo.numeroFacture}"></span></span>
+                    </h3>
+                    <p class="text-gray-500 mt-2">Détails de la facture d'achat et des produits associés.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="window.print()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition duration-200 flex items-center">
+                        <i class="fas fa-print mr-2"></i>Imprimer
+                    </button>
+                    <a th:href="@{/produits(tab='factures')}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold transition duration-200 flex items-center">
+                        <i class="fas fa-arrow-left mr-2"></i>Retour
+                    </a>
+                </div>
+            </div>
+
+            <!-- Invoice Summary -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-sm text-gray-500 font-medium">N° Facture</p>
+                    <p class="text-lg font-bold text-gray-800" th:text="${factureInfo.numeroFacture}"></p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-sm text-gray-500 font-medium">Fournisseur</p>
+                    <p class="text-lg font-bold text-gray-800" th:text="${factureInfo.nomFournisseur ?: 'Non spécifié'}"></p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-sm text-gray-500 font-medium">Date</p>
+                    <p class="text-lg font-bold text-gray-800" th:text="${#temporals.format(factureInfo.dateFacture, 'dd/MM/yyyy HH:mm')}"></p>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+                    <p class="text-sm text-blue-700 font-medium">Montant Total</p>
+                    <p class="text-xl font-extrabold text-blue-800" th:text="${factureInfo.montantTotal != null ? #numbers.formatDecimal(factureInfo.montantTotal, 0, 'COMMA', 2, 'POINT') + ' FCFA' : 'N/A'}"></p>
+                </div>
+            </div>
+
+            <!-- Products Table -->
+            <h4 class="text-xl font-bold text-gray-800 mb-4">Produits sur la facture (stock actuel)</h4>
+            <div class="overflow-x-auto rounded-lg border border-gray-200">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produit</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code-barres</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Prix Achat Unitaire</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Quantité en Stock Actuel</th>
+                    </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tr th:each="produit : ${produits}" class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="font-medium text-gray-900" th:text="${produit.nom}"></div>
+                            <div class="text-sm text-gray-500" th:text="${produit.categorie}"></div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-700 font-mono" th:text="${produit.codeBarres}"></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-gray-700" th:text="${produit.prixAchat != null ? #numbers.formatDecimal(produit.prixAchat, 0, 'COMMA', 2, 'POINT') + ' FCFA' : 'N/A'}"></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right font-semibold text-gray-800" th:text="${produit.quantiteEnStock}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Section pour l'impression -->
+<div id="invoice-print" class="p-8 hidden">
+    <header class="flex justify-between items-center pb-4 border-b-2 border-black">
+        <div>
+            <h1 class="text-4xl font-bold">SUPERMARCHE BELALUXE</h1>
+            <p>Bd. Jean Paul II, Près de la TDE, Hédzranawoé</p>
+            <p>Lomé - Togo</p>
+            <p>Tél: (+228) 96 00 01 89 / 90 12 34 30</p>
+        </div>
+        <h2 class="text-5xl font-bold text-gray-600 uppercase">Facture</h2>
+    </header>
+
+    <section class="grid grid-cols-2 gap-8 mt-8">
+        <div>
+            <h3 class="text-lg font-semibold">Facturé à :</h3>
+            <p class="font-bold text-xl" th:text="${factureInfo.nomFournisseur ?: 'Non spécifié'}"></p>
+        </div>
+        <div class="text-right">
+            <p class="text-lg"><span class="font-semibold">Facture N°:</span> <span th:text="${factureInfo.numeroFacture}"></span></p>
+            <p class="text-lg"><span class="font-semibold">Date:</span> <span th:text="${#temporals.format(factureInfo.dateFacture, 'dd/MM/yyyy')}"></span></p>
+        </div>
+    </section>
+
+    <section class="mt-10">
+        <table class="w-full text-left">
+            <thead class="bg-black text-white">
+                <tr>
+                    <th class="p-3 font-semibold">Description</th>
+                    <th class="p-3 text-right font-semibold">Prix Unitaire</th>
+                    <th class="p-3 text-center font-semibold">Quantité</th>
+                    <th class="p-3 text-right font-semibold">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="mvt : ${mouvements}" class="border-b">
+                    <td class="p-3" th:text="${mvt.produit.nom}"></td>
+                    <td class="p-3 text-right" th:text="${mvt.produit.prixAchat != null ? #numbers.formatDecimal(mvt.produit.prixAchat, 0, 'COMMA', 2, 'POINT') + ' FCFA' : 'N/A'}"></td>
+                    <td class="p-3 text-center" th:text="${mvt.quantite}"></td>
+                    <td class="p-3 text-right" th:text="${mvt.produit.prixAchat != null ? #numbers.formatDecimal(mvt.produit.prixAchat * mvt.quantite, 0, 'COMMA', 2, 'POINT') + ' FCFA' : 'N/A'}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="flex justify-end mt-8">
+        <div class="w-2/5">
+            <div class="flex justify-between py-2 border-b">
+                <span class="font-semibold text-lg">Sous-total:</span>
+                <span class="text-lg" th:text="${factureInfo.montantTotal != null ? #numbers.formatDecimal(factureInfo.montantTotal, 0, 'COMMA', 2, 'POINT') + ' FCFA' : 'N/A'}"></span>
+            </div>
+            <div class="flex justify-between py-2 border-b">
+                <span class="font-semibold text-lg">TVA (0%):</span>
+                <span class="text-lg">0 FCFA</span>
+            </div>
+            <div class="flex justify-between font-bold text-2xl py-3 px-2 bg-gray-200 rounded">
+                <span>Total:</span>
+                <span th:text="${factureInfo.montantTotal != null ? #numbers.formatDecimal(factureInfo.montantTotal, 0, 'COMMA', 2, 'POINT') + ' FCFA' : 'N/A'}"></span>
+            </div>
+        </div>
+    </section>
+
+    <footer class="mt-24 pt-8 border-t-2 border-black text-center text-gray-600">
+        <p class="font-semibold">Merci pour votre collaboration.</p>
+        <p>SUPERMARCHE BELALUXE - Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo</p>
+        <p>Tél: (+228) 96 00 01 89 / 90 12 34 30</p>
+    </footer>
+</div>
+
+</body>
+</html>
