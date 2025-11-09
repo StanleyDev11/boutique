@@ -21,8 +21,8 @@
                 <nav class="flex items-center space-x-4">
                     <a th:href="@{/dashboard}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasRole('ADMIN')"><i class="fas fa-tachometer-alt mr-2"></i>Tableau de Bord</a>
                     <a th:href="@{/produits}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')"><i class="fas fa-boxes mr-2"></i>Produits</a>
-                    <a th:href="@{/clients}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasRole('GESTIONNAIRE')"><i class="fas fa-users mr-2"></i>Clients</a>
-                    <a th:href="@{/caissier}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasRole('GESTIONNAIRE')"><i class="fas fa-cash-register mr-2"></i>Caissier</a>
+                    <a th:href="@{/clients}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasRole('GESTIONNAIRE') and !hasRole('ADMIN')"><i class="fas fa-users mr-2"></i>Clients</a>
+                    <a th:href="@{/caissier}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasRole('GESTIONNAIRE') and !hasRole('ADMIN')"><i class="fas fa-cash-register mr-2"></i>Caissier</a>
                     <a th:href="@{/caissier}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasRole('CAISSIER')" th:if="${isSessionActive}"><i class="fas fa-cash-register mr-2"></i>Caissier</a>
                     <a th:href="@{/utilisateurs}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasRole('ADMIN')"><i class="fas fa-user-shield mr-2"></i>Utilisateurs</a>
                     <a th:href="@{/gestion-caisses}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')"><i class="fas fa-cash-register mr-2"></i>Gestion Caisses</a>
@@ -71,8 +71,8 @@
         <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <a th:href="@{/dashboard}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium" sec:authorize="hasRole('ADMIN')">Tableau de Bord</a>
             <a th:href="@{/produits}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')">Produits</a>
-            <a th:href="@{/clients}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium" sec:authorize="hasRole('GESTIONNAIRE')">Clients</a>
-            <a th:href="@{/caissier}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium" sec:authorize="hasRole('GESTIONNAIRE')">Caissier</a>
+            <a th:href="@{/clients}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium" sec:authorize="hasRole('GESTIONNAIRE') and !hasRole('ADMIN')">Clients</a>
+            <a th:href="@{/caissier}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium" sec:authorize="hasRole('GESTIONNAIRE') and !hasRole('ADMIN')">Caissier</a>
             <a th:href="@{/caissier}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium" sec:authorize="hasRole('CAISSIER')" th:if="${isSessionActive}">Caissier</a>
             <a th:href="@{/utilisateurs}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium" sec:authorize="hasRole('ADMIN')">Utilisateurs</a>
             <a th:href="@{/gestion-caisses}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')">Gestion Caisses</a>
