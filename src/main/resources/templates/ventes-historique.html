@@ -193,20 +193,25 @@
             <h2 class="text-3xl font-bold text-gray-800">Historique des Ventes</h2>
             <p class="text-gray-600 mt-1">Analysez et gérez l'historique complet de vos ventes</p>
         </div>
-        <div class="mt-4 md:mt-0 relative hidden">
-            <button id="exportBtn" class="btn-secondary flex items-center">
-                <i class="fas fa-download mr-2"></i>Exporter
-            </button>
-            <div id="exportDropdown" class="export-dropdown">
-                <button class="export-option">
-                    <i class="fas fa-file-excel mr-2 text-green-600"></i>Excel
+        <div class="mt-4 md:mt-0 flex items-center space-x-2">
+            <a id="printLink" href="#" class="btn-secondary flex items-center">
+                <i class="fas fa-print mr-2"></i>Imprimer
+            </a>
+            <div class="relative">
+                <button id="exportBtn" class="btn-secondary flex items-center">
+                    <i class="fas fa-download mr-2"></i>Exporter
                 </button>
-                <button class="export-option">
-                    <i class="fas fa-file-pdf mr-2 text-red-600"></i>PDF
-                </button>
-                <button class="export-option">
-                    <i class="fas fa-file-csv mr-2 text-blue-600"></i>CSV
-                </button>
+                <div id="exportDropdown" class="export-dropdown">
+                    <a id="exportExcelLink" href="/rapports/ventes/export/excel" class="export-option flex items-center">
+                        <i class="fas fa-file-excel mr-2 text-green-600"></i>Excel
+                    </a>
+                    <a id="exportPdfLink" href="/rapports/ventes/export/pdf" class="export-option flex items-center">
+                        <i class="fas fa-file-pdf mr-2 text-red-600"></i>PDF
+                    </a>
+                    <button class="export-option flex items-center" onclick="alert('Export CSV à venir !');">
+                        <i class="fas fa-file-csv mr-2 text-blue-600"></i>CSV
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -622,7 +627,41 @@
 
         // Initialize charts
         initializeCharts();
+        
+        // Update print and export links
+        updateLinks();
+
+        // Add event listeners to date inputs to update links on change
+        document.getElementById('startDate').addEventListener('change', updateLinks);
+        document.getElementById('endDate').addEventListener('change', updateLinks);
     });
+
+    function updateLinks() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        
+        const params = new URLSearchParams();
+        if (startDate) {
+            params.append('startDate', startDate);
+        }
+        if (endDate) {
+            params.append('endDate', endDate);
+        }
+        const queryString = params.toString();
+
+        // Update print link
+        const printLink = document.getElementById('printLink');
+        printLink.href = `/rapports/ventes/imprimer${queryString ? '?' + queryString : ''}`;
+        printLink.target = '_blank';
+
+        // Update Excel export link
+        const excelLink = document.getElementById('exportExcelLink');
+        excelLink.href = `/rapports/ventes/export/excel${queryString ? '?' + queryString : ''}`;
+
+        // Update PDF export link
+        const pdfLink = document.getElementById('exportPdfLink');
+        pdfLink.href = `/rapports/ventes/export/pdf${queryString ? '?' + queryString : ''}`;
+    }
 
     // Remove filter function
     function removeFilter(filterType) {

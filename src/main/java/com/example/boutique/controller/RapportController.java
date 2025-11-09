@@ -5,6 +5,7 @@ import com.example.boutique.model.Produit;
 import com.example.boutique.repository.LigneVenteRepository;
 import com.example.boutique.repository.ProduitRepository;
 import com.example.boutique.repository.VenteRepository;
+import com.example.boutique.service.PdfGenerationService;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
@@ -17,12 +18,16 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.thymeleaf.TemplateEngine;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -42,13 +47,17 @@ public class RapportController {
     private final ProduitRepository produitRepository;
     private final VenteRepository venteRepository;
     private final LigneVenteRepository ligneVenteRepository;
+    private final PdfGenerationService pdfGenerationService;
+    private final TemplateEngine templateEngine;
     private static final int SEUIL_STOCK_BAS = 10;
     private static final int JOURS_AVANT_PEREMPTION = 30;
 
-    public RapportController(ProduitRepository produitRepository, VenteRepository venteRepository, LigneVenteRepository ligneVenteRepository) {
+    public RapportController(ProduitRepository produitRepository, VenteRepository venteRepository, LigneVenteRepository ligneVenteRepository, PdfGenerationService pdfGenerationService, TemplateEngine templateEngine) {
         this.produitRepository = produitRepository;
         this.venteRepository = venteRepository;
         this.ligneVenteRepository = ligneVenteRepository;
+        this.pdfGenerationService = pdfGenerationService;
+        this.templateEngine = templateEngine;
     }
 
     @GetMapping("/stock-bas")
@@ -169,6 +178,68 @@ public class RapportController {
         return "ventes-historique";
     }
 
+    @GetMapping("/ventes/imprimer")
+    public String imprimerVentes(Model model,
+                                 @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate startDate,
+                                 @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : LocalDateTime.now().minusYears(1);
+        LocalDateTime endDateTime = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : LocalDateTime.now();
+
+        if (startDate == null) {
+            startDate = LocalDate.now().minusYears(1);
+        }
+        if (endDate == null) {
+            endDate = LocalDate.now();
+        }
+
+        org.springframework.data.domain.Sort sort = Sort.by(Sort.Direction.ASC, "dateVente");
+        List<com.example.boutique.model.Vente> ventes = venteRepository.findAllWithDetailsByDateVenteBetween(startDateTime, endDateTime, sort);
+
+        // --- Regroupement par jour ---
+        Map<LocalDate, List<com.example.boutique.model.Vente>> ventesParJour = ventes.stream()
+                .collect(Collectors.groupingBy(v -> v.getDateVente().toLocalDate()));
+
+        // --- Calcul des sous-totaux par jour ---
+        Map<LocalDate, BigDecimal> sousTotauxParJour = ventes.stream()
+                .collect(Collectors.groupingBy(
+                        v -> v.getDateVente().toLocalDate(),
+                        Collectors.reducing(BigDecimal.ZERO, com.example.boutique.model.Vente::getTotalFinal, BigDecimal::add)
+                ));
+
+        // --- Calculs pour le résumé amélioré ---
+        BigDecimal totalGeneral = ventes.stream()
+                .map(com.example.boutique.model.Vente::getTotalFinal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        int nombreTotalVentes = ventes.size();
+
+        BigDecimal panierMoyen = BigDecimal.ZERO;
+        if (nombreTotalVentes > 0) {
+            panierMoyen = totalGeneral.divide(new BigDecimal(nombreTotalVentes), 2, java.math.RoundingMode.HALF_UP);
+        }
+
+        Map<String, BigDecimal> totalParMoyenPaiement = ventes.stream()
+                .collect(Collectors.groupingBy(
+                        com.example.boutique.model.Vente::getMoyenPaiement,
+                        Collectors.reducing(BigDecimal.ZERO, com.example.boutique.model.Vente::getTotalFinal, BigDecimal::add)
+                ));
+
+
+        model.addAttribute("ventesParJour", ventesParJour);
+        model.addAttribute("sousTotauxParJour", sousTotauxParJour);
+        model.addAttribute("totalGeneral", totalGeneral);
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+        model.addAttribute("nombreTotalVentes", nombreTotalVentes);
+        model.addAttribute("panierMoyen", panierMoyen);
+        model.addAttribute("totalParMoyenPaiement", totalParMoyenPaiement);
+        model.addAttribute("dateGeneration", LocalDateTime.now());
+
+
+        return "rapport-ventes";
+    }
+
     @GetMapping("/sales-by-day")
     @ResponseBody
     public Map<String, Object> getSalesByDay() {
@@ -258,41 +329,270 @@ public class RapportController {
                 table.addCell(String.valueOf(sale.getVente().getDateVente()));
             }
 
-            document.add(table);
-        }
-    }
+                        document.add(table);
 
-    @GetMapping("/export/excel")
-    @ResponseBody
-    public void exportExcel(HttpServletResponse response) throws IOException {
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setHeader("Content-Disposition", "attachment; file=ventes.xlsx");
+                    }
 
-        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
-            XSSFSheet sheet = workbook.createSheet("Ventes");
+                }
 
-            // Create header row
-            Row headerRow = sheet.createRow(0);
-            String[] header = {"ID Vente", "Produit", "Quantité", "Prix Unitaire", "Montant Total", "Date de Vente"};
-            for (int i = 0; i < header.length; i++) {
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(header[i]);
-            }
+            
 
-            // Create data rows
-            List<LigneVente> sales = ligneVenteRepository.findAllWithVente(Pageable.unpaged()).getContent();
-            int rowNum = 1;
-            for (LigneVente sale : sales) {
-                Row row = sheet.createRow(rowNum++);
-                row.createCell(0).setCellValue(sale.getVente().getId());
-                row.createCell(1).setCellValue(sale.getProduit().getNom());
-                row.createCell(2).setCellValue(sale.getQuantite());
-                row.createCell(3).setCellValue(sale.getPrixUnitaire().doubleValue());
-                row.createCell(4).setCellValue(sale.getMontantTotal().doubleValue());
-                row.createCell(5).setCellValue(sale.getVente().getDateVente().toString());
-            }
+                @GetMapping("/ventes/export/excel")
 
-            workbook.write(response.getOutputStream());
-        }
-    }
-}
+                public void exportVentesRapportExcel(HttpServletResponse response,
+
+                                                     @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate startDate,
+
+                                                     @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate endDate) throws IOException {
+
+            
+
+                    LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : LocalDateTime.now().minusYears(1);
+
+                    LocalDateTime endDateTime = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : LocalDateTime.now();
+
+            
+
+                    org.springframework.data.domain.Sort sort = Sort.by(Sort.Direction.ASC, "dateVente");
+
+                    List<com.example.boutique.model.Vente> ventes = venteRepository.findAllWithDetailsByDateVenteBetween(startDateTime, endDateTime, sort);
+
+            
+
+                    response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+                    response.setHeader("Content-Disposition", "attachment; filename=rapport_ventes.xlsx");
+
+            
+
+                    try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+
+                        XSSFSheet sheet = workbook.createSheet("Rapport des Ventes");
+
+            
+
+                        // Create header row
+
+                        Row headerRow = sheet.createRow(0);
+
+                        String[] headers = {"ID Vente", "Date", "Client", "Caissier", "Moyen Paiement", "ID Produit", "Nom Produit", "Catégorie", "Quantité", "Prix Unitaire", "Total Ligne"};
+
+                        for (int i = 0; i < headers.length; i++) {
+
+                            Cell cell = headerRow.createCell(i);
+
+                            cell.setCellValue(headers[i]);
+
+                        }
+
+            
+
+                        // Create data rows
+
+                        int rowNum = 1;
+
+                        for (com.example.boutique.model.Vente vente : ventes) {
+
+                            for (LigneVente ligne : vente.getLigneVentes()) {
+
+                                Row row = sheet.createRow(rowNum++);
+
+                                row.createCell(0).setCellValue(vente.getId());
+
+                                row.createCell(1).setCellValue(vente.getDateVente().toString());
+
+                                row.createCell(2).setCellValue(vente.getClient() != null ? vente.getClient().getNom() : "Client de passage");
+
+                                row.createCell(3).setCellValue(vente.getUtilisateur().getUsername());
+
+                                row.createCell(4).setCellValue(vente.getMoyenPaiement());
+
+                                row.createCell(5).setCellValue(ligne.getProduit().getId());
+
+                                row.createCell(6).setCellValue(ligne.getProduit().getNom());
+
+                                row.createCell(7).setCellValue(ligne.getProduit().getCategorie());
+
+                                row.createCell(8).setCellValue(ligne.getQuantite());
+
+                                row.createCell(9).setCellValue(ligne.getPrixUnitaire().doubleValue());
+
+                                row.createCell(10).setCellValue(ligne.getMontantTotal().doubleValue());
+
+                            }
+
+                        }
+
+            
+
+                                    workbook.write(response.getOutputStream());
+
+            
+
+                                }
+
+            
+
+                            }
+
+            
+
+                        
+
+            
+
+                            @GetMapping("/ventes/export/pdf")
+
+            
+
+                            public ResponseEntity<byte[]> exportRapportVentesPdf(@RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate startDate,
+
+            
+
+                                                                                 @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate endDate) throws IOException {
+
+            
+
+                        
+
+            
+
+                                LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : LocalDateTime.now().minusYears(1);
+
+            
+
+                                LocalDateTime endDateTime = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : LocalDateTime.now();
+
+            
+
+                        
+
+            
+
+                                if (startDate == null) {
+
+            
+
+                                    startDate = LocalDate.now().minusYears(1);
+
+            
+
+                                }
+
+            
+
+                                if (endDate == null) {
+
+            
+
+                                    endDate = LocalDate.now();
+
+            
+
+                                }
+
+            
+
+                        
+
+            
+
+                                org.springframework.data.domain.Sort sort = Sort.by(Sort.Direction.ASC, "dateVente");
+
+            
+
+                                List<com.example.boutique.model.Vente> ventes = venteRepository.findAllWithDetailsByDateVenteBetween(startDateTime, endDateTime, sort);
+
+            
+
+                        
+
+            
+
+                                Map<String, Object> data = new HashMap<>();
+
+            
+
+                                data.put("ventesParJour", ventes.stream().collect(Collectors.groupingBy(v -> v.getDateVente().toLocalDate())));
+
+            
+
+                                data.put("sousTotauxParJour", ventes.stream().collect(Collectors.groupingBy(v -> v.getDateVente().toLocalDate(), Collectors.reducing(BigDecimal.ZERO, com.example.boutique.model.Vente::getTotalFinal, BigDecimal::add))));
+
+            
+
+                                BigDecimal totalGeneral = ventes.stream().map(com.example.boutique.model.Vente::getTotalFinal).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            
+
+                                data.put("totalGeneral", totalGeneral);
+
+            
+
+                                data.put("startDate", startDate);
+
+            
+
+                                data.put("endDate", endDate);
+
+            
+
+                                data.put("nombreTotalVentes", ventes.size());
+
+            
+
+                                data.put("panierMoyen", ventes.isEmpty() ? BigDecimal.ZERO : totalGeneral.divide(new BigDecimal(ventes.size()), 2, java.math.RoundingMode.HALF_UP));
+
+            
+
+                                data.put("totalParMoyenPaiement", ventes.stream().collect(Collectors.groupingBy(com.example.boutique.model.Vente::getMoyenPaiement, Collectors.reducing(BigDecimal.ZERO, com.example.boutique.model.Vente::getTotalFinal, BigDecimal::add))));
+
+            
+
+                                data.put("dateGeneration", LocalDateTime.now());
+
+            
+
+                        
+
+            
+
+                                byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("rapport-ventes", data);
+
+            
+
+                        
+
+            
+
+                                HttpHeaders headers = new HttpHeaders();
+
+            
+
+                                headers.setContentType(MediaType.APPLICATION_PDF);
+
+            
+
+                                headers.setContentDispositionFormData("attachment", "rapport-ventes.pdf");
+
+            
+
+                        
+
+            
+
+                                return ResponseEntity.ok().headers(headers).body(pdfBytes);
+
+            
+
+                            }
+
+            
+
+                        }
+
+            
+
+                        
+
+            

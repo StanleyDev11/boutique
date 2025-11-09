@@ -42,4 +42,7 @@ public interface VenteRepository extends JpaRepository<Vente, Long> {
     long countByStatus(VenteStatus status);
 
     List<Vente> findAllByDateVenteAfter(LocalDateTime date);
+
+    @Query("SELECT DISTINCT v FROM Vente v LEFT JOIN FETCH v.ligneVentes lv LEFT JOIN FETCH lv.produit LEFT JOIN FETCH v.utilisateur LEFT JOIN FETCH v.client WHERE v.dateVente BETWEEN :startDateTime AND :endDateTime")
+    List<Vente> findAllWithDetailsByDateVenteBetween(@Param("startDateTime") LocalDateTime startDateTime, @Param("endDateTime") LocalDateTime endDateTime, org.springframework.data.domain.Sort sort);
 }

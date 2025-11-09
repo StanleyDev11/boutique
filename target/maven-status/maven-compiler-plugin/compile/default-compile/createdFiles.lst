@@ -2,6 +2,7 @@ com\example\boutique\model\Produit.class
 com\example\boutique\config\CustomAuthenticationSuccessHandler.class
 com\example\boutique\controller\ProduitController.class
 com\example\boutique\controller\StockController.class
+com\example\boutique\service\PdfGenerationService.class
 com\example\boutique\service\ProduitService.class
 com\example\boutique\controller\AuthController.class
 com\example\boutique\controller\PersonnelController.class
@@ -27,8 +28,10 @@ com\example\boutique\dto\ProductBatchDto.class
 com\example\boutique\dto\VenteRequestDto.class
 com\example\boutique\utils\UserUtils.class
 com\example\boutique\model\Personnel.class
+com\example\boutique\utils\OkHttpStreamFactory$1.class
 com\example\boutique\repository\MouvementStockRepository.class
 com\example\boutique\dto\VenteCreditDto.class
+com\example\boutique\utils\OkHttpStreamFactory.class
 com\example\boutique\controller\ClientController.class
 com\example\boutique\controller\UtilisateurController.class
 com\example\boutique\model\Utilisateur.class
@@ -41,6 +44,7 @@ com\example\boutique\model\Caisse.class
 com\example\boutique\controller\VenteController.class
 com\example\boutique\controller\GlobalControllerAdvice.class
 com\example\boutique\dto\CategoryProductCount.class
+com\example\boutique\dto\FactureInfoDTO.class
 com\example\boutique\repository\CaisseRepository.class
 com\example\boutique\enums\TypeMouvement.class
 com\example\boutique\dto\ProduitDto.class

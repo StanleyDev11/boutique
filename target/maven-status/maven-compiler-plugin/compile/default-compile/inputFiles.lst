@@ -1,6 +1,7 @@
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\repository\UtilisateurRepository.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\CartItemDto.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\model\LigneVente.java
+C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\FactureInfoDTO.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\CategorySales.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\service\JpaUserDetailsService.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\PersonnelController.java
@@ -33,6 +34,7 @@ C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutiqu
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\model\Client.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\BoutiqueApplication.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\model\Caisse.java
+C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\service\PdfGenerationService.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\VenteRequestDto.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\ProductBatchDto.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\ProduitVenteDto.java
@@ -44,6 +46,7 @@ C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutiqu
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\enums\TypeMouvement.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\ClientController.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\service\StockService.java
+C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\utils\OkHttpStreamFactory.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\enums\VenteStatus.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\service\CaisseService.java
 C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\repository\LigneVenteRepository.java
