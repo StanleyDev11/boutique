@@ -86,6 +86,13 @@ public class UtilisateurController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> saveUtilisateur(@ModelAttribute("utilisateur") Utilisateur utilisateur, @RequestParam(name = "roles", required = false) List<String> roles) {
         try {
+            // Vérifier l'unicité du nom d'utilisateur
+            utilisateurRepository.findByUsername(utilisateur.getUsername()).ifPresent(existingUser -> {
+                if (utilisateur.getId() == null || !existingUser.getId().equals(utilisateur.getId())) {
+                    throw new IllegalStateException("Le nom d'utilisateur '" + utilisateur.getUsername() + "' est déjà utilisé.");
+                }
+            });
+
             // Gestion des rôles
             if (roles != null) {
                 utilisateur.setRoles(String.join(",", roles));
