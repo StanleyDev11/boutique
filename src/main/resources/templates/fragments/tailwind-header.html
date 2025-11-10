@@ -29,7 +29,7 @@
                     <a th:href="@{/rapports/stock-bas}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')"><i class="fas fa-chart-bar mr-2"></i>Rapports</a>
                     <a th:href="@{/rapports/ventes-historique}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')"><i class="fas fa-history mr-2"></i>Historique</a>
                     
-                    <a th:href="@{/caisse/historique}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasRole('CAISSIER')" th:if="${isSessionActive}"><i class="fas fa-clipboard-list mr-2"></i>Session</a>
+                    <a th:href="@{/caisse/historique}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasRole('CAISSIER')" th:if="${isSessionActive}"><i class="fas fa-clipboard-list mr-2"></i>Historique</a>
                 </nav>
 
                 <!-- User Info and Logout -->
