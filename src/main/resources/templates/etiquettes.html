@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Étiquettes de Produits</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 20px;
+            background-color: #f3f4f6;
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .print-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .print-button:hover {
+            background-color: #1d4ed8;
+        }
+
+        .label-sheet {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #d1d5db;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .label {
+            border: 1px dashed #9ca3af;
+            padding: 15px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+            overflow: hidden;
+        }
+
+        .product-name {
+            font-weight: 700;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+            color: #111827;
+        }
+
+        .product-price {
+            font-weight: 700;
+            font-size: 1.4em;
+            color: #dc2626;
+        }
+
+        /* Styles for printing */
+        @media print {
+            body {
+                margin: 0;
+                background-color: white;
+            }
+            .controls {
+                display: none;
+            }
+            .label-sheet {
+                grid-template-columns: repeat(3, 1fr); /* Adjust to fit 3 labels per row on A4 paper */
+                gap: 5px;
+                padding: 0;
+                border: none;
+                box-shadow: none;
+                width: 100%;
+                height: 100%;
+            }
+            .label {
+                border: 1px solid #ccc; /* Use a solid line for cutting guides */
+                height: 2.5cm; /* Adjust height as needed */
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="controls">
+    <h1>Aperçu des Étiquettes</h1>
+    <p>Cliquez sur le bouton pour lancer l'impression.</p>
+    <button onclick="window.print()" class="print-button">Imprimer les étiquettes</button>
+</div>
+
+<div class="label-sheet">
+    <div th:each="produit : ${produits}" class="label">
+        <div class="product-name" th:text="${produit.nom}">Nom du Produit</div>
+        <div class="product-price" th:text="${#numbers.formatDecimal(produit.prixVenteUnitaire, 0, 'COMMA', 0, 'POINT')} + ' FCFA'">
+            1,000 FCFA
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

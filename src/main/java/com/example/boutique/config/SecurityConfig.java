@@ -40,12 +40,20 @@ public class SecurityConfig {
                 .requestMatchers("/ventes/*/annuler").hasAnyRole("ADMIN", "GESTIONNAIRE")
                 .anyRequest().authenticated() // Toutes les autres pages nécessitent une connexion
             )
+            .sessionManagement(session -> session
+                .invalidSessionUrl("/login?expired") // Redirect to login page with 'expired' param on invalid session
+                .maximumSessions(1) // Allow only one session per user
+                .maxSessionsPreventsLogin(false) // If a new session is created, the old one is invalidated
+                .expiredUrl("/login?expired") // Redirect to login page with 'expired' param on expired session
+            )
             .formLogin(form -> form
                 .loginPage("/login") // URL de notre page de connexion
                 .successHandler(customAuthenticationSuccessHandler) // Utilise notre gestionnaire personnalisé
                 .permitAll()
             )
             .logout(logout -> logout
+                .invalidateHttpSession(true) // Invalidate HTTP session on logout
+                .deleteCookies("JSESSIONID") // Delete JSESSIONID cookie on logout
                 .logoutSuccessUrl("/login?logout") // Page après la déconnexion
                 .permitAll()
             )

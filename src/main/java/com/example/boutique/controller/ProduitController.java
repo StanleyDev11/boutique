@@ -7,6 +7,7 @@ import com.example.boutique.model.MouvementStock;
 import com.example.boutique.model.Produit;
 import com.example.boutique.repository.ProduitRepository;
 import com.example.boutique.service.ProduitService;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -212,6 +213,13 @@ public class ProduitController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur lors de la suppression du produit."));
         }
+    }
+
+    @GetMapping("/etiquettes")
+    public String showEtiquettesPage(Model model) {
+        List<Produit> produits = produitRepository.findAll(Sort.by("nom"));
+        model.addAttribute("produits", produits);
+        return "etiquettes";
     }
 
     // --- Anciennes méthodes (peuvent être gardées pour la navigation sans JS) ---
