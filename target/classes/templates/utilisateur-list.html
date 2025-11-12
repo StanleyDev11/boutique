@@ -358,7 +358,7 @@
                         return data;
                     })
                     .catch(error => {
-                        Swal.showValidationMessage(`Request failed: ${error}`);
+                        Swal.showValidationMessage(error.message);
                     });
                 },
                 allowOutsideClick: () => !Swal.isLoading()
