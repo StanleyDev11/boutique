@@ -6,16 +6,14 @@ import com.example.boutique.dto.MouvementStatDto;
 import com.example.boutique.dto.ProduitVenteDto;
 import com.example.boutique.enums.TypeMouvement;
 import com.example.boutique.model.MouvementStock;
-import com.example.boutique.repository.LigneVenteRepository;
-import com.example.boutique.repository.MouvementStockRepository;
-import com.example.boutique.repository.PersonnelRepository;
-import com.example.boutique.repository.ProduitRepository;
-import com.example.boutique.repository.UtilisateurRepository;
+import com.example.boutique.repository.*;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -23,6 +21,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -38,15 +38,17 @@ public class DashboardController {
     private final UtilisateurRepository utilisateurRepository;
     private final MouvementStockRepository mouvementStockRepository;
     private final LigneVenteRepository ligneVenteRepository;
+    private final VenteRepository venteRepository;
 
     private static final int SEUIL_STOCK_BAS = 10;
 
-    public DashboardController(ProduitRepository produitRepository, PersonnelRepository personnelRepository, UtilisateurRepository utilisateurRepository, MouvementStockRepository mouvementStockRepository, LigneVenteRepository ligneVenteRepository) {
+    public DashboardController(ProduitRepository produitRepository, PersonnelRepository personnelRepository, UtilisateurRepository utilisateurRepository, MouvementStockRepository mouvementStockRepository, LigneVenteRepository ligneVenteRepository, VenteRepository venteRepository) {
         this.produitRepository = produitRepository;
         this.personnelRepository = personnelRepository;
         this.utilisateurRepository = utilisateurRepository;
         this.mouvementStockRepository = mouvementStockRepository;
         this.ligneVenteRepository = ligneVenteRepository;
+        this.venteRepository = venteRepository;
     }
 
     @GetMapping
@@ -70,6 +72,42 @@ public class DashboardController {
         addSalesByCategoryChartData(model);
 
         return "dashboard";
+    }
+
+    @GetMapping("/api/ventes-par-jour")
+    @ResponseBody
+    public Map<String, Object> getVentesParJour(@RequestParam(defaultValue = "7") int jours) {
+        LocalDateTime endDate = LocalDateTime.now();
+        LocalDateTime startDate = endDate.minusDays(jours).with(LocalTime.MIN);
+
+        List<Object[]> salesData = venteRepository.findSalesPerDay(startDate, endDate);
+
+        // Create a map of dates to sales totals
+        Map<LocalDate, BigDecimal> salesByDate = salesData.stream()
+            .collect(Collectors.toMap(
+                row -> ((java.sql.Date) row[0]).toLocalDate(),
+                row -> (BigDecimal) row[1]
+            ));
+
+        // Prepare labels and data for the last N days, filling in zeros for days with no sales
+        List<String> labels = new ArrayList<>();
+        List<BigDecimal> data = new ArrayList<>();
+
+        for (int i = 0; i < jours; i++) {
+            LocalDate date = endDate.minusDays(i).toLocalDate();
+            labels.add(date.format(DateTimeFormatter.ofPattern("dd/MM")));
+            data.add(salesByDate.getOrDefault(date, BigDecimal.ZERO));
+        }
+
+        // Reverse the lists to have the oldest date first
+        java.util.Collections.reverse(labels);
+        java.util.Collections.reverse(data);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("labels", labels);
+        response.put("data", data);
+
+        return response;
     }
 
     private void addKpiData(Model model) {

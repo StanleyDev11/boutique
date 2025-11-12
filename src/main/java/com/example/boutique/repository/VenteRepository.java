@@ -45,4 +45,7 @@ public interface VenteRepository extends JpaRepository<Vente, Long> {
 
     @Query("SELECT DISTINCT v FROM Vente v LEFT JOIN FETCH v.ligneVentes lv LEFT JOIN FETCH lv.produit LEFT JOIN FETCH v.utilisateur LEFT JOIN FETCH v.client WHERE v.dateVente BETWEEN :startDateTime AND :endDateTime")
     List<Vente> findAllWithDetailsByDateVenteBetween(@Param("startDateTime") LocalDateTime startDateTime, @Param("endDateTime") LocalDateTime endDateTime, org.springframework.data.domain.Sort sort);
+
+    @Query("SELECT FUNCTION('DATE', v.dateVente), SUM(v.totalFinal) FROM Vente v WHERE v.dateVente BETWEEN :startDate AND :endDate GROUP BY FUNCTION('DATE', v.dateVente) ORDER BY FUNCTION('DATE', v.dateVente) ASC")
+    List<Object[]> findSalesPerDay(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 }

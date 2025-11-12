@@ -147,6 +147,14 @@
 
     <!-- Section Principale: Graphiques et Activités -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+        <!-- Graphique des Ventes -->
+        <div class="lg:col-span-3 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Ventes des 7 derniers jours</h3>
+            <div>
+                <canvas id="ventesChart"></canvas>
+            </div>
+        </div>
+
         <!-- Graphique d'activité -->
         <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Activité des 7 derniers jours (Entrées/Sorties)</h3>
@@ -331,6 +339,61 @@
                 }
             }
         });
+
+        // Fetch and render Sales Chart
+        fetch('/dashboard/api/ventes-par-jour?jours=7')
+            .then(response => response.json())
+            .then(salesData => {
+                const ventesCtx = document.getElementById('ventesChart').getContext('2d');
+                new Chart(ventesCtx, {
+                    type: 'line',
+                    data: {
+                        labels: salesData.labels,
+                        datasets: [{
+                            label: 'Chiffre d\'affaires (FCFA)',
+                            data: salesData.data,
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value, index, values) {
+                                        return new Intl.NumberFormat('fr-FR').format(value) + ' FCFA';
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            label += new Intl.NumberFormat('fr-FR').format(context.parsed.y) + ' FCFA';
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
     });
     /*]]>*/
 </script>
