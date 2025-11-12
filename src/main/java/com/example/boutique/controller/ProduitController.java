@@ -164,7 +164,13 @@ public class ProduitController {
     }
     @PostMapping("/save-batch")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> saveBatch(@ModelAttribute ProductBatchDto productBatchDto) {
+    public ResponseEntity<Map<String, Object>> saveBatch(@Valid @ModelAttribute ProductBatchDto productBatchDto, org.springframework.validation.BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getAllErrors().stream()
+                    .map(org.springframework.validation.ObjectError::getDefaultMessage)
+                    .collect(Collectors.toList());
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreurs de validation.", "errors", errors));
+        }
         try {
             produitService.saveNewProductBatch(productBatchDto);
             return ResponseEntity.ok(Map.of("success", true, "message", "Les produits ont été sauvegardés avec succès !"));
@@ -179,7 +185,13 @@ public class ProduitController {
 
     @PostMapping("/save")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> saveProduit(@ModelAttribute("produit") Produit produit) {
+    public ResponseEntity<Map<String, Object>> saveProduit(@Valid @ModelAttribute("produit") Produit produit, org.springframework.validation.BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getAllErrors().stream()
+                    .map(org.springframework.validation.ObjectError::getDefaultMessage)
+                    .collect(Collectors.toList());
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreurs de validation.", "errors", errors));
+        }
         try {
             produitService.saveProduit(produit);
             return ResponseEntity.ok(Map.of("success", true, "message", "Le produit a été sauvegardé avec succès !"));

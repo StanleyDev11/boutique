@@ -49,10 +49,12 @@
                         <a th:href="@{/caisse/fermer}" sec:authorize="hasRole('CAISSIER')" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-lg text-sm font-semibold transition duration-200 flex items-center">
                             <i class="fas fa-door-closed mr-1"></i>Fermer Caisse
                         </a>
-                        <a th:href="@{/logout}" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-semibold transition duration-200 flex items-center">
-                            <i class="fas fa-sign-out-alt mr-1"></i>
-                            <span class="hidden lg:inline">Déconnexion</span>
-                        </a>
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-semibold transition duration-200 flex items-center">
+                                <i class="fas fa-sign-out-alt mr-1"></i>
+                                <span class="hidden lg:inline">Déconnexion</span>
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -99,9 +101,11 @@
                 <a th:href="@{/caisse/fermer}" sec:authorize="hasRole('CAISSIER')" class="text-yellow-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-base font-medium flex items-center">
                     <i class="fas fa-door-closed mr-2"></i>Fermer Caisse
                 </a>
-                <a th:href="@{/logout}" class="w-full text-left text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-base font-medium flex items-center">
-                    <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
-                </a>
+                <form th:action="@{/logout}" method="post" class="w-full">
+                    <button type="submit" class="w-full text-left text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-base font-medium flex items-center">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
+                    </button>
+                </form>
             </div>
         </div>
     </div>
