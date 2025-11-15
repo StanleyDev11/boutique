@@ -2,7 +2,6 @@ package com.example.boutique.service;
 
 import com.example.boutique.model.Caisse;
 import com.example.boutique.model.SessionCaisse;
-import com.example.boutique.model.Utilisateur;
 import com.example.boutique.repository.CaisseRepository;
 import com.example.boutique.repository.UtilisateurRepository;
 import org.springframework.stereotype.Service;
@@ -25,13 +24,11 @@ import java.util.Optional;
 public class CaisseService {
 
     private final CaisseRepository caisseRepository;
-    private final UtilisateurRepository utilisateurRepository;
     private final SessionCaisseRepository sessionCaisseRepository;
     private final VenteRepository venteRepository;
 
     public CaisseService(CaisseRepository caisseRepository, UtilisateurRepository utilisateurRepository, SessionCaisseRepository sessionCaisseRepository, VenteRepository venteRepository) {
         this.caisseRepository = caisseRepository;
-        this.utilisateurRepository = utilisateurRepository;
         this.sessionCaisseRepository = sessionCaisseRepository;
         this.venteRepository = venteRepository;
     }

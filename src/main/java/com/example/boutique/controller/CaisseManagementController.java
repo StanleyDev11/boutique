@@ -2,11 +2,9 @@ package com.example.boutique.controller;
 
 import com.example.boutique.model.Caisse;
 import com.example.boutique.model.SessionCaisse;
-import com.example.boutique.model.Utilisateur;
 import com.example.boutique.model.Vente;
 import com.example.boutique.service.CaisseService;
 import com.example.boutique.repository.SessionCaisseRepository;
-import com.example.boutique.repository.UtilisateurRepository;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -30,12 +28,10 @@ import java.util.Map;
 public class CaisseManagementController {
 
     private final CaisseService caisseService;
-    private final UtilisateurRepository utilisateurRepository;
     private final SessionCaisseRepository sessionCaisseRepository;
 
-    public CaisseManagementController(CaisseService caisseService, UtilisateurRepository utilisateurRepository, SessionCaisseRepository sessionCaisseRepository) {
+    public CaisseManagementController(CaisseService caisseService, SessionCaisseRepository sessionCaisseRepository) {
         this.caisseService = caisseService;
-        this.utilisateurRepository = utilisateurRepository;
         this.sessionCaisseRepository = sessionCaisseRepository;
     }
 

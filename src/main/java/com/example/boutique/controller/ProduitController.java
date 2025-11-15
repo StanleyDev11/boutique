@@ -2,7 +2,6 @@ package com.example.boutique.controller;
 
 import com.example.boutique.dto.FactureInfoDTO;
 import com.example.boutique.dto.ProductBatchDto;
-import com.example.boutique.dto.ProduitDto;
 import com.example.boutique.model.MouvementStock;
 import com.example.boutique.model.Produit;
 import com.example.boutique.repository.ProduitRepository;
@@ -20,7 +19,6 @@ import com.example.boutique.enums.TypeMouvement;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;

@@ -144,7 +144,7 @@
       <div th:each="produit : ${produits}"
            class="product-card p-4 rounded-xl glass-card cursor-pointer"
            th:data-id="${produit.id}" th:data-nom="${produit.nom}"
-           th:data-prix="${produit.prixVenteUnitaire}"
+           th:data-prix="${(produit.promotionActive and produit.prixPromotionnel != null) ? produit.prixPromotionnel : produit.prixVenteUnitaire}"
            th:data-categorie="${produit.categorie}"
            th:data-codebarres="${produit.codeBarres}"
            th:data-stock="${produit.quantiteEnStock}">
@@ -166,7 +166,10 @@
           </span>
         </div>
         <div class="flex justify-between items-center mt-3">
-          <p class="text-lg font-bold text-indigo-600" th:text="${#numbers.formatDecimal(produit.prixVenteUnitaire, 0, 'COMMA', 2, 'POINT')} + ' FCFA'"></p>
+          <div class="flex items-center">
+            <p class="text-lg font-bold text-indigo-600" th:text="${#numbers.formatDecimal((produit.promotionActive and produit.prixPromotionnel != null) ? produit.prixPromotionnel : produit.prixVenteUnitaire, 0, 'COMMA', 2, 'POINT')} + ' FCFA'"></p>
+            <span th:if="${produit.promotionActive and produit.prixPromotionnel != null}" class="ml-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md">PROMO</span>
+          </div>
           <button class="text-indigo-500 hover:text-indigo-700 transition-colors">
             <i class="fas fa-plus-circle text-xl"></i>
           </button>

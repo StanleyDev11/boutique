@@ -1,9 +1,7 @@
 package com.example.boutique.controller;
 
-import com.example.boutique.model.Caisse;
 import com.example.boutique.model.SessionCaisse;
 import com.example.boutique.model.Utilisateur;
-import com.example.boutique.repository.CaisseRepository;
 import com.example.boutique.repository.SessionCaisseRepository;
 import com.example.boutique.repository.UtilisateurRepository;
 import com.example.boutique.repository.VenteRepository;
@@ -38,9 +36,6 @@ public class CaisseController {
 
     @Autowired
     private VenteRepository venteRepository;
-
-    @Autowired
-    private CaisseRepository caisseRepository;
 
     @GetMapping("/ouvrir")
     public String showOuvertureForm(Model model) {

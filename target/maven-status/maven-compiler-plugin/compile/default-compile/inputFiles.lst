@@ -1,55 +1,55 @@
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\repository\UtilisateurRepository.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\CartItemDto.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\model\LigneVente.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\FactureInfoDTO.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\CategorySales.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\service\JpaUserDetailsService.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\PersonnelController.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\DashboardController.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\repository\ClientRepository.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\VenteCreditDto.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\repository\CaisseRepository.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\config\CustomAuthenticationSuccessHandler.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\StockController.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\RapportController.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\model\Produit.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\utils\ProductUtils.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\repository\VenteRepository.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\model\MouvementStock.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\model\Utilisateur.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\ClientViewController.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\model\Personnel.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\AuthController.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\CaisseManagementController.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\repository\MouvementStockRepository.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\utils\UserUtils.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\VenteController.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\model\Vente.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\ProduitController.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\MouvementStatDto.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\CaisseController.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\CategoryProductCount.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\GlobalControllerAdvice.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\service\ProduitService.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\model\Client.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\BoutiqueApplication.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\model\Caisse.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\service\PdfGenerationService.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\VenteRequestDto.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\ProductBatchDto.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\ProduitVenteDto.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\UtilisateurController.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\config\SecurityConfig.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\repository\PersonnelRepository.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\repository\ProduitRepository.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\dto\ProduitDto.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\enums\TypeMouvement.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\ClientController.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\service\StockService.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\utils\OkHttpStreamFactory.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\enums\VenteStatus.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\service\CaisseService.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\repository\LigneVenteRepository.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\model\SessionCaisse.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\repository\SessionCaisseRepository.java
-C:\Users\ChamDev\Desktop\INSTALLATION\Boutique\src\main\java\com\example\boutique\controller\CaissierController.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\model\Produit.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\service\JpaUserDetailsService.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\config\CustomAuthenticationSuccessHandler.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\repository\CaisseRepository.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\repository\SessionCaisseRepository.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\controller\CaissierController.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\controller\StockController.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\controller\DashboardController.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\dto\CategoryProductCount.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\model\Caisse.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\controller\VenteController.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\dto\ProductBatchDto.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\model\Client.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\repository\VenteRepository.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\service\PdfGenerationService.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\dto\ProduitVenteDto.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\service\StockService.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\dto\VenteRequestDto.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\config\SecurityConfig.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\controller\RapportController.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\dto\VenteCreditDto.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\repository\MouvementStockRepository.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\controller\AuthController.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\dto\CategorySales.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\controller\ProduitController.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\controller\ClientController.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\enums\VenteStatus.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\enums\TypeMouvement.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\dto\MouvementStatDto.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\service\CaisseService.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\repository\ProduitRepository.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\repository\UtilisateurRepository.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\repository\ClientRepository.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\repository\LigneVenteRepository.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\model\Utilisateur.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\controller\CaisseController.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\controller\ClientViewController.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\model\Vente.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\dto\CartItemDto.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\model\SessionCaisse.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\repository\PersonnelRepository.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\controller\CaisseManagementController.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\utils\UserUtils.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\controller\UtilisateurController.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\controller\PersonnelController.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\model\Personnel.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\utils\ProductUtils.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\BoutiqueApplication.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\controller\GlobalControllerAdvice.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\dto\ProduitDto.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\model\LigneVente.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\model\MouvementStock.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\dto\FactureInfoDTO.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\service\ProduitService.java
+D:\back-end noovey\boutique\src\main\java\com\example\boutique\utils\OkHttpStreamFactory.java

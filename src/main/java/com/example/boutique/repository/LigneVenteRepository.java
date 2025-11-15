@@ -1,7 +1,6 @@
 package com.example.boutique.repository;
 
 import com.example.boutique.dto.CategorySales;
-import com.example.boutique.dto.ProduitVenteDto;
 import com.example.boutique.model.LigneVente;
 import com.example.boutique.model.Vente;
 import org.springframework.data.domain.Page;

@@ -21,16 +21,19 @@
                 <nav class="flex items-center space-x-4">
                     <a th:href="@{/dashboard}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasRole('ADMIN')"><i class="fas fa-tachometer-alt mr-2"></i>Tableau de Bord</a>
                     <a th:href="@{/produits}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')"><i class="fas fa-boxes mr-2"></i>Produits</a>
-                    <a th:href="@{/clients}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasRole('GESTIONNAIRE')"><i class="fas fa-users mr-2"></i>Clients</a>
-                    <a th:href="@{/caissier}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasRole('GESTIONNAIRE')"><i class="fas fa-cash-register mr-2"></i>Caissier</a>
+                    <a th:href="@{/clients}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')"><i class="fas fa-users mr-2"></i>Clients</a>
+                    <a th:href="@{/caissier}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')"><i class="fas fa-cash-register mr-2"></i>Caissier</a>
                     <a th:href="@{/caissier}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasRole('CAISSIER')" th:if="${isSessionActive}"><i class="fas fa-cash-register mr-2"></i>Caissier</a>
                     <a th:href="@{/utilisateurs}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasRole('ADMIN')"><i class="fas fa-user-shield mr-2"></i>Utilisateurs</a>
                     <a th:href="@{/gestion-caisses}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')"><i class="fas fa-cash-register mr-2"></i>Gestion Caisses</a>
                     <a th:href="@{/rapports/stock-bas}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')"><i class="fas fa-chart-bar mr-2"></i>Rapports</a>
                     <a th:href="@{/rapports/ventes-historique}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')"><i class="fas fa-history mr-2"></i>Historique</a>
                     
-                    <a th:href="@{/caisse/historique}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasRole('CAISSIER')" th:if="${isSessionActive}"><i class="fas fa-clipboard-list mr-2"></i>Session</a>
+                    <a th:href="@{/caisse/historique}" class="text-sm font-medium text-gray-300 hover:text-white transition duration-200 flex items-center" sec:authorize="hasRole('CAISSIER')" th:if="${isSessionActive}"><i class="fas fa-clipboard-list mr-2"></i>Historique</a>
                 </nav>
+
+                <!-- Date and Time Display -->
+                <div id="current-datetime" class="text-sm font-medium text-gray-300 mr-4"></div>
 
                 <!-- User Info and Logout -->
                 <div class="flex items-center space-x-3 ml-4">
@@ -46,12 +49,10 @@
                         <a th:href="@{/caisse/fermer}" sec:authorize="hasRole('CAISSIER')" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-lg text-sm font-semibold transition duration-200 flex items-center">
                             <i class="fas fa-door-closed mr-1"></i>Fermer Caisse
                         </a>
-                        <form id="logout-form-header" th:action="@{/logout}" method="post" class="inline-flex">
-                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-semibold transition duration-200 flex items-center">
-                                <i class="fas fa-sign-out-alt mr-1"></i>
-                                <span class="hidden lg:inline">Déconnexion</span>
-                            </button>
-                        </form>
+                        <a th:href="@{/logout}" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-semibold transition duration-200 flex items-center">
+                            <i class="fas fa-sign-out-alt mr-1"></i>
+                            <span class="hidden lg:inline">Déconnexion</span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -71,8 +72,8 @@
         <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <a th:href="@{/dashboard}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium" sec:authorize="hasRole('ADMIN')">Tableau de Bord</a>
             <a th:href="@{/produits}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')">Produits</a>
-            <a th:href="@{/clients}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium" sec:authorize="hasRole('GESTIONNAIRE')">Clients</a>
-            <a th:href="@{/caissier}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium" sec:authorize="hasRole('GESTIONNAIRE')">Caissier</a>
+            <a th:href="@{/clients}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')">Clients</a>
+            <a th:href="@{/caissier}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')">Caissier</a>
             <a th:href="@{/caissier}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium" sec:authorize="hasRole('CAISSIER')" th:if="${isSessionActive}">Caissier</a>
             <a th:href="@{/utilisateurs}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium" sec:authorize="hasRole('ADMIN')">Utilisateurs</a>
             <a th:href="@{/gestion-caisses}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')">Gestion Caisses</a>
@@ -98,11 +99,9 @@
                 <a th:href="@{/caisse/fermer}" sec:authorize="hasRole('CAISSIER')" class="text-yellow-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-base font-medium flex items-center">
                     <i class="fas fa-door-closed mr-2"></i>Fermer Caisse
                 </a>
-                <form id="logout-form-mobile" th:action="@{/logout}" method="post" class="flex-grow">
-                    <button type="submit" class="w-full text-left text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-base font-medium flex items-center">
-                        <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
-                    </button>
-                </form>
+                <a th:href="@{/logout}" class="w-full text-left text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-base font-medium flex items-center">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
+                </a>
             </div>
         </div>
     </div>
@@ -127,30 +126,7 @@
             });
         }
 
-        // Logout confirmation
-        function setupLogoutConfirmation(formId) {
-            const logoutForm = document.getElementById(formId);
-            if (logoutForm) {
-                logoutForm.addEventListener('submit', function(event) {
-                    event.preventDefault();
-                    Swal.fire({
-                        title: 'Déconnexion',
-                        text: 'Êtes-vous sûr de vouloir vous déconnecter ?',
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonText: 'Oui, déconnecter',
-                        cancelButtonText: 'Non, rester',
-                        reverseButtons: true
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            logoutForm.submit();
-                        }
-                    });
-                });
-            }
-        }
-        setupLogoutConfirmation('logout-form-header');
-        setupLogoutConfirmation('logout-form-mobile');
+
 
         // Connection Status
         function checkConnectionStatus() {
@@ -186,5 +162,22 @@
         }
         setInterval(checkConnectionStatus, 15000); // Check every 15 seconds
         checkConnectionStatus();
+
+        // Date and Time Display
+        function updateDateTime() {
+            const now = new Date();
+            const optionsDate = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const optionsTime = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            const formattedDate = now.toLocaleDateString('fr-FR', optionsDate);
+            const formattedTime = now.toLocaleTimeString('fr-FR', optionsTime);
+            const dateTimeElement = document.getElementById('current-datetime');
+            if (dateTimeElement) {
+                dateTimeElement.textContent = `${formattedDate} ${formattedTime}`;
+            }
+        }
+
+        // Initial call and then update every second
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
     });
 </script>

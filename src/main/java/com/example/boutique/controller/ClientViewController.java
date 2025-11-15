@@ -18,7 +18,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/clients")
@@ -72,7 +71,6 @@ public class ClientViewController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> saveClient(@ModelAttribute Client client) {
         try {
-            Client savedClient = clientRepository.save(client);
             String message = (client.getId() == null) ? "Client ajouté avec succès." : "Client modifié avec succès.";
             return ResponseEntity.ok(Map.of("success", true, "message", message));
         } catch (DataIntegrityViolationException e) {

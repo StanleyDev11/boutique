@@ -48,7 +48,6 @@ public class RapportController {
     private final VenteRepository venteRepository;
     private final LigneVenteRepository ligneVenteRepository;
     private final PdfGenerationService pdfGenerationService;
-    private final TemplateEngine templateEngine;
     private static final int SEUIL_STOCK_BAS = 10;
     private static final int JOURS_AVANT_PEREMPTION = 30;
 
@@ -57,7 +56,6 @@ public class RapportController {
         this.venteRepository = venteRepository;
         this.ligneVenteRepository = ligneVenteRepository;
         this.pdfGenerationService = pdfGenerationService;
-        this.templateEngine = templateEngine;
     }
 
     @GetMapping("/stock-bas")

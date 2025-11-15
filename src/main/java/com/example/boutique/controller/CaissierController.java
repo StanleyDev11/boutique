@@ -11,7 +11,6 @@ import com.example.boutique.repository.ProduitRepository;
 import com.example.boutique.repository.SessionCaisseRepository;
 import com.example.boutique.repository.UtilisateurRepository;
 import com.example.boutique.service.StockService;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

@@ -1,9 +1,7 @@
 package com.example.boutique.config;
 
 import com.example.boutique.model.SessionCaisse;
-import com.example.boutique.model.Utilisateur;
 import com.example.boutique.repository.SessionCaisseRepository;
-import com.example.boutique.repository.UtilisateurRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,9 +17,6 @@ import java.util.Set;
 
 @Component
 public class CustomAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
-
-    @Autowired
-    private UtilisateurRepository utilisateurRepository;
 
     @Autowired
     private SessionCaisseRepository sessionCaisseRepository;
