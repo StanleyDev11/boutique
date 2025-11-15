@@ -5,6 +5,7 @@ import com.example.boutique.model.Produit;
 import com.example.boutique.repository.LigneVenteRepository;
 import com.example.boutique.repository.ProduitRepository;
 import com.example.boutique.repository.VenteRepository;
+import com.example.boutique.service.ParametreService; // <-- Déplacé ici
 import com.example.boutique.service.PdfGenerationService;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
@@ -49,15 +50,15 @@ public class RapportController {
     private final LigneVenteRepository ligneVenteRepository;
     private final PdfGenerationService pdfGenerationService;
     private final TemplateEngine templateEngine;
-    private static final int SEUIL_STOCK_BAS = 10;
-    private static final int JOURS_AVANT_PEREMPTION = 30;
+    private final ParametreService parametreService; // <-- Ajouté ici
 
-    public RapportController(ProduitRepository produitRepository, VenteRepository venteRepository, LigneVenteRepository ligneVenteRepository, PdfGenerationService pdfGenerationService, TemplateEngine templateEngine) {
+    public RapportController(ProduitRepository produitRepository, VenteRepository venteRepository, LigneVenteRepository ligneVenteRepository, PdfGenerationService pdfGenerationService, TemplateEngine templateEngine, ParametreService parametreService) {
         this.produitRepository = produitRepository;
         this.venteRepository = venteRepository;
         this.ligneVenteRepository = ligneVenteRepository;
         this.pdfGenerationService = pdfGenerationService;
         this.templateEngine = templateEngine;
+        this.parametreService = parametreService;
     }
 
     @GetMapping("/stock-bas")
@@ -65,7 +66,11 @@ public class RapportController {
                                   @RequestParam(required = false) String filter,
                                   @RequestParam(defaultValue = "asc") String sort,
                                   @RequestParam(defaultValue = "0") int page,
-                                  @RequestParam(defaultValue = "8") int size) {
+                                  @RequestParam(defaultValue = "8") int size,
+                                  @RequestParam(required = false) String searchTerm) {
+
+        int seuilStockBas = parametreService.getSeuilStockBas();
+        int joursAvantPeremption = parametreService.getJoursAvantPeremption();
 
         // --- Préparation de la Pagination et du Tri ---
         Sort.Direction direction = "desc".equalsIgnoreCase(sort) ? Sort.Direction.DESC : Sort.Direction.ASC;
@@ -73,14 +78,26 @@ public class RapportController {
 
         // --- Récupération des Données Paginées pour l'affichage ---
         Page<Produit> produitsPage;
-        if ("rupture".equals(filter)) {
-            produitsPage = produitRepository.findAllByQuantiteEnStock(0, pageable);
+        if (searchTerm != null && !searchTerm.isEmpty()) {
+            if ("rupture".equals(filter)) {
+                produitsPage = produitRepository.findByNomContainingIgnoreCaseAndQuantiteEnStock(searchTerm, 0, pageable);
+            } else {
+                produitsPage = produitRepository.findByNomContainingIgnoreCaseAndQuantiteEnStockLessThanEqual(searchTerm, seuilStockBas, pageable);
+            }
         } else {
-            produitsPage = produitRepository.findAllByQuantiteEnStockLessThanEqual(SEUIL_STOCK_BAS, pageable);
+            if ("rupture".equals(filter)) {
+                produitsPage = produitRepository.findAllByQuantiteEnStock(0, pageable);
+            } else {
+                produitsPage = produitRepository.findAllByQuantiteEnStockLessThanEqual(seuilStockBas, pageable);
+            }
         }
 
+        // --- Données pour le graphique de stock bas (Top 10) ---
+        Pageable top10 = PageRequest.of(0, 10); // Récupérer les 10 premiers
+        List<Produit> produitsPourStockChart = produitRepository.findTopNByQuantiteEnStockLessThanEqualOrderByQuantiteEnStockAsc(seuilStockBas, top10);
+
         // --- Calcul des Statistiques Globales (non paginées) ---
-        List<Produit> tousLesProduitsEnStockBas = produitRepository.findAllByQuantiteEnStockLessThanEqual(SEUIL_STOCK_BAS, PageRequest.of(0, Integer.MAX_VALUE)).getContent();
+        List<Produit> tousLesProduitsEnStockBas = produitRepository.findAllByQuantiteEnStockLessThanEqual(seuilStockBas, PageRequest.of(0, Integer.MAX_VALUE)).getContent();
 
         long nombreEnRupture = tousLesProduitsEnStockBas.stream()
                 .filter(p -> p.getQuantiteEnStock() == 0)
@@ -94,12 +111,12 @@ public class RapportController {
 
         // --- Données de Péremption ---
         LocalDate aujourdhui = LocalDate.now();
-        LocalDate dateLimite = aujourdhui.plusDays(JOURS_AVANT_PEREMPTION);
+        LocalDate dateLimite = aujourdhui.plusDays(joursAvantPeremption);
         List<Produit> produitsPeremptionProche = produitRepository.findAllByDatePeremptionBetween(aujourdhui, dateLimite);
 
         // --- Ajout des données au modèle ---
         model.addAttribute("produitsPage", produitsPage);
-        model.addAttribute("seuil", SEUIL_STOCK_BAS);
+        model.addAttribute("seuil", seuilStockBas);
         model.addAttribute("sort", sort);
         model.addAttribute("activeFilter", filter);
 
@@ -108,8 +125,10 @@ public class RapportController {
         model.addAttribute("nombreEnRupture", nombreEnRupture);
         model.addAttribute("valeurStockBas", valeurStockBas);
         model.addAttribute("produitsPeremptionProche", produitsPeremptionProche);
-        model.addAttribute("joursAvantPeremption", JOURS_AVANT_PEREMPTION);
+        model.addAttribute("joursAvantPeremption", joursAvantPeremption);
         model.addAttribute("totalProduits", produitRepository.count());
+        model.addAttribute("produitsPourStockChart", produitsPourStockChart);
+        model.addAttribute("searchTerm", searchTerm);
 
         return "rapport-stock-bas";
     }

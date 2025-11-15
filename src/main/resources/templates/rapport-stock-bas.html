@@ -65,12 +65,22 @@
     <!-- Graphiques -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8 mb-8">
         <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Quantités en Stock Bas (Page actuelle)</h3>
-            <div><canvas id="stockChart"></canvas></div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Top 10 Produits en Stock Bas</h3>
+            <div class="relative">
+                <canvas id="stockChart"></canvas>
+                <div id="noStockDataMessage" class="absolute inset-0 flex items-center justify-center bg-white text-gray-500 hidden">
+                    Aucune donnée disponible pour le graphique de stock.
+                </div>
+            </div>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Statut de Péremption (Total)</h3>
-            <div><canvas id="peremptionChart"></canvas></div>
+            <div class="relative">
+                <canvas id="peremptionChart"></canvas>
+                <div id="noPeremptionDataMessage" class="absolute inset-0 flex items-center justify-center bg-white text-gray-500 hidden">
+                    Aucune donnée disponible pour le graphique de péremption.
+                </div>
+            </div>
         </div>
     </div>
 
@@ -109,13 +119,28 @@
     <!-- Filtres et Liste Stock Bas -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
         <div class="p-4 border-b">
-            <div class="flex flex-wrap gap-3 items-center">
-                <span class="font-semibold text-gray-800">Produits en Stock Bas :</span>
-                <a th:href="@{/rapports/stock-bas}" class="px-3 py-1 text-sm rounded-md" th:classappend="${activeFilter == null} ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'">Tout</a>
-                <a th:href="@{/rapports/stock-bas(filter='rupture')}" class="px-3 py-1 text-sm rounded-md" th:classappend="${activeFilter == 'rupture'} ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'">En rupture</a>
-                <div class="w-px h-6 bg-gray-300 mx-2"></div>
-                <a th:href="@{/rapports/stock-bas(sort='asc', filter=${activeFilter})}" class="px-3 py-1 text-sm rounded-md" th:classappend="${sort == 'asc'} ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'">Stock Asc.</a>
-                <a th:href="@{/rapports/stock-bas(sort='desc', filter=${activeFilter})}" class="px-3 py-1 text-sm rounded-md" th:classappend="${sort == 'desc'} ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'">Stock Desc.</a>
+            <div class="flex flex-wrap gap-3 items-center justify-between">
+                <div class="flex flex-wrap gap-3 items-center">
+                    <span class="font-semibold text-gray-800">Produits en Stock Bas :</span>
+                    <a th:href="@{/rapports/stock-bas(filter=${activeFilter}, sort=${sort})}" class="px-3 py-1 text-sm rounded-md" th:classappend="${activeFilter == null && searchTerm == null} ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'">Tout</a>
+                    <a th:href="@{/rapports/stock-bas(filter='rupture', sort=${sort})}" class="px-3 py-1 text-sm rounded-md" th:classappend="${activeFilter == 'rupture'} ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'">En rupture</a>
+                    <div class="w-px h-6 bg-gray-300 mx-2"></div>
+                    <a th:href="@{/rapports/stock-bas(sort='asc', filter=${activeFilter}, searchTerm=${searchTerm})}" class="px-3 py-1 text-sm rounded-md" th:classappend="${sort == 'asc'} ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'">Stock Asc.</a>
+                    <a th:href="@{/rapports/stock-bas(sort='desc', filter=${activeFilter}, searchTerm=${searchTerm})}" class="px-3 py-1 text-sm rounded-md" th:classappend="${sort == 'desc'} ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'">Stock Desc.</a>
+                </div>
+                <form th:action="@{/rapports/stock-bas}" method="get" class="relative">
+                    <input type="hidden" name="filter" th:value="${activeFilter}" />
+                    <input type="hidden" name="sort" th:value="${sort}" />
+                    <input type="text" name="searchTerm" placeholder="Rechercher..."
+                           class="pl-10 pr-4 py-2 w-64 border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 sm:text-sm"
+                           th:value="${searchTerm}" />
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                    <button type="submit" class="absolute inset-y-0 right-0 px-3 flex items-center bg-transparent text-gray-600 hover:text-indigo-600">
+                        <!-- Le bouton est maintenant invisible mais fonctionnel, la recherche se fait en appuyant sur Entrée -->
+                    </button>
+                </form>
             </div>
         </div>
         <div class="p-4">
@@ -134,7 +159,7 @@
         </div>
         <div class="p-4 border-t" th:if="${produitsPage.totalPages > 1}">
             <nav class="flex items-center justify-between">
-                <a th:href="@{/rapports/stock-bas(page=${produitsPage.number - 1}, sort=${sort}, filter=${activeFilter})}"
+                <a th:href="@{/rapports/stock-bas(page=${produitsPage.number - 1}, sort=${sort}, filter=${activeFilter}, searchTerm=${searchTerm})}"
                    th:classappend="${produitsPage.first} ? 'invisible' : ''"
                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
                     Précédent
@@ -142,7 +167,7 @@
                 <div class="text-sm text-gray-700">
                     Page <span th:text="${produitsPage.number + 1}"></span> sur <span th:text="${produitsPage.totalPages}"></span>
                 </div>
-                <a th:href="@{/rapports/stock-bas(page=${produitsPage.number + 1}, sort=${sort}, filter=${activeFilter})}"
+                <a th:href="@{/rapports/stock-bas(page=${produitsPage.number + 1}, sort=${sort}, filter=${activeFilter}, searchTerm=${searchTerm})}"
                    th:classappend="${produitsPage.last} ? 'invisible' : ''"
                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
                     Suivant
@@ -156,12 +181,17 @@
     /*<![CDATA[*/
     document.addEventListener('DOMContentLoaded', function() {
         const produitsPage = /*[[${produitsPage}]]*/ { content: [] };
-        const produitsPourGraphique = produitsPage.content;
+        const produitsPourGraphique = /*[[${produitsPourStockChart}]]*/ [];
         const produitsPeremptionProche = /*[[${produitsPeremptionProche}]]*/ [];
         const totalProduits = /*[[${totalProduits}]]*/ 0;
 
+        const stockChartCanvas = document.getElementById('stockChart');
+        const noStockDataMessage = document.getElementById('noStockDataMessage');
+
         if (produitsPourGraphique && produitsPourGraphique.length > 0) {
-            const stockCtx = document.getElementById('stockChart').getContext('2d');
+            stockChartCanvas.classList.remove('hidden');
+            noStockDataMessage.classList.add('hidden');
+            const stockCtx = stockChartCanvas.getContext('2d');
             new Chart(stockCtx, {
                 type: 'bar',
                 data: {
@@ -176,24 +206,37 @@
                 },
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
             });
+        } else {
+            stockChartCanvas.classList.add('hidden');
+            noStockDataMessage.classList.remove('hidden');
         }
 
-        const peremptionCtx = document.getElementById('peremptionChart').getContext('2d');
+        const peremptionChartCanvas = document.getElementById('peremptionChart');
+        const noPeremptionDataMessage = document.getElementById('noPeremptionDataMessage');
         const nbPeremptionProche = produitsPeremptionProche.length;
         const nbAutresProduits = totalProduits - nbPeremptionProche;
-        new Chart(peremptionCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Périme bientôt', 'Autres produits'],
-                datasets: [{
-                    data: [nbPeremptionProche, nbAutresProduits],
-                    backgroundColor: ['rgba(59, 130, 246, 0.5)', 'rgba(209, 213, 219, 0.5)'],
-                    borderColor: ['rgba(59, 130, 246, 1)','rgba(209, 213, 219, 1)'],
-                    borderWidth: 1
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
-        });
+
+        if (totalProduits > 0) { // Si il y a des produits au total, on peut afficher le graphique de péremption
+            peremptionChartCanvas.classList.remove('hidden');
+            noPeremptionDataMessage.classList.add('hidden');
+            const peremptionCtx = peremptionChartCanvas.getContext('2d');
+            new Chart(peremptionCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Périme bientôt', 'Autres produits'],
+                    datasets: [{
+                        data: [nbPeremptionProche, nbAutresProduits],
+                        backgroundColor: ['rgba(59, 130, 246, 0.5)', 'rgba(209, 213, 219, 0.5)'],
+                        borderColor: ['rgba(59, 130, 246, 1)','rgba(209, 213, 219, 1)'],
+                        borderWidth: 1
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
+            });
+        } else {
+            peremptionChartCanvas.classList.add('hidden');
+            noPeremptionDataMessage.classList.remove('hidden');
+        }
     });
     /*]]>*/
 </script>

@@ -30,6 +30,10 @@ public interface ProduitRepository extends JpaRepository<Produit, Long> {
     // Méthode paginée pour trouver les produits avec un stock exact (pour le filtre "en rupture")
     Page<Produit> findAllByQuantiteEnStock(int stock, Pageable pageable);
 
+    // Méthodes pour la recherche par nom et quantité en stock
+    Page<Produit> findByNomContainingIgnoreCaseAndQuantiteEnStock(String nom, int stock, Pageable pageable);
+    Page<Produit> findByNomContainingIgnoreCaseAndQuantiteEnStockLessThanEqual(String nom, int seuil, Pageable pageable);
+
     // Méthode pour trouver les produits dont la date de péremption est dans un intervalle donné
     List<Produit> findAllByDatePeremptionBetween(LocalDate startDate, LocalDate endDate);
 
@@ -77,4 +81,7 @@ public interface ProduitRepository extends JpaRepository<Produit, Long> {
     Optional<FactureInfoDTO> findFactureInfoByNumeroFacture(@Param("numeroFacture") String numeroFacture);
 
     List<Produit> findByNumeroFacture(String numeroFacture);
+
+    @Query("SELECT p FROM Produit p WHERE p.quantiteEnStock <= :seuil ORDER BY p.quantiteEnStock ASC")
+    List<Produit> findTopNByQuantiteEnStockLessThanEqualOrderByQuantiteEnStockAsc(@Param("seuil") int seuil, Pageable pageable);
 }

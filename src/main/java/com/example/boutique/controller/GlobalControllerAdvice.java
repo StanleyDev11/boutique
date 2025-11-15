@@ -4,6 +4,7 @@ import com.example.boutique.model.SessionCaisse;
 import com.example.boutique.model.Utilisateur;
 import com.example.boutique.repository.SessionCaisseRepository;
 import com.example.boutique.repository.UtilisateurRepository;
+import com.example.boutique.service.ParametreService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,9 @@ public class GlobalControllerAdvice {
     @Autowired
     private UtilisateurRepository utilisateurRepository;
 
+    @Autowired
+    private ParametreService parametreService;
+
     @ModelAttribute("isSessionActive")
     public boolean isSessionActive() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -44,6 +48,11 @@ public class GlobalControllerAdvice {
             }
         }
         return false;
+    }
+
+    @ModelAttribute("delaiInactivite")
+    public int delaiInactivite() {
+        return parametreService.getDelaiInactivite();
     }
 
     @ExceptionHandler(Exception.class)
