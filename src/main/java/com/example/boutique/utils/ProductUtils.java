@@ -15,12 +15,12 @@ public class ProductUtils {
                 .count();
     }
 
-    public static long countLowStock(List<Produit> produits) {
+    public static long countLowStock(List<Produit> produits, int seuil) {
         if (produits == null) {
             return 0;
         }
         return produits.stream()
-                .filter(produit -> produit.getQuantiteEnStock() > 0 && produit.getQuantiteEnStock() <= 10)
+                .filter(produit -> produit.getQuantiteEnStock() > 0 && produit.getQuantiteEnStock() <= seuil)
                 .count();
     }
 }

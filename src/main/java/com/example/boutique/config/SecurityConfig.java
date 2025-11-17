@@ -23,7 +23,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/css/**", "/js/**", "/loo.jpg").permitAll() // Pages et ressources publiques
+                .requestMatchers("/login", "/css/**", "/js/**", "/loo.jpg", "/favicon.ico").permitAll() // Pages et ressources publiques
                 .requestMatchers("/api/**").authenticated() // Autoriser l'accès à l'API pour les utilisateurs connectés
                 .requestMatchers("/produits/delete/**").hasRole("ADMIN") // Seul l'admin peut supprimer
                 .requestMatchers("/produits/new", "/produits/edit/**", "/produits/save").hasAnyRole("ADMIN", "GESTIONNAIRE") // Qui peut modifier/créer

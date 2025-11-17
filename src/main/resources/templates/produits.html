@@ -182,7 +182,7 @@
                 <div class="flex justify-between items-center">
                     <div>
                         <p class="text-sm text-gray-600">Stock Bas</p>
-                        <p class="text-2xl font-bold text-gray-900" th:text="${T(com.example.boutique.utils.ProductUtils).countLowStock(produitsPage.content)}">0</p>
+                        <p class="text-2xl font-bold text-gray-900" th:text="${T(com.example.boutique.utils.ProductUtils).countLowStock(produitsPage.content, seuilStockBas)}">0</p>
                     </div>
                     <div class="bg-orange-100 p-3 rounded-full">
                         <i class="fas fa-exclamation-triangle text-orange-600 text-xl"></i>
@@ -300,7 +300,8 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                     <tr th:each="produit : ${produitsPage.content}"
-                        th:class="'product-row ' + (${produit.quantiteEnStock} == 0 ? 'bg-red-50' : (${produit.quantiteEnStock} <= 10 ? 'bg-orange-50' : ''))">
+                        class="product-row"
+                        th:classappend="${produit.quantiteEnStock == 0 ? 'bg-red-50' : (produit.quantiteEnStock <= seuilStockBas ? 'bg-orange-50' : '')}">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -329,10 +330,9 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                        <span th:class="${produit.quantiteEnStock} == 0 ? 'stock-out' : (${produit.quantiteEnStock} <= 10 ? 'stock-low' : 'stock-normal')"
-                              class="stock-badge">
-                            <span th:text="${produit.quantiteEnStock}"></span>
-                        </span>
+                            <span th:if="${produit.quantiteEnStock == 0}" class="stock-badge stock-out" th:text="${produit.quantiteEnStock}"></span>
+                            <span th:if="${produit.quantiteEnStock > 0 and produit.quantiteEnStock <= seuilStockBas}" class="stock-badge stock-low" th:text="${produit.quantiteEnStock}"></span>
+                            <span th:if="${produit.quantiteEnStock > seuilStockBas}" class="stock-badge stock-normal" th:text="${produit.quantiteEnStock}"></span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                         <span th:class="${produit.marge} < 0 ? 'marge-negative' : 'marge-positive'"

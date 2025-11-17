@@ -6,6 +6,7 @@ import com.example.boutique.dto.ProduitDto;
 import com.example.boutique.model.MouvementStock;
 import com.example.boutique.model.Produit;
 import com.example.boutique.repository.ProduitRepository;
+import com.example.boutique.service.ParametreService;
 import com.example.boutique.service.ProduitService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -35,12 +36,14 @@ public class ProduitController {
     private final ProduitRepository produitRepository;
     private final ProduitService produitService;
     private final com.example.boutique.repository.MouvementStockRepository mouvementStockRepository;
+    private final ParametreService parametreService;
 
 
-    public ProduitController(ProduitRepository produitRepository, ProduitService produitService, com.example.boutique.repository.MouvementStockRepository mouvementStockRepository) {
+    public ProduitController(ProduitRepository produitRepository, ProduitService produitService, com.example.boutique.repository.MouvementStockRepository mouvementStockRepository, ParametreService parametreService) {
         this.produitRepository = produitRepository;
         this.produitService = produitService;
         this.mouvementStockRepository = mouvementStockRepository;
+        this.parametreService = parametreService;
     }
 
     @GetMapping
@@ -54,6 +57,8 @@ public class ProduitController {
                                @RequestHeader(value = "X-Requested-With", required = false) String requestedWith) {
 
         model.addAttribute("activeTab", tab);
+        int seuilStockBas = parametreService.getSeuilStockBas();
+        model.addAttribute("seuilStockBas", seuilStockBas);
 
         if ("factures".equals(tab)) {
             List<FactureInfoDTO> factures = produitRepository.findFactureInfos();

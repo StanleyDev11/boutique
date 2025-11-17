@@ -2,6 +2,8 @@ package com.example.boutique.service;
 
 import com.example.boutique.model.Parametre;
 import com.example.boutique.repository.ParametreRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
@@ -60,10 +62,17 @@ public class ParametreService {
     }
 
     public void updateParametres(Map<String, String> parametres) {
-        List<Parametre> parametreList = parametres.entrySet().stream()
-                .map(entry -> new Parametre(entry.getKey(), entry.getValue()))
-                .collect(Collectors.toList());
-        parametreRepository.saveAll(parametreList);
+        List<String> validKeys = List.of(SEUIL_STOCK_BAS_KEY, JOURS_AVANT_PEREMPTION_KEY, DELAI_INACTIVITE_KEY);
+
+        for (String key : validKeys) {
+            if (parametres.containsKey(key)) {
+                String value = parametres.get(key);
+                Parametre parametre = parametreRepository.findByCle(key)
+                        .orElse(new Parametre(key, value));
+                parametre.setValeur(value);
+                parametreRepository.save(parametre);
+            }
+        }
     }
 
     public Map<String, String> getAllParametres() {

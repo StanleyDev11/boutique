@@ -7,6 +7,7 @@ import com.example.boutique.dto.ProduitVenteDto;
 import com.example.boutique.enums.TypeMouvement;
 import com.example.boutique.model.MouvementStock;
 import com.example.boutique.repository.*;
+import com.example.boutique.service.ParametreService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -39,16 +40,17 @@ public class DashboardController {
     private final MouvementStockRepository mouvementStockRepository;
     private final LigneVenteRepository ligneVenteRepository;
     private final VenteRepository venteRepository;
+    private final ParametreService parametreService;
 
-    private static final int SEUIL_STOCK_BAS = 10;
 
-    public DashboardController(ProduitRepository produitRepository, PersonnelRepository personnelRepository, UtilisateurRepository utilisateurRepository, MouvementStockRepository mouvementStockRepository, LigneVenteRepository ligneVenteRepository, VenteRepository venteRepository) {
+    public DashboardController(ProduitRepository produitRepository, PersonnelRepository personnelRepository, UtilisateurRepository utilisateurRepository, MouvementStockRepository mouvementStockRepository, LigneVenteRepository ligneVenteRepository, VenteRepository venteRepository, ParametreService parametreService) {
         this.produitRepository = produitRepository;
         this.personnelRepository = personnelRepository;
         this.utilisateurRepository = utilisateurRepository;
         this.mouvementStockRepository = mouvementStockRepository;
         this.ligneVenteRepository = ligneVenteRepository;
         this.venteRepository = venteRepository;
+        this.parametreService = parametreService;
     }
 
     @GetMapping
@@ -112,8 +114,9 @@ public class DashboardController {
 
     private void addKpiData(Model model) {
         // KPIs existants
+        int seuilStockBas = parametreService.getSeuilStockBas();
         model.addAttribute("totalProduits", produitRepository.count());
-        model.addAttribute("produitsStockBas", produitRepository.countByQuantiteEnStockLessThanEqual(SEUIL_STOCK_BAS));
+        model.addAttribute("produitsStockBas", produitRepository.countByQuantiteEnStockLessThanEqual(seuilStockBas));
         model.addAttribute("totalPersonnel", personnelRepository.count());
         model.addAttribute("totalUtilisateurs", utilisateurRepository.count());
 

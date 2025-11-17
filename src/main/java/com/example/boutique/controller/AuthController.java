@@ -1,11 +1,13 @@
 package com.example.boutique.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public class AuthController {
@@ -26,5 +28,11 @@ public class AuthController {
             }
         }
         return "redirect:/login";
+    }
+
+    @GetMapping("/api/keep-alive")
+    @ResponseBody
+    public ResponseEntity<Void> keepAlive() {
+        return ResponseEntity.ok().build();
     }
 }

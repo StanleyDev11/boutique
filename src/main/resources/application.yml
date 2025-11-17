@@ -4,7 +4,7 @@ spring:
   
   # --- Configuration de la base de données (MySQL Active) ---
   datasource:
-    url: jdbc:mysql://localhost/:3306/rpx?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://localhost/:3306/mama?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
     username: root
     password: ''
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -15,7 +15,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     database-platform: org.hibernate.dialect.MySQLDialect
 
 # --- Configuration pour PostgreSQL (Inactive) ---
@@ -29,6 +29,5 @@ spring:
 
 server:
   port: 8085
-  servlet:
-    session:
-      timeout: 10m # Déconnexion automatique après 10 minutes d'inactivité
+
+#
