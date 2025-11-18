@@ -10,7 +10,6 @@ com\example\boutique\dto\MouvementStatDto.class
 com\example\boutique\dto\CategorySales.class
 com\example\boutique\controller\CaisseController.class
 com\example\boutique\model\LigneVente.class
-com\example\boutique\config\DynamicSessionTimeoutListener.class
 com\example\boutique\utils\OkHttpStreamFactory$1.class
 com\example\boutique\dto\VenteCreditDto.class
 com\example\boutique\utils\OkHttpStreamFactory.class

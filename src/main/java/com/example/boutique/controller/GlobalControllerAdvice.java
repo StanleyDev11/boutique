@@ -50,11 +50,6 @@ public class GlobalControllerAdvice {
         return false;
     }
 
-    @ModelAttribute("delaiInactivite")
-    public int delaiInactivite() {
-        return parametreService.getDelaiInactivite();
-    }
-
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ModelAndView handleAllExceptions(Exception ex) {

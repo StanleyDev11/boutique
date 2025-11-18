@@ -27,7 +27,6 @@ public class ParametreController {
         // Ensure default values are present if not in the database
         parametres.putIfAbsent("seuil_stock_bas", String.valueOf(parametreService.getSeuilStockBas()));
         parametres.putIfAbsent("jours_avant_peremption", String.valueOf(parametreService.getJoursAvantPeremption()));
-        parametres.putIfAbsent("delai_inactivite", String.valueOf(parametreService.getDelaiInactivite()));
         model.addAttribute("parametres", parametres);
         return "parametres";
     }
@@ -38,7 +37,6 @@ public class ParametreController {
             // Validate numeric fields
             Integer.parseInt(parametres.get("seuil_stock_bas"));
             Integer.parseInt(parametres.get("jours_avant_peremption"));
-            Integer.parseInt(parametres.get("delai_inactivite"));
 
             parametreService.updateParametres(parametres);
             redirectAttributes.addFlashAttribute("successMessage", "Paramètres sauvegardés avec succès !");

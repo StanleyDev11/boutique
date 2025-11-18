@@ -30,9 +30,4 @@ public class AuthController {
         return "redirect:/login";
     }
 
-    @GetMapping("/api/keep-alive")
-    @ResponseBody
-    public ResponseEntity<Void> keepAlive() {
-        return ResponseEntity.ok().build();
-    }
 }

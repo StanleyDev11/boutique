@@ -44,7 +44,6 @@ public class SecurityConfig {
                 .invalidSessionUrl("/login") // Redirect to plain login page on invalid session (e.g., after server restart)
                 .maximumSessions(1) // Allow only one session per user
                 .maxSessionsPreventsLogin(false) // If a new session is created, the old one is invalidated
-                .expiredUrl("/login?expired") // Redirect to login page with 'expired' param on expired session (due to inactivity)
             )
             .formLogin(form -> form
                 .loginPage("/login") // URL de notre page de connexion
