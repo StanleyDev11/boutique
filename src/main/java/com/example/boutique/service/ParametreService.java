@@ -16,10 +16,8 @@ public class ParametreService {
 
     private static final String SEUIL_STOCK_BAS_KEY = "seuil_stock_bas";
     private static final String JOURS_AVANT_PEREMPTION_KEY = "jours_avant_peremption";
-    private static final String DELAI_INACTIVITE_KEY = "delai_inactivite";
     private static final int SEUIL_STOCK_BAS_DEFAULT = 10;
     private static final int JOURS_AVANT_PEREMPTION_DEFAULT = 30;
-    private static final int DELAI_INACTIVITE_DEFAULT = 25;
 
     public ParametreService(ParametreRepository parametreRepository) {
         this.parametreRepository = parametreRepository;
@@ -49,20 +47,9 @@ public class ParametreService {
                 .orElse(JOURS_AVANT_PEREMPTION_DEFAULT);
     }
 
-    public int getDelaiInactivite() {
-        return parametreRepository.findByCle(DELAI_INACTIVITE_KEY)
-                .map(p -> {
-                    try {
-                        return Integer.parseInt(p.getValeur());
-                    } catch (NumberFormatException e) {
-                        return DELAI_INACTIVITE_DEFAULT; // Fallback to default
-                    }
-                })
-                .orElse(DELAI_INACTIVITE_DEFAULT);
-    }
 
     public void updateParametres(Map<String, String> parametres) {
-        List<String> validKeys = List.of(SEUIL_STOCK_BAS_KEY, JOURS_AVANT_PEREMPTION_KEY, DELAI_INACTIVITE_KEY);
+        List<String> validKeys = List.of(SEUIL_STOCK_BAS_KEY, JOURS_AVANT_PEREMPTION_KEY);
 
         for (String key : validKeys) {
             if (parametres.containsKey(key)) {
