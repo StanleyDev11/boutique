@@ -26,6 +26,11 @@ public class Produit {
     @Column(unique = true)
     private String codeBarres;
 
+    public void setCodeBarres(String codeBarres) {
+        this.codeBarres = (codeBarres == null || codeBarres.trim().isEmpty()) ? null : codeBarres;
+    }
+
+
     private BigDecimal prixAchat;
 
     @Column(nullable = false)
