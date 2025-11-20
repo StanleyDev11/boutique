@@ -20,7 +20,7 @@ public interface MouvementStockRepository extends JpaRepository<MouvementStock, 
 
     List<MouvementStock> findTop5ByOrderByDateMouvementDesc();
 
-    @Query("SELECT new com.example.boutique.dto.MouvementStatDto(CAST(m.dateMouvement AS date), COUNT(m)) " +
+    @Query("SELECT new com.example.boutique.dto.MouvementStatDto(date_trunc('day', m.dateMouvement), COUNT(m)) " +
            "FROM MouvementStock m WHERE m.dateMouvement >= :startDate GROUP BY FUNCTION('DATE', m.dateMouvement)")
     List<MouvementStatDto> countMouvementsByDay(@Param("startDate") LocalDateTime startDate);
 
@@ -34,7 +34,7 @@ public interface MouvementStockRepository extends JpaRepository<MouvementStock, 
     List<ProduitVenteDto> findTopSellingProducts(Pageable pageable);
 
     // Pour le graphique
-    @Query("SELECT new com.example.boutique.dto.MouvementStatDto(CAST(m.dateMouvement AS date), COUNT(m)) " +
+    @Query("SELECT new com.example.boutique.dto.MouvementStatDto(date_trunc('day', m.dateMouvement), COUNT(m)) " +
            "FROM MouvementStock m WHERE m.dateMouvement >= :startDate AND m.typeMouvement = :type " +
            "GROUP BY FUNCTION('DATE', m.dateMouvement)")
     List<MouvementStatDto> countMouvementsByDayAndType(@Param("startDate") LocalDateTime startDate, @Param("type") TypeMouvement type);
