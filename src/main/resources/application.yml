@@ -2,30 +2,31 @@ spring:
   application:
     name: boutique
   
-  # --- Configuration de la base de données (MySQL Active) ---
-  datasource:
-    url: jdbc:mysql://localhost/:3306/mama?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
-    username: root
-    password: ''
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    hikari:
-      maximum-pool-size: 20
+# --- Configuration de la base de données (MySQL Inactive) ---
+#  datasource:
+#    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:mama}?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+#    username: ${DB_USER:root}
+#    password: ${DB_PASSWORD:}
+#    driver-class-name: com.mysql.cj.jdbc.Driver
 
-  # --- Configuration JPA ---
+  # --- Configuration JPA pour MySQL (Inactive) ---
+#  jpa:
+#    hibernate:
+#      ddl-auto: update
+#    show-sql: false
+#    database-platform: org.hibernate.dialect.MySQLDialect
+
+# --- Configuration pour PostgreSQL (Active) ---
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: false
-    database-platform: org.hibernate.dialect.MySQLDialect
-
-# --- Configuration pour PostgreSQL (Inactive) ---
-#  datasource:
-#    url: jdbc:postgresql://localhost:5432/boutiquedb
-#    username: postgres
-#    password: ''
-#    driver-class-name: org.postgresql.Driver
-#  jpa:
-#    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
 server:
   port: 8085
