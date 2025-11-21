@@ -106,7 +106,7 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${produit.nom}"></td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700" th:text="${#temporals.format(produit.datePeremption, 'dd/MM/yyyy')}"></td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" th:with="joursRestants=${#temporals.day(produit.datePeremption) - #temporals.day(#temporals.createNow())}" th:text="${joursRestants <= 0 ? 'Périmé' : joursRestants + ' jours'}" th:classappend="${joursRestants <= 0} ? 'bg-red-100 text-red-800' : (${joursRestants < 7} ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800')"></span>
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" th:with="joursRestants=${T(java.time.temporal.ChronoUnit).DAYS.between(#temporals.createToday(), produit.datePeremption)}" th:text="${joursRestants <= 0 ? 'Périmé' : joursRestants + ' jours'}" th:classappend="${joursRestants <= 0} ? 'bg-red-100 text-red-800' : (${joursRestants < 7} ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800')"></span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${produit.quantiteEnStock}"></td>
                         </tr>

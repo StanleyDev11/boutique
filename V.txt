@@ -1,0 +1,4 @@
+2025-11-21T10:38:15.957Z  WARN 5896 --- [boutique] [nio-8085-exec-2] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Error: 1451, SQLState: 23000
+2025-11-21T10:38:15.957Z ERROR 5896 --- [boutique] [nio-8085-exec-2] o.h.engine.jdbc.spi.SqlExceptionHelper   : Cannot delete or update a parent row: a foreign key constraint fails (`:3306/mama`.`mouvements_stock`, CONSTRAINT `FK3fbx5f8mbhg0npji5dh5v0f4l` FOREIGN KEY (`produit_id`) REFERENCES `produits` (`id`))
+Erreur!
+Erreur lors de la suppression du produit.
