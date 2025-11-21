@@ -3,6 +3,7 @@ package com.example.boutique.controller;
 import com.example.boutique.dto.FactureInfoDTO;
 import com.example.boutique.dto.ProductBatchDto;
 import com.example.boutique.dto.ProduitDto;
+import org.springframework.dao.DataIntegrityViolationException;
 import com.example.boutique.model.MouvementStock;
 import com.example.boutique.model.Produit;
 import com.example.boutique.repository.ProduitRepository;
@@ -209,14 +210,22 @@ public class ProduitController {
         }
     }
 
+
+
+// ... other imports and class definition ...
+
     @PostMapping("/delete/{id}")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> deleteProduit(@PathVariable Long id) {
         try {
             produitRepository.deleteById(id);
             return ResponseEntity.ok(Map.of("success", true, "message", "Le produit a été supprimé avec succès !"));
+        } catch (DataIntegrityViolationException e) {
+            // This exception typically occurs due to foreign key constraints
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Impossible de supprimer ce produit car il est lié à d'autres enregistrements (ex: mouvements de stock, ventes). Veuillez supprimer les enregistrements associés d'abord."));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur lors de la suppression du produit."));
+            // Log the exception e
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Une erreur inattendue est survenue lors de la suppression du produit."));
         }
     }
 

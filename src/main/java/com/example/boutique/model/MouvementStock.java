@@ -37,6 +37,10 @@ public class MouvementStock {
 
     private String description;
 
+    private String numeroFacture;
+
+    private String nomFournisseur;
+
     @ManyToOne
     @JoinColumn(name = "utilisateur_id")
     private Utilisateur utilisateur;

@@ -45,6 +45,10 @@ public class ProduitService {
             produit.setCodeBarres(dto.getCodeBarres());
             produit.setPrixAchat(BigDecimal.valueOf(dto.getPrixAchat()));
             produit.setPrixVenteUnitaire(BigDecimal.valueOf(dto.getPrixVenteUnitaire()));
+            if (dto.getPrixPromotionnel() != null) {
+                produit.setPrixPromotionnel(BigDecimal.valueOf(dto.getPrixPromotionnel()));
+            }
+            produit.setPromotionActive(dto.isPromotionActive());
             produit.setCategorie(dto.getCategorie());
             produit.setQuantiteEnStock(0); // Initial stock is 0 before movement
             produit.setDatePeremption(dto.getDatePeremption());
