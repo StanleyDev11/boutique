@@ -22,6 +22,18 @@ public class MouvementStatDto {
         this.count = count;
     }
 
+    // Constructor to fix the Object mapping issue from the native query
+    public MouvementStatDto(Object dateObject, Long count) {
+        if (dateObject instanceof java.sql.Date) {
+            this.date = ((java.sql.Date) dateObject).toLocalDate();
+        } else if (dateObject instanceof java.sql.Timestamp) {
+            this.date = ((java.sql.Timestamp) dateObject).toLocalDateTime().toLocalDate();
+        } else if (dateObject instanceof LocalDate) {
+            this.date = (LocalDate) dateObject;
+        }
+        this.count = (count != null) ? count : 0L;
+    }
+
     // Getters and Setters
     public LocalDate getDate() {
         return date;
