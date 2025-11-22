@@ -40,8 +40,8 @@ public interface SessionCaisseRepository extends JpaRepository<SessionCaisse, Lo
 
     @Query("SELECT sc FROM SessionCaisse sc WHERE sc.dateFermeture IS NOT NULL " +
            "AND (:keyword IS NULL OR :keyword = '' OR LOWER(sc.utilisateur.username) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-           "AND (sc.dateFermeture >= :startDate OR :startDate IS NULL) " +
-           "AND (sc.dateFermeture <= :endDate OR :endDate IS NULL)")
+           "AND (CAST(:startDate AS timestamp) IS NULL OR sc.dateFermeture >= :startDate) " +
+           "AND (CAST(:endDate AS timestamp) IS NULL OR sc.dateFermeture <= :endDate)")
     Page<SessionCaisse> findClosedSessions(@Param("keyword") String keyword,
                                            @Param("startDate") LocalDateTime startDate,
                                            @Param("endDate") LocalDateTime endDate,
