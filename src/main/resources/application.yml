@@ -2,12 +2,11 @@ spring:
   application:
     name: boutique
   
-  # --- Configuration de la base de données (MySQL Active) ---
+  # --- Configuration de la base de données ---
+  # Les détails de connexion (url, username, password) sont fournis par les
+  # variables d'environnement sur Render (SPRING_DATASOURCE_URL, etc.).
+  # Spring Boot détectera automatiquement le driver et le dialecte (PostgreSQL).
   datasource:
-    url: jdbc:mysql://localhost/:3306/mama?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
-    username: root
-    password: ''
-    driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 20
 
@@ -16,7 +15,7 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
-    database-platform: org.hibernate.dialect.MySQLDialect
+    # La `database-platform` sera auto-détectée par Spring Boot
 
 # --- Configuration pour PostgreSQL (Inactive) ---
 #  datasource:
