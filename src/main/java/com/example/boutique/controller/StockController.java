@@ -73,7 +73,7 @@ public class StockController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Erreur : " + e.getMessage());
         }
-        return "redirect:/produits";
+        return "redirect:/stock/new";
     }
 
     @GetMapping("/history/{produitId}")

@@ -74,31 +74,41 @@
 
     <!-- Formulaire pour l'ajout par lot -->
     <div th:if="${productBatchDto != null}">
-        <h2 class="text-3xl font-bold text-gray-800 mb-8" th:text="${pageTitle}">Titre du Formulaire</h2>
+        <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
+            <h2 class="text-3xl font-bold text-gray-800 flex items-center">
+                <i class="fas fa-file-invoice-dollar text-blue-600 mr-4"></i>
+                <span th:text="${pageTitle}">Ajouter des produits par lot</span>
+            </h2>
+        </div>
+
         <form id="product-batch-form" th:action="@{/produits/save-batch}" th:object="${productBatchDto}" method="post">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
-            <div class="bg-gray-50 p-6 rounded-xl mb-8 border border-gray-200">
-                <h3 class="text-xl font-semibold text-gray-700 mb-4">Informations sur la Facture</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-blue-50/70 p-6 rounded-xl mb-8 border border-blue-200/80 shadow-sm">
+                <h3 class="text-xl font-semibold text-gray-800 mb-5 flex items-center">
+                    <i class="fas fa-file-alt text-gray-500 mr-3"></i>
+                    Informations sur la Facture
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                     <div>
-                        <label for="batchNumeroFacture" class="block text-sm font-medium text-gray-700 mb-1"><i class="fas fa-file-invoice mr-2"></i>Numéro de facture *</label>
-                        <input type="text" id="batchNumeroFacture" th:field="*{numeroFacture}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <label for="batchNumeroFacture" class="block text-sm font-medium text-gray-700 mb-1.5"><i class="fas fa-hashtag mr-2 text-gray-400"></i>Numéro de facture *</label>
+                        <input type="text" id="batchNumeroFacture" th:field="*{numeroFacture}" class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition" required>
                     </div>
                     <div>
-                        <label for="batchNomFournisseur" class="block text-sm font-medium text-gray-700 mb-1"><i class="fas fa-building mr-2"></i>Nom du fournisseur</label>
-                        <input type="text" id="batchNomFournisseur" th:field="*{nomFournisseur}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label for="batchNomFournisseur" class="block text-sm font-medium text-gray-700 mb-1.5"><i class="fas fa-truck-loading mr-2 text-gray-400"></i>Nom du fournisseur</label>
+                        <input type="text" id="batchNomFournisseur" th:field="*{nomFournisseur}" class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                     </div>
                 </div>
             </div>
 
-            <div id="product-lines-container">
+            <div id="product-lines-container" class="space-y-6">
                 <!-- JS will inject product lines here -->
             </div>
 
-            <div class="mt-6">
-                <button type="button" id="add-product-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out flex items-center">
-                    <i class="fas fa-plus-circle mr-2"></i>Ajouter un produit à la facture
+            <div class="mt-8 pt-6 border-t border-dashed">
+                <button type="button" id="add-product-btn" class="w-full bg-white border-2 border-dashed border-blue-400 hover:border-solid hover:bg-blue-50 text-blue-600 font-bold py-4 px-4 rounded-xl transition duration-300 ease-in-out flex items-center justify-center shadow-sm hover:shadow-md">
+                    <i class="fas fa-plus-circle mr-3 text-lg"></i>
+                    Ajouter une ligne de produit
                 </button>
             </div>
         </form>
