@@ -15,6 +15,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +30,8 @@ import java.util.Map;
 @Controller
 @RequestMapping("/gestion-caisses")
 public class CaisseManagementController {
+
+    private static final Logger logger = LoggerFactory.getLogger(CaisseManagementController.class);
 
     private final CaisseService caisseService;
     private final UtilisateurRepository utilisateurRepository;
@@ -99,11 +103,12 @@ public class CaisseManagementController {
             String successMessage = "La caisse '" + savedCaisse.getNom() + "' a été enregistrée avec succès.";
             return ResponseEntity.ok(Map.of("success", true, "message", successMessage));
         } catch (DataIntegrityViolationException e) {
+            logger.warn("Tentative de sauvegarde d'une caisse avec un nom existant: {}", caisse.getNom(), e);
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Une caisse avec ce nom existe déjà."));
         }
         catch (Exception e) {
-            String errorMessage = "Erreur lors de l'enregistrement de la caisse : " + e.getMessage();
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", errorMessage));
+            logger.error("Erreur inattendue lors de l'enregistrement de la caisse.", e);
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Une erreur technique est survenue lors de l'enregistrement."));
         }
     }
 
@@ -112,16 +117,25 @@ public class CaisseManagementController {
         try {
             caisseService.deleteCaisse(id);
             redirectAttributes.addFlashAttribute("successMessage", "Caisse supprimée avec succès !");
+        } catch (DataIntegrityViolationException e) {
+            logger.warn("Tentative de suppression d'une caisse liée à d'autres enregistrements. ID: {}", id, e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Impossible de supprimer cette caisse car elle est liée à des sessions.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            logger.error("Erreur inattendue lors de la suppression de la caisse. ID: {}", id, e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Une erreur technique est survenue.");
         }
         return "redirect:/gestion-caisses?tab=caisses";
     }
 
     @PostMapping("/activate/{id}")
     public String activateCaisse(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        caisseService.activateCaisse(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Caisse activée avec succès !");
+        try {
+            caisseService.activateCaisse(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Caisse activée avec succès !");
+        } catch (Exception e) {
+            logger.error("Erreur inattendue lors de l'activation de la caisse. ID: {}", id, e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Une erreur technique est survenue lors de l'activation.");
+        }
         return "redirect:/gestion-caisses?tab=caisses";
     }
 
@@ -130,8 +144,12 @@ public class CaisseManagementController {
         try {
             caisseService.deactivateCaisse(id);
             redirectAttributes.addFlashAttribute("successMessage", "Caisse désactivée avec succès !");
-        } catch (Exception e) {
+        } catch (IllegalStateException e) {
+            logger.warn("Tentative de désactivation d'une caisse invalide. ID: {}. Message: {}", id, e.getMessage());
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        } catch (Exception e) {
+            logger.error("Erreur inattendue lors de la désactivation de la caisse. ID: {}", id, e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Une erreur technique est survenue lors de la désactivation.");
         }
         return "redirect:/gestion-caisses?tab=caisses";
     }
@@ -139,7 +157,7 @@ public class CaisseManagementController {
     @GetMapping("/session-details/{id}")
     public String sessionDetails(@PathVariable Long id, Model model) {
         SessionCaisse sessionCaisse = sessionCaisseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Session de caisse non trouvée avec l'id : " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Session de caisse non trouvée avec l'id : " + id));
         List<Vente> ventes = caisseService.getVentesBySessionCaisse(sessionCaisse);
 
         double totalVentes = ventes.stream().map(Vente::getTotalFinal).mapToDouble(java.math.BigDecimal::doubleValue).sum();

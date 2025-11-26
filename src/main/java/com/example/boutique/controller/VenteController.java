@@ -5,6 +5,8 @@ import com.example.boutique.model.Vente;
 import com.example.boutique.repository.LigneVenteRepository;
 import com.example.boutique.repository.VenteRepository;
 import com.example.boutique.service.StockService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,6 +23,8 @@ import java.util.Map;
 @RequestMapping("/ventes")
 public class VenteController {
 
+    private static final Logger logger = LoggerFactory.getLogger(VenteController.class);
+
     private final VenteRepository venteRepository;
     private final LigneVenteRepository ligneVenteRepository;
     private final StockService stockService;
@@ -33,14 +37,16 @@ public class VenteController {
 
     @GetMapping("/{id}")
     public String getVenteDetails(@PathVariable Long id, Model model) {
-        model.addAttribute("vente", venteRepository.findById(id).orElseThrow());
+        Vente vente = venteRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Vente non trouvée avec l'ID: " + id));
+        model.addAttribute("vente", vente);
         return "vente-detail";
     }
 
     @GetMapping("/recu/{id}")
     public String showRecu(@PathVariable Long id, Model model) {
         Vente vente = venteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Vente non trouvée avec l'id : " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Vente non trouvée avec l'id : " + id));
         List<LigneVente> ligneVentes = ligneVenteRepository.findByVenteId(id);
 
         model.addAttribute("vente", vente);
@@ -51,15 +57,11 @@ public class VenteController {
 
     @PostMapping("/{id}/annuler")
     public ResponseEntity<?> annulerVente(@PathVariable Long id, @RequestBody Map<String, String> body) {
-        try {
-            String motif = body.get("motif");
-            if (motif == null || motif.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Le motif d'annulation est obligatoire."));
-            }
-            stockService.annulerVente(id, motif);
-            return ResponseEntity.ok(Map.of("success", true, "message", "Vente annulée avec succès."));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        String motif = body.get("motif");
+        if (motif == null || motif.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Le motif d'annulation est obligatoire."));
         }
+        stockService.annulerVente(id, motif);
+        return ResponseEntity.ok(Map.of("success", true, "message", "Vente annulée avec succès."));
     }
 }

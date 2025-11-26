@@ -3,6 +3,8 @@ package com.example.boutique.controller;
 import com.example.boutique.dto.FactureInfoDTO;
 import com.example.boutique.dto.ProductBatchDto;
 import com.example.boutique.dto.ProduitDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import com.example.boutique.model.MouvementStock;
 import com.example.boutique.model.Produit;
@@ -33,6 +35,8 @@ import java.util.stream.Collectors;
 @Controller
 @RequestMapping("/produits")
 public class ProduitController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ProduitController.class);
 
     private final ProduitRepository produitRepository;
     private final ProduitService produitService;
@@ -184,7 +188,7 @@ public class ProduitController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
-            // Log the exception e
+            logger.error("Erreur inattendue lors de la sauvegarde des produits en lot.", e);
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Une erreur inattendue est survenue lors de la sauvegarde des produits."));
         }
     }
@@ -205,7 +209,7 @@ public class ProduitController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
-            // Log the exception e
+            logger.error("Erreur inattendue lors de la sauvegarde du produit : " + produit.getId(), e);
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Une erreur inattendue est survenue lors de la sauvegarde du produit."));
         }
     }
@@ -224,7 +228,7 @@ public class ProduitController {
             // This exception typically occurs due to foreign key constraints
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Impossible de supprimer ce produit car il est lié à d'autres enregistrements (ex: mouvements de stock, ventes). Veuillez supprimer les enregistrements associés d'abord."));
         } catch (Exception e) {
-            // Log the exception e
+            logger.error("Erreur inattendue lors de la suppression du produit avec l'ID : " + id, e);
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Une erreur inattendue est survenue lors de la suppression du produit."));
         }
     }

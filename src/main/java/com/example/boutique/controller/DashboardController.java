@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -33,6 +35,8 @@ import java.util.stream.IntStream;
 @Controller
 @RequestMapping("/dashboard")
 public class DashboardController {
+
+    private static final Logger logger = LoggerFactory.getLogger(DashboardController.class);
 
     private final ProduitRepository produitRepository;
     private final PersonnelRepository personnelRepository;
@@ -55,23 +59,47 @@ public class DashboardController {
 
     @GetMapping
     public String showDashboard(Model model) {
-        // 1. Indicateurs clés (KPIs)
-        addKpiData(model);
+        try {
+            addKpiData(model);
+        } catch (Exception e) {
+            logger.error("Erreur lors du chargement des indicateurs clés (KPIs).", e);
+            model.addAttribute("kpiError", "Impossible de charger les indicateurs clés.");
+        }
 
-        // 2. Données pour la liste des mouvements récents
-        model.addAttribute("derniersMouvements", mouvementStockRepository.findTop5ByOrderByDateMouvementDesc());
+        try {
+            model.addAttribute("derniersMouvements", mouvementStockRepository.findTop5ByOrderByDateMouvementDesc());
+        } catch (Exception e) {
+            logger.error("Erreur lors du chargement des derniers mouvements.", e);
+            model.addAttribute("mouvementsError", "Impossible de charger les mouvements récents.");
+        }
 
-        // 3. Données pour le graphique d'activité
-        addChartData(model);
+        try {
+            addChartData(model);
+        } catch (Exception e) {
+            logger.error("Erreur lors du chargement des données du graphique d'activité.", e);
+            model.addAttribute("chartDataError", "Impossible de charger le graphique d'activité.");
+        }
 
-        // 4. Données pour les produits les plus vendus
-        addTopSellingProducts(model);
+        try {
+            addTopSellingProducts(model);
+        } catch (Exception e) {
+            logger.error("Erreur lors du chargement des produits les plus vendus.", e);
+            model.addAttribute("topProductsError", "Impossible de charger les produits populaires.");
+        }
 
-        // 5. Données pour le graphique des catégories
-        addCategoryChartData(model);
+        try {
+            addCategoryChartData(model);
+        } catch (Exception e) {
+            logger.error("Erreur lors du chargement du graphique des catégories.", e);
+            model.addAttribute("categoryChartError", "Impossible de charger le graphique des catégories.");
+        }
 
-        // 6. Données pour le graphique des ventes par catégorie
-        addSalesByCategoryChartData(model);
+        try {
+            addSalesByCategoryChartData(model);
+        } catch (Exception e) {
+            logger.error("Erreur lors du chargement du graphique des ventes par catégorie.", e);
+            model.addAttribute("salesByCategoryError", "Impossible de charger les ventes par catégorie.");
+        }
 
         return "dashboard";
     }

@@ -33,4 +33,10 @@ server:
     session:
       timeout: 110m
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,loggers
+
 #

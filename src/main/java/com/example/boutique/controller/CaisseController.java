@@ -9,6 +9,8 @@ import com.example.boutique.repository.UtilisateurRepository;
 import com.example.boutique.repository.VenteRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,6 +31,8 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/caisse")
 public class CaisseController {
+
+    private static final Logger logger = LoggerFactory.getLogger(CaisseController.class);
 
     @Autowired
     private SessionCaisseRepository sessionCaisseRepository;
@@ -51,42 +55,46 @@ public class CaisseController {
     public String ouvrirCaisse(@RequestParam("montantInitial") BigDecimal montantInitial,
                                @RequestParam("codeCaissier") String codeCaissier,
                                RedirectAttributes redirectAttributes, Model model) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        Optional<Utilisateur> utilisateurOpt = utilisateurRepository.findByUsername(username);
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            Optional<Utilisateur> utilisateurOpt = utilisateurRepository.findByUsername(username);
 
-        if (utilisateurOpt.isEmpty()) {
-            model.addAttribute("error", "Utilisateur non trouvé.");
+            if (utilisateurOpt.isEmpty()) {
+                model.addAttribute("error", "Utilisateur non trouvé.");
+                return "ouverture-caisse";
+            }
+
+            Utilisateur utilisateur = utilisateurOpt.get();
+
+            if (utilisateur.getCode() == null || !utilisateur.getCode().equals(codeCaissier)) {
+                model.addAttribute("error", "Le code personnel est incorrect.");
+                return "ouverture-caisse";
+            }
+
+            Optional<SessionCaisse> anyOpenSession = sessionCaisseRepository.findFirstByDateFermetureIsNull();
+            if (anyOpenSession.isPresent()) {
+                model.addAttribute("error", "Une session de caisse est déjà ouverte. Veuillez la fermer avant d'en ouvrir une nouvelle.");
+                return "ouverture-caisse";
+            }
+
+            if (montantInitial.compareTo(BigDecimal.ZERO) < 0) {
+                model.addAttribute("error", "Le montant initial ne peut pas être négatif.");
+                return "ouverture-caisse";
+            }
+
+            SessionCaisse sessionCaisse = new SessionCaisse();
+            sessionCaisse.setUtilisateur(utilisateur);
+            sessionCaisse.setMontantInitial(montantInitial);
+
+            sessionCaisseRepository.save(sessionCaisse);
+
+            return "redirect:/caissier";
+        } catch (Exception e) {
+            logger.error("Erreur inattendue lors de l'ouverture de la caisse.", e);
+            model.addAttribute("error", "Une erreur technique est survenue. Impossible d'ouvrir la session.");
             return "ouverture-caisse";
         }
-
-        Utilisateur utilisateur = utilisateurOpt.get();
-
-        // Vérifier si le code fourni correspond au code de l'utilisateur
-        if (utilisateur.getCode() == null || !utilisateur.getCode().equals(codeCaissier)) {
-            model.addAttribute("error", "Le code personnel est incorrect.");
-            return "ouverture-caisse";
-        }
-
-        // Vérifier si une session est déjà ouverte dans tout le système
-        Optional<SessionCaisse> anyOpenSession = sessionCaisseRepository.findFirstByDateFermetureIsNull();
-        if (anyOpenSession.isPresent()) {
-            model.addAttribute("error", "Une session de caisse est déjà ouverte. Veuillez la fermer avant d'en ouvrir une nouvelle.");
-            return "ouverture-caisse";
-        }
-
-        if (montantInitial.compareTo(BigDecimal.ZERO) < 0) {
-            model.addAttribute("error", "Le montant initial ne peut pas être négatif.");
-            return "ouverture-caisse";
-        }
-
-        SessionCaisse sessionCaisse = new SessionCaisse();
-        sessionCaisse.setUtilisateur(utilisateur);
-        sessionCaisse.setMontantInitial(montantInitial);
-
-        sessionCaisseRepository.save(sessionCaisse);
-
-        return "redirect:/caissier";
     }
 
     @GetMapping("/fermer")
@@ -118,14 +126,6 @@ public class CaisseController {
                                HttpServletResponse response,
                                Model model,
                                RedirectAttributes redirectAttributes) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Optional<Utilisateur> utilisateurOpt = utilisateurRepository.findByUsername(authentication.getName());
-
-        if (utilisateurOpt.isEmpty()) {
-            return "redirect:/login";
-        }
-        Utilisateur utilisateur = utilisateurOpt.get();
-
         Optional<SessionCaisse> sessionOpt = sessionCaisseRepository.findFirstByDateFermetureIsNull();
         if (sessionOpt.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Aucune session de caisse n'est actuellement ouverte.");
@@ -133,43 +133,52 @@ public class CaisseController {
         }
         SessionCaisse session = sessionOpt.get();
 
-        // Valider le code du caissier qui ferme la caisse
-        if (utilisateur.getCode() == null || !utilisateur.getCode().equals(codeCaissier)) {
-            model.addAttribute("error", "Le code personnel est incorrect.");
-            model.addAttribute("montantFinal", montantFinal);
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            Optional<Utilisateur> utilisateurOpt = utilisateurRepository.findByUsername(authentication.getName());
 
-            // Re-populate model attributes for the view
-            BigDecimal ventesCalculees = venteRepository.sumTotalForSession(session);
-            if (ventesCalculees == null) {
-                ventesCalculees = BigDecimal.ZERO;
+            if (utilisateurOpt.isEmpty()) {
+                return "redirect:/login"; // Should not happen for an authenticated user
             }
-            model.addAttribute("session", session);
-            model.addAttribute("ventesCalculees", ventesCalculees);
-            model.addAttribute("montantInitialFromController", session.getMontantInitial());
+            Utilisateur utilisateur = utilisateurOpt.get();
 
+            if (utilisateur.getCode() == null || !utilisateur.getCode().equals(codeCaissier)) {
+                model.addAttribute("error", "Le code personnel est incorrect.");
+                // Re-populate model for the view
+                BigDecimal ventesCalculees = venteRepository.sumTotalForSession(session);
+                model.addAttribute("session", session);
+                model.addAttribute("ventesCalculees", ventesCalculees != null ? ventesCalculees : BigDecimal.ZERO);
+                model.addAttribute("montantInitialFromController", session.getMontantInitial());
+                return "fermeture-caisse";
+            }
+
+            BigDecimal ventesCalculees = venteRepository.sumTotalForSession(session);
+            ventesCalculees = ventesCalculees != null ? ventesCalculees : BigDecimal.ZERO;
+
+            BigDecimal totalAttendu = session.getMontantInitial().add(ventesCalculees);
+            BigDecimal ecart = montantFinal.subtract(totalAttendu);
+
+            session.setMontantFinal(montantFinal);
+            session.setVentesCalculees(ventesCalculees);
+            session.setEcart(ecart);
+            session.setDateFermeture(LocalDateTime.now());
+            session.setFermeParUtilisateur(utilisateur);
+
+            sessionCaisseRepository.save(session);
+
+            new SecurityContextLogoutHandler().logout(request, response, authentication);
+
+            return "redirect:/login?logout";
+        } catch (Exception e) {
+            logger.error("Erreur inattendue lors de la fermeture de la caisse.", e);
+            // Re-populate model for the view
+            BigDecimal ventesCalculees = venteRepository.sumTotalForSession(session);
+            model.addAttribute("session", session);
+            model.addAttribute("ventesCalculees", ventesCalculees != null ? ventesCalculees : BigDecimal.ZERO);
+            model.addAttribute("montantInitialFromController", session.getMontantInitial());
+            model.addAttribute("error", "Une erreur technique est survenue. Impossible de fermer la session.");
             return "fermeture-caisse";
         }
-
-        BigDecimal ventesCalculees = venteRepository.sumTotalForSession(session);
-        if (ventesCalculees == null) {
-            ventesCalculees = BigDecimal.ZERO;
-        }
-
-        BigDecimal totalAttendu = session.getMontantInitial().add(ventesCalculees);
-        BigDecimal ecart = montantFinal.subtract(totalAttendu);
-
-        session.setMontantFinal(montantFinal);
-        session.setVentesCalculees(ventesCalculees);
-        session.setEcart(ecart);
-        session.setDateFermeture(LocalDateTime.now());
-        session.setFermeParUtilisateur(utilisateur);
-
-        sessionCaisseRepository.save(session);
-
-        // Logout user
-        new SecurityContextLogoutHandler().logout(request, response, authentication);
-
-        return "redirect:/login?logout";
     }
 
     @GetMapping("/historique")

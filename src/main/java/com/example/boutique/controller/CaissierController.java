@@ -1,18 +1,19 @@
 package com.example.boutique.controller;
 
-import com.example.boutique.model.SessionCaisse;
-import com.example.boutique.model.Utilisateur;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import com.example.boutique.dto.VenteRequestDto;
 import com.example.boutique.model.Produit;
+import com.example.boutique.model.SessionCaisse;
+import com.example.boutique.model.Utilisateur;
 import com.example.boutique.repository.ClientRepository;
 import com.example.boutique.repository.ProduitRepository;
 import com.example.boutique.repository.SessionCaisseRepository;
 import com.example.boutique.repository.UtilisateurRepository;
 import com.example.boutique.service.StockService;
-import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,8 @@ import java.util.stream.Collectors;
 @Controller
 @RequestMapping("/caissier")
 public class CaissierController {
+
+    private static final Logger logger = LoggerFactory.getLogger(CaissierController.class);
 
     private final ProduitRepository produitRepository;
     private final StockService stockService;
@@ -65,16 +68,20 @@ public class CaissierController {
             }
 
             Utilisateur utilisateur = utilisateurRepository.findByCode(code)
-                    .orElseThrow(() -> new IllegalStateException("Code caissier invalide."));
+                    .orElseThrow(() -> new IllegalArgumentException("Code caissier invalide."));
 
             if (!utilisateur.getRoles().contains("ROLE_CAISSIER")) {
-                throw new IllegalStateException("L'utilisateur n'est pas un caissier.");
+                throw new IllegalStateException("L'utilisateur n'a pas les droits de caissier.");
             }
 
             stockService.enregistrerVente(venteRequest, utilisateur);
             return ResponseEntity.ok(Map.of("success", true, "message", "Vente enregistrée avec succès !"));
-        } catch (Exception e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            logger.warn("Erreur de logique métier lors de la vente : {}", e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        } catch (Exception e) {
+            logger.error("Erreur inattendue lors de l'enregistrement de la vente.", e);
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Une erreur technique est survenue. La vente n'a pas pu être enregistrée."));
         }
     }
 }
