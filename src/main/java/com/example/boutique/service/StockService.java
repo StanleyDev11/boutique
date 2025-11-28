@@ -86,7 +86,7 @@ public class StockService {
                 throw new IllegalStateException("Stock insuffisant pour le produit: " + produit.getNom());
             }
 
-            totalBrut = totalBrut.add(produit.getPrixVenteUnitaire().multiply(new BigDecimal(item.getQuantity())));
+            totalBrut = totalBrut.add(produit.getApplicablePrix().multiply(new BigDecimal(item.getQuantity())));
             produitsVerrouilles.put(item.getId(), produit);
         }
 
@@ -128,8 +128,8 @@ public class StockService {
             ligneVente.setVente(vente);
             ligneVente.setProduit(produit);
             ligneVente.setQuantite(item.getQuantity());
-            ligneVente.setPrixUnitaire(produit.getPrixVenteUnitaire());
-            ligneVente.setMontantTotal(produit.getPrixVenteUnitaire().multiply(new BigDecimal(item.getQuantity())));
+            ligneVente.setPrixUnitaire(produit.getApplicablePrix());
+            ligneVente.setMontantTotal(produit.getApplicablePrix().multiply(new BigDecimal(item.getQuantity())));
             ligneVenteRepository.save(ligneVente);
 
             // Update product stock

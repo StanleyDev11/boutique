@@ -61,4 +61,11 @@ public class Produit {
         BigDecimal difference = prixVenteUnitaire.subtract(prixAchat);
         return difference.divide(prixVenteUnitaire, 4, RoundingMode.HALF_UP);
     }
+
+    public BigDecimal getApplicablePrix() {
+        if (promotionActive && prixPromotionnel != null && prixPromotionnel.compareTo(BigDecimal.ZERO) > 0) {
+            return prixPromotionnel;
+        }
+        return prixVenteUnitaire;
+    }
 }
