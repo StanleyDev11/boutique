@@ -144,14 +144,14 @@ public class DashboardController {
         // KPIs existants
         int seuilStockBas = parametreService.getSeuilStockBas();
         model.addAttribute("totalProduits", produitRepository.count());
-        model.addAttribute("produitsStockBas", produitRepository.countByQuantiteEnStockLessThanEqual(seuilStockBas));
+        model.addAttribute("produitsStockBas", produitRepository.countByQuantiteEnStockLessThanEqual(BigDecimal.valueOf(seuilStockBas)));
         model.addAttribute("totalPersonnel", personnelRepository.count());
         model.addAttribute("totalUtilisateurs", utilisateurRepository.count());
 
         // 1. Valeur totale du stock
-        double valeurStock = produitRepository.findAll().stream()
-                .mapToDouble(p -> p.getQuantiteEnStock() * p.getPrixVenteUnitaire().doubleValue())
-                .sum();
+        BigDecimal valeurStock = produitRepository.findAll().stream()
+                .map(p -> p.getQuantiteEnStock().multiply(p.getPrixVenteUnitaire()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         model.addAttribute("valeurStock", valeurStock);
 
         // 2. Indicateurs de ventes
@@ -162,9 +162,9 @@ public class DashboardController {
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
         List<MouvementStock> ventesAujourdhui = mouvementStockRepository.findByTypeMouvementAndDateMouvementBetween(TypeMouvement.SORTIE_VENTE, startOfDay, endOfDay);
-        double chiffreAffairesAujourdhui = ventesAujourdhui.stream()
-                .mapToDouble(mvt -> mvt.getQuantite() * mvt.getProduit().getPrixVenteUnitaire().doubleValue())
-                .sum();
+        BigDecimal chiffreAffairesAujourdhui = ventesAujourdhui.stream()
+                .map(mvt -> mvt.getQuantite().multiply(mvt.getProduit().getApplicablePrix()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         model.addAttribute("chiffreAffairesAujourdhui", chiffreAffairesAujourdhui);
         model.addAttribute("nombreVentesAujourdhui", (long) ventesAujourdhui.size());
 
@@ -172,9 +172,9 @@ public class DashboardController {
         LocalDateTime startOfMonth = currentMonth.atDay(1).atStartOfDay();
         LocalDateTime endOfMonth = currentMonth.atEndOfMonth().atTime(LocalTime.MAX);
         List<MouvementStock> ventesMois = mouvementStockRepository.findByTypeMouvementAndDateMouvementBetween(TypeMouvement.SORTIE_VENTE, startOfMonth, endOfMonth);
-        double chiffreAffairesMois = ventesMois.stream()
-                .mapToDouble(mvt -> mvt.getQuantite() * mvt.getProduit().getPrixVenteUnitaire().doubleValue())
-                .sum();
+        BigDecimal chiffreAffairesMois = ventesMois.stream()
+                .map(mvt -> mvt.getQuantite().multiply(mvt.getProduit().getApplicablePrix()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         model.addAttribute("chiffreAffairesMois", chiffreAffairesMois);
     }
 

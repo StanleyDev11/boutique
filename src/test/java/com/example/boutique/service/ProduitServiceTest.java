@@ -140,18 +140,18 @@ class ProduitServiceTest {
         ProduitDto dto1 = new ProduitDto();
         dto1.setNom("Batch Product 1");
         dto1.setCodeBarres("BP1");
-        dto1.setPrixAchat(BigDecimal.valueOf(10.0).doubleValue());
-        dto1.setPrixVenteUnitaire(BigDecimal.valueOf(15.0).doubleValue());
-        dto1.setQuantiteEnStock(5);
+        dto1.setPrixAchat(BigDecimal.valueOf(10.0));
+        dto1.setPrixVenteUnitaire(BigDecimal.valueOf(15.0));
+        dto1.setQuantiteEnStock(BigDecimal.valueOf(5));
         dto1.setCategorie("Category A");
         dto1.setDatePeremption(LocalDate.now().plusMonths(6));
 
         ProduitDto dto2 = new ProduitDto();
         dto2.setNom("Batch Product 2");
         dto2.setCodeBarres("BP2");
-        dto2.setPrixAchat(BigDecimal.valueOf(20.0).doubleValue());
-        dto2.setPrixVenteUnitaire(BigDecimal.valueOf(25.0).doubleValue());
-        dto2.setQuantiteEnStock(0); // No initial stock movement
+        dto2.setPrixAchat(BigDecimal.valueOf(20.0));
+        dto2.setPrixVenteUnitaire(BigDecimal.valueOf(25.0));
+        dto2.setQuantiteEnStock(BigDecimal.ZERO); // No initial stock movement
         dto2.setCategorie("Category B");
         dto2.setDatePeremption(LocalDate.now().plusMonths(3));
 
@@ -190,9 +190,9 @@ class ProduitServiceTest {
         ProduitDto dto = new ProduitDto();
         dto.setNom("Batch Product Existing");
         dto.setCodeBarres("EXISTING_BARCODE");
-        dto.setPrixAchat(BigDecimal.valueOf(10.0).doubleValue());
-        dto.setPrixVenteUnitaire(BigDecimal.valueOf(15.0).doubleValue());
-        dto.setQuantiteEnStock(5);
+        dto.setPrixAchat(BigDecimal.valueOf(10.0));
+        dto.setPrixVenteUnitaire(BigDecimal.valueOf(15.0));
+        dto.setQuantiteEnStock(BigDecimal.valueOf(5));
 
         batchDto.setProduits(Collections.singletonList(dto));
 

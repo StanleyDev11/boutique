@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -28,20 +29,20 @@ public interface ProduitRepository extends JpaRepository<Produit, Long> {
     List<Produit> findByNomContainingIgnoreCaseOrCodeBarresContaining(String nom, String codeBarres, Sort sort);
 
     // Méthode paginée pour le rapport de stock bas
-    Page<Produit> findAllByQuantiteEnStockLessThanEqual(int seuil, Pageable pageable);
+    Page<Produit> findAllByQuantiteEnStockLessThanEqual(BigDecimal seuil, Pageable pageable);
 
     // Méthode paginée pour trouver les produits avec un stock exact (pour le filtre "en rupture")
-    Page<Produit> findAllByQuantiteEnStock(int stock, Pageable pageable);
+    Page<Produit> findAllByQuantiteEnStock(BigDecimal stock, Pageable pageable);
 
     // Méthodes pour la recherche par nom et quantité en stock
-    Page<Produit> findByNomContainingIgnoreCaseAndQuantiteEnStock(String nom, int stock, Pageable pageable);
-    Page<Produit> findByNomContainingIgnoreCaseAndQuantiteEnStockLessThanEqual(String nom, int seuil, Pageable pageable);
+    Page<Produit> findByNomContainingIgnoreCaseAndQuantiteEnStock(String nom, BigDecimal stock, Pageable pageable);
+    Page<Produit> findByNomContainingIgnoreCaseAndQuantiteEnStockLessThanEqual(String nom, BigDecimal seuil, Pageable pageable);
 
     // Méthode pour trouver les produits dont la date de péremption est dans un intervalle donné
     List<Produit> findAllByDatePeremptionBetween(LocalDate startDate, LocalDate endDate);
 
     // Méthode pour compter les produits en stock bas
-    long countByQuantiteEnStockLessThanEqual(int seuil);
+    long countByQuantiteEnStockLessThanEqual(BigDecimal seuil);
 
     @Query("SELECT p.categorie as category, COUNT(p) as productCount FROM Produit p GROUP BY p.categorie")
     List<CategoryProductCount> countProductsByCategory();
@@ -86,5 +87,5 @@ public interface ProduitRepository extends JpaRepository<Produit, Long> {
     List<Produit> findByNumeroFacture(String numeroFacture);
 
     @Query("SELECT p FROM Produit p WHERE p.quantiteEnStock <= :seuil ORDER BY p.quantiteEnStock ASC")
-    List<Produit> findTopNByQuantiteEnStockLessThanEqualOrderByQuantiteEnStockAsc(@Param("seuil") int seuil, Pageable pageable);
+    List<Produit> findTopNByQuantiteEnStockLessThanEqualOrderByQuantiteEnStockAsc(@Param("seuil") BigDecimal seuil, Pageable pageable);
 }

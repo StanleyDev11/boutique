@@ -43,14 +43,15 @@ public class ProduitService {
             Produit produit = new Produit();
             produit.setNom(dto.getNom());
             produit.setCodeBarres(dto.getCodeBarres());
-            produit.setPrixAchat(BigDecimal.valueOf(dto.getPrixAchat()));
-            produit.setPrixVenteUnitaire(BigDecimal.valueOf(dto.getPrixVenteUnitaire()));
+            produit.setPrixAchat(dto.getPrixAchat());
+            produit.setPrixVenteUnitaire(dto.getPrixVenteUnitaire());
             if (dto.getPrixPromotionnel() != null) {
-                produit.setPrixPromotionnel(BigDecimal.valueOf(dto.getPrixPromotionnel()));
+                produit.setPrixPromotionnel(dto.getPrixPromotionnel());
             }
             produit.setPromotionActive(dto.isPromotionActive());
             produit.setCategorie(dto.getCategorie());
-            produit.setQuantiteEnStock(0); // Initial stock is 0 before movement
+            produit.setQuantiteEnStock(BigDecimal.ZERO); // Initial stock is 0 before movement
+            produit.setUniteDeVente(dto.getUniteDeVente());
             produit.setDatePeremption(dto.getDatePeremption());
             produit.setNomFournisseur(productBatchDto.getNomFournisseur());
             produit.setNumeroFacture(productBatchDto.getNumeroFacture());
@@ -63,7 +64,7 @@ public class ProduitService {
             Produit produit = savedProduits.get(i);
             ProduitDto dto = productBatchDto.getProduits().get(i);
 
-            if (dto.getQuantiteEnStock() > 0) {
+            if (dto.getQuantiteEnStock() != null && dto.getQuantiteEnStock().compareTo(BigDecimal.ZERO) > 0) {
                 MouvementStock mouvement = new MouvementStock();
                 mouvement.setProduit(produit);
                 mouvement.setQuantite(dto.getQuantiteEnStock());

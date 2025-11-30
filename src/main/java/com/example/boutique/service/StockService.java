@@ -41,23 +41,23 @@ public class StockService {
         Produit produit = produitRepository.findById(mouvement.getProduit().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé"));
 
-        int quantiteMouvement = mouvement.getQuantite();
-        int stockActuel = produit.getQuantiteEnStock();
-        int nouveauStock;
+        BigDecimal quantiteMouvement = mouvement.getQuantite();
+        BigDecimal stockActuel = produit.getQuantiteEnStock();
+        BigDecimal nouveauStock;
 
         switch (mouvement.getTypeMouvement()) {
             case ENTREE:
-                nouveauStock = stockActuel + quantiteMouvement;
+                nouveauStock = stockActuel.add(quantiteMouvement);
                 break;
             case SORTIE_VENTE:
             case SORTIE_PERTE:
             case PERIME:
             case CASSE_DEFECTUEUX:
             case AVOIR:
-                if (stockActuel < quantiteMouvement) {
+                if (stockActuel.compareTo(quantiteMouvement) < 0) {
                     throw new IllegalStateException("Quantité en stock insuffisante pour le produit: " + produit.getNom());
                 }
-                nouveauStock = stockActuel - quantiteMouvement;
+                nouveauStock = stockActuel.subtract(quantiteMouvement);
                 break;
             default:
                 throw new IllegalArgumentException("Type de mouvement non supporté: " + mouvement.getTypeMouvement());
@@ -82,11 +82,11 @@ public class StockService {
             Produit produit = produitRepository.findByIdForUpdate(item.getId()) // Utilise la méthode de verrouillage
                     .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé avec l'ID: " + item.getId()));
 
-            if (produit.getQuantiteEnStock() < item.getQuantity()) {
+            if (produit.getQuantiteEnStock().compareTo(item.getQuantity()) < 0) {
                 throw new IllegalStateException("Stock insuffisant pour le produit: " + produit.getNom());
             }
 
-            totalBrut = totalBrut.add(produit.getApplicablePrix().multiply(new BigDecimal(item.getQuantity())));
+            totalBrut = totalBrut.add(produit.getApplicablePrix().multiply(item.getQuantity()));
             produitsVerrouilles.put(item.getId(), produit);
         }
 
@@ -148,11 +148,11 @@ public class StockService {
             ligneVente.setProduit(produit);
             ligneVente.setQuantite(item.getQuantity());
             ligneVente.setPrixUnitaire(produit.getApplicablePrix());
-            ligneVente.setMontantTotal(produit.getApplicablePrix().multiply(new BigDecimal(item.getQuantity())));
+            ligneVente.setMontantTotal(produit.getApplicablePrix().multiply(item.getQuantity()));
             ligneVenteRepository.save(ligneVente);
 
             // Update product stock
-            produit.setQuantiteEnStock(produit.getQuantiteEnStock() - item.getQuantity());
+            produit.setQuantiteEnStock(produit.getQuantiteEnStock().subtract(item.getQuantity()));
             produitRepository.save(produit);
 
             // Create stock movement record

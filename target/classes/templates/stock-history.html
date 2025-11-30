@@ -54,6 +54,8 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type de Mouvement</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantité</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">N° Facture</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fournisseur</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                 </tr>
                 </thead>
@@ -69,10 +71,12 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-bold" 
                         th:classappend="${mvt.typeMouvement.name() == 'ENTREE'} ? 'text-green-600' : 'text-red-600'" 
                         th:text="(${mvt.typeMouvement.name() == 'ENTREE'} ? '+' : '-') + ' ' + ${mvt.quantite}"></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700" th:text="${mvt.numeroFacture ?: 'N/A'}"></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700" th:text="${mvt.nomFournisseur ?: 'N/A'}"></td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700" th:text="${mvt.description}"></td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(historique)}">
-                    <td colspan="4" class="text-center py-12 text-gray-500">
+                    <td colspan="6" class="text-center py-12 text-gray-500">
                         Aucun mouvement enregistré pour ce produit.
                     </td>
                 </tr>

@@ -33,7 +33,8 @@ public class BoutiqueApplication {
                 p1.setPrixAchat(new BigDecimal("800.00"));
                 p1.setPrixVenteUnitaire(new BigDecimal("1200.50"));
                 p1.setCategorie("Électronique");
-                p1.setQuantiteEnStock(50);
+                p1.setQuantiteEnStock(BigDecimal.valueOf(50));
+                p1.setUniteDeVente("PIECE");
                 p1.setDatePeremption(null);
 
                 Produit p2 = new Produit();
@@ -41,7 +42,8 @@ public class BoutiqueApplication {
                 p2.setPrixAchat(new BigDecimal("10.00"));
                 p2.setPrixVenteUnitaire(new BigDecimal("19.99"));
                 p2.setCategorie("Alimentaire");
-                p2.setQuantiteEnStock(200);
+                p2.setQuantiteEnStock(BigDecimal.valueOf(200));
+                p2.setUniteDeVente("KG");
                 p2.setDatePeremption(LocalDate.now().plusYears(1));
 
                 produitRepository.saveAll(List.of(p1, p2));

@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -29,8 +30,8 @@ public class MouvementStock {
     @Column(nullable = false)
     private TypeMouvement typeMouvement;
 
-    @Column(nullable = false)
-    private int quantite;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal quantite;
 
     @Column(nullable = false)
     private LocalDateTime dateMouvement;

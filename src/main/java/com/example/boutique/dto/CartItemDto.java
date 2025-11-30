@@ -1,8 +1,10 @@
 package com.example.boutique.dto;
 
+import java.math.BigDecimal;
+
 public class CartItemDto {
     private Long id;
-    private int quantity;
+    private BigDecimal quantity;
 
     public Long getId() {
         return id;
@@ -12,11 +14,11 @@ public class CartItemDto {
         this.id = id;
     }
 
-    public int getQuantity() {
+    public BigDecimal getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(int quantity) {
+    public void setQuantity(BigDecimal quantity) {
         this.quantity = quantity;
     }
 }

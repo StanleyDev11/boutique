@@ -2,6 +2,7 @@ package com.example.boutique.utils;
 
 import com.example.boutique.model.Produit;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public class ProductUtils {
@@ -11,7 +12,7 @@ public class ProductUtils {
             return 0;
         }
         return produits.stream()
-                .filter(produit -> produit.getQuantiteEnStock() == 0)
+                .filter(produit -> produit.getQuantiteEnStock().compareTo(BigDecimal.ZERO) == 0)
                 .count();
     }
 
@@ -19,8 +20,9 @@ public class ProductUtils {
         if (produits == null) {
             return 0;
         }
+        BigDecimal seuilBd = BigDecimal.valueOf(seuil);
         return produits.stream()
-                .filter(produit -> produit.getQuantiteEnStock() > 0 && produit.getQuantiteEnStock() <= seuil)
+                .filter(produit -> produit.getQuantiteEnStock().compareTo(BigDecimal.ZERO) > 0 && produit.getQuantiteEnStock().compareTo(seuilBd) <= 0)
                 .count();
     }
 }

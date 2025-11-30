@@ -29,8 +29,8 @@ public class LigneVente {
     @ToString.Exclude
     private Produit produit;
 
-    @Column(nullable = false)
-    private Integer quantite;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal quantite;
 
     @Column(nullable = false)
     private BigDecimal prixUnitaire;

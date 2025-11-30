@@ -10,12 +10,14 @@ com\example\boutique\dto\MouvementStatDto.class
 com\example\boutique\dto\CategorySales.class
 com\example\boutique\controller\CaisseController.class
 com\example\boutique\model\LigneVente.class
+com\example\boutique\config\DataInitializer.class
 com\example\boutique\utils\OkHttpStreamFactory$1.class
 com\example\boutique\dto\VenteCreditDto.class
 com\example\boutique\utils\OkHttpStreamFactory.class
 com\example\boutique\controller\ClientController.class
 com\example\boutique\controller\UtilisateurController.class
 com\example\boutique\model\Utilisateur.class
+com\example\boutique\enums\MoyenPaiement.class
 com\example\boutique\model\SessionCaisse.class
 com\example\boutique\repository\SessionCaisseRepository.class
 com\example\boutique\controller\ClientViewController.class
@@ -47,6 +49,7 @@ com\example\boutique\dto\ProductBatchDto.class
 com\example\boutique\dto\VenteRequestDto.class
 com\example\boutique\utils\UserUtils.class
 com\example\boutique\model\Personnel.class
+com\example\boutique\controller\RestExceptionHandler.class
 com\example\boutique\repository\MouvementStockRepository.class
 com\example\boutique\controller\ParametreController.class
 com\example\boutique\dto\CartItemDto.class

@@ -69,7 +69,8 @@ public class RapportController {
                                   @RequestParam(defaultValue = "8") int size,
                                   @RequestParam(required = false) String searchTerm) {
 
-        int seuilStockBas = parametreService.getSeuilStockBas();
+        int seuilStockBasInt = parametreService.getSeuilStockBas();
+        BigDecimal seuilStockBas = BigDecimal.valueOf(seuilStockBasInt);
         int joursAvantPeremption = parametreService.getJoursAvantPeremption();
 
         Sort.Direction direction = "desc".equalsIgnoreCase(sort) ? Sort.Direction.DESC : Sort.Direction.ASC;
@@ -78,13 +79,13 @@ public class RapportController {
         Page<Produit> produitsPage;
         if (searchTerm != null && !searchTerm.isEmpty()) {
             if ("rupture".equals(filter)) {
-                produitsPage = produitRepository.findByNomContainingIgnoreCaseAndQuantiteEnStock(searchTerm, 0, pageable);
+                produitsPage = produitRepository.findByNomContainingIgnoreCaseAndQuantiteEnStock(searchTerm, BigDecimal.ZERO, pageable);
             } else {
                 produitsPage = produitRepository.findByNomContainingIgnoreCaseAndQuantiteEnStockLessThanEqual(searchTerm, seuilStockBas, pageable);
             }
         } else {
             if ("rupture".equals(filter)) {
-                produitsPage = produitRepository.findAllByQuantiteEnStock(0, pageable);
+                produitsPage = produitRepository.findAllByQuantiteEnStock(BigDecimal.ZERO, pageable);
             } else {
                 produitsPage = produitRepository.findAllByQuantiteEnStockLessThanEqual(seuilStockBas, pageable);
             }
@@ -96,21 +97,20 @@ public class RapportController {
         List<Produit> tousLesProduitsEnStockBas = produitRepository.findAllByQuantiteEnStockLessThanEqual(seuilStockBas, PageRequest.of(0, Integer.MAX_VALUE)).getContent();
 
         long nombreEnRupture = tousLesProduitsEnStockBas.stream()
-                .filter(p -> p.getQuantiteEnStock() == 0)
+                .filter(p -> p.getQuantiteEnStock().compareTo(BigDecimal.ZERO) == 0)
                 .count();
 
-        double valeurStockBas = tousLesProduitsEnStockBas.stream()
+        BigDecimal valeurStockBas = tousLesProduitsEnStockBas.stream()
                 .filter(p -> p.getPrixAchat() != null)
-                .map(p -> p.getPrixAchat().multiply(new BigDecimal(p.getQuantiteEnStock())))
-                .mapToDouble(BigDecimal::doubleValue)
-                .sum();
+                .map(p -> p.getPrixAchat().multiply(p.getQuantiteEnStock()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         LocalDate aujourdhui = LocalDate.now();
         LocalDate dateLimite = aujourdhui.plusDays(joursAvantPeremption);
         List<Produit> produitsPeremptionProche = produitRepository.findAllByDatePeremptionBetween(aujourdhui, dateLimite);
 
         model.addAttribute("produitsPage", produitsPage);
-        model.addAttribute("seuil", seuilStockBas);
+        model.addAttribute("seuil", seuilStockBasInt);
         model.addAttribute("sort", sort);
         model.addAttribute("activeFilter", filter);
         model.addAttribute("nombreStockBas", tousLesProduitsEnStockBas.size());
@@ -162,19 +162,24 @@ public class RapportController {
         model.addAttribute("revenueChange", 0.0);
         model.addAttribute("salesChange", 0.0);
         model.addAttribute("todayRevenueChange", 0.0);
-        
+
         List<Object[]> mostSoldProductsRaw = ligneVenteRepository.findMostSoldProducts();
-        long totalItemsSold = mostSoldProductsRaw.stream().mapToLong(item -> (long) item[1]).sum();
+        BigDecimal totalItemsSold = mostSoldProductsRaw.stream()
+                .map(item -> (BigDecimal) item[1])
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         List<Map<String, Object>> mostSoldProducts = mostSoldProductsRaw.stream()
                 .map(item -> {
                     Map<String, Object> productMap = new HashMap<>();
                     productMap.put("produit", item[0]);
-                    productMap.put("quantite", item[1]);
-                    if (totalItemsSold > 0) {
-                        double percentage = ((long) item[1] * 100.0) / totalItemsSold;
+                    BigDecimal quantite = (BigDecimal) item[1];
+                    productMap.put("quantite", quantite);
+
+                    if (totalItemsSold.compareTo(BigDecimal.ZERO) > 0) {
+                        BigDecimal percentage = quantite.multiply(new BigDecimal("100")).divide(totalItemsSold, 2, java.math.RoundingMode.HALF_UP);
                         productMap.put("percentage", percentage);
                     } else {
-                        productMap.put("percentage", 0.0);
+                        productMap.put("percentage", BigDecimal.ZERO);
                     }
                     return productMap;
                 })
@@ -302,7 +307,7 @@ public class RapportController {
                         row.createCell(5).setCellValue(ligne.getProduit().getId());
                         row.createCell(6).setCellValue(ligne.getProduit().getNom());
                         row.createCell(7).setCellValue(ligne.getProduit().getCategorie());
-                        row.createCell(8).setCellValue(ligne.getQuantite());
+                        row.createCell(8).setCellValue(ligne.getQuantite().doubleValue());
                         row.createCell(9).setCellValue(ligne.getPrixUnitaire().doubleValue());
                         row.createCell(10).setCellValue(ligne.getMontantTotal().doubleValue());
                     }

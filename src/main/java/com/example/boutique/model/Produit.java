@@ -43,8 +43,11 @@ public class Produit {
     @Size(max = 100, message = "La catégorie ne doit pas dépasser 100 caractères.")
     private String categorie;
 
-    @Column(nullable = false)
-    private int quantiteEnStock;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal quantiteEnStock;
+
+    @Column(name = "unite_de_vente")
+    private String uniteDeVente;
 
     private LocalDate datePeremption;
 

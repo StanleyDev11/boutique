@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
@@ -18,19 +19,21 @@ public class ProduitDto {
     private String codeBarres;
 
     @PositiveOrZero(message = "Le prix d'achat doit être un nombre positif ou zéro.")
-    private double prixAchat;
+    private BigDecimal prixAchat;
 
     @PositiveOrZero(message = "Le prix de vente doit être un nombre positif ou zéro.")
-    private double prixVenteUnitaire;
+    private BigDecimal prixVenteUnitaire;
 
-    private Double prixPromotionnel;
+    private BigDecimal prixPromotionnel;
     private boolean promotionActive;
 
     @Size(max = 100, message = "La catégorie ne doit pas dépasser 100 caractères.")
     private String categorie;
 
     @PositiveOrZero(message = "La quantité en stock doit être un nombre positif ou zéro.")
-    private int quantiteEnStock;
+    private BigDecimal quantiteEnStock;
+    
+    private String uniteDeVente;
 
     private LocalDate datePeremption;
 
