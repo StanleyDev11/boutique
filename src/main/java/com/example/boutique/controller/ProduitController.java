@@ -240,6 +240,28 @@ public class ProduitController {
         return "etiquettes";
     }
 
+    @GetMapping("/print")
+    public String printProduits(Model model,
+                                @RequestParam(required = false) String keyword,
+                                @RequestParam(defaultValue = "nom") String sortField,
+                                @RequestParam(defaultValue = "asc") String sortDir) {
+
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortField).ascending() : Sort.by(sortField).descending();
+        List<Produit> produits;
+
+        if (keyword != null && !keyword.isEmpty()) {
+            produits = produitRepository.findByNomContainingIgnoreCaseOrCodeBarresContaining(keyword, keyword, sort);
+        } else {
+            produits = produitRepository.findAll(sort);
+        }
+
+        model.addAttribute("produits", produits);
+        model.addAttribute("printDate", LocalDateTime.now());
+        model.addAttribute("seuilStockBas", parametreService.getSeuilStockBas());
+
+        return "produits-print";
+    }
+
     // --- Anciennes méthodes (peuvent être gardées pour la navigation sans JS) ---
     @GetMapping("/new")
     public String showCreateForm(Model model) {

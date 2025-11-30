@@ -151,6 +151,10 @@
                     <i class="fas fa-print mr-3 text-lg"></i>
                     Imprimer Étiquettes
                 </a>
+                <button id="print-product-list-btn" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl flex items-center justify-center font-semibold shadow-lg transition duration-200">
+                    <i class="fas fa-print mr-3 text-lg"></i>
+                    Imprimer la liste
+                </button>
             </div>
         </div>
 
@@ -791,6 +795,23 @@
         }
     });
     /*]]>*/
+</script>
+
+<script th:inline="javascript">
+    document.getElementById('print-product-list-btn').addEventListener('click', function() {
+        const keyword = /*[[${keyword}]]*/ '';
+        const sortField = /*[[${sortField}]]*/ 'nom';
+        const sortDir = /*[[${sortDir}]]*/ 'asc';
+
+        const url = new URL('/produits/print', window.location.origin);
+        if (keyword) {
+            url.searchParams.append('keyword', keyword);
+        }
+        url.searchParams.append('sortField', sortField);
+        url.searchParams.append('sortDir', sortDir);
+
+        window.open(url, '_blank');
+    });
 </script>
 
 </body>

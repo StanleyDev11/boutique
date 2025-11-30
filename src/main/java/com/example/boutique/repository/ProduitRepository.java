@@ -5,6 +5,7 @@ import com.example.boutique.dto.FactureInfoDTO;
 import com.example.boutique.model.Produit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -23,6 +24,8 @@ public interface ProduitRepository extends JpaRepository<Produit, Long> {
     Page<Produit> findByNomContainingIgnoreCase(String nom, Pageable pageable);
 
     Page<Produit> findByNomContainingIgnoreCaseOrCodeBarresContainingOrNumeroFactureContainingIgnoreCase(String nom, String codeBarres, String numeroFacture, Pageable pageable);
+
+    List<Produit> findByNomContainingIgnoreCaseOrCodeBarresContaining(String nom, String codeBarres, Sort sort);
 
     // Méthode paginée pour le rapport de stock bas
     Page<Produit> findAllByQuantiteEnStockLessThanEqual(int seuil, Pageable pageable);

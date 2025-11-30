@@ -106,6 +106,14 @@ public class StockService {
 
         // Create and save the Vente entity
         Vente vente = new Vente();
+
+        if (venteRequest.getMontantPaye() != null) {
+            BigDecimal montantPaye = venteRequest.getMontantPaye();
+            BigDecimal reliquat = montantPaye.subtract(totalFinal);
+            vente.setMontantPaye(montantPaye);
+            vente.setReliquat(reliquat);
+        }
+
         vente.setDateVente(LocalDateTime.now());
         vente.setClient(client);
         vente.setTotal(totalBrut);
@@ -114,7 +122,18 @@ public class StockService {
         vente.setTotalNet(totalFinal);
         vente.setTotalFinal(totalFinal);
         vente.setTypeVente(venteRequest.getSaleType());
-        vente.setMoyenPaiement(venteRequest.getPaymentMethod());
+        
+        // Convert paymentMethod string to Enum
+        try {
+            String paymentMethodString = venteRequest.getPaymentMethod();
+            if (paymentMethodString == null || paymentMethodString.isBlank()) {
+                throw new IllegalArgumentException("Le moyen de paiement est requis.");
+            }
+            vente.setMoyenPaiement(com.example.boutique.enums.MoyenPaiement.valueOf(paymentMethodString.toUpperCase()));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Moyen de paiement invalide: " + venteRequest.getPaymentMethod());
+        }
+
         vente.setUtilisateur(utilisateur);
         vente.setSessionCaisse(sessionCaisse);
         vente.setStatus(com.example.boutique.enums.VenteStatus.COMPLETED);

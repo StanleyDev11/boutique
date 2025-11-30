@@ -112,6 +112,19 @@
             </div>
         </div>
 
+        <!-- Cash Payment Details -->
+        <div class="mt-4 text-xs" th:if="${vente.moyenPaiement.name() == 'ESPECES' and vente.montantPaye != null}">
+            <div class="flex justify-between pt-2 border-t border-dashed border-black">
+                <span class="font-medium">MONTANT REÇU</span>
+                <span class="font-medium" th:text="${#numbers.formatInteger(vente.montantPaye, 0, 'POINT')} + ' FCFA'"></span>
+            </div>
+            <div class="flex justify-between">
+                <span class="font-medium">RELIQUAT</span>
+                <span class="font-medium" th:text="${#numbers.formatInteger(vente.reliquat, 0, 'POINT')} + ' FCFA'"></span>
+            </div>
+        </div>
+
+
         <!-- Payment Method -->
         <div class="text-center mt-4 text-xs">
             <p>Payé par: <span class="font-bold" th:text="${vente.moyenPaiement}"></span></p>

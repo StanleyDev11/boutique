@@ -5,20 +5,19 @@ import com.example.boutique.model.Produit;
 import com.example.boutique.repository.LigneVenteRepository;
 import com.example.boutique.repository.ProduitRepository;
 import com.example.boutique.repository.VenteRepository;
-import com.example.boutique.service.ParametreService; // <-- Déplacé ici
+import com.example.boutique.service.ParametreService;
 import com.example.boutique.service.PdfGenerationService;
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfWriter;
-import com.itextpdf.layout.Document;
-import com.itextpdf.layout.element.Paragraph;
-import com.itextpdf.layout.element.Table;
-import com.opencsv.CSVWriter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.data.domain.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -29,11 +28,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.thymeleaf.TemplateEngine;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -65,7 +61,6 @@ public class RapportController {
         this.parametreService = parametreService;
     }
 
-    // ... (les autres méthodes GET comme rapportStockBas, ventesHistorique, etc. restent ici) ...
     @GetMapping("/stock-bas")
     public String rapportStockBas(Model model,
                                   @RequestParam(required = false) String filter,
@@ -77,11 +72,9 @@ public class RapportController {
         int seuilStockBas = parametreService.getSeuilStockBas();
         int joursAvantPeremption = parametreService.getJoursAvantPeremption();
 
-        // --- Préparation de la Pagination et du Tri ---
         Sort.Direction direction = "desc".equalsIgnoreCase(sort) ? Sort.Direction.DESC : Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "quantiteEnStock"));
 
-        // --- Récupération des Données Paginées pour l'affichage ---
         Page<Produit> produitsPage;
         if (searchTerm != null && !searchTerm.isEmpty()) {
             if ("rupture".equals(filter)) {
@@ -97,11 +90,9 @@ public class RapportController {
             }
         }
 
-        // --- Données pour le graphique de stock bas (Top 10) ---
-        Pageable top10 = PageRequest.of(0, 10); // Récupérer les 10 premiers
+        Pageable top10 = PageRequest.of(0, 10);
         List<Produit> produitsPourStockChart = produitRepository.findTopNByQuantiteEnStockLessThanEqualOrderByQuantiteEnStockAsc(seuilStockBas, top10);
 
-        // --- Calcul des Statistiques Globales (non paginées) ---
         List<Produit> tousLesProduitsEnStockBas = produitRepository.findAllByQuantiteEnStockLessThanEqual(seuilStockBas, PageRequest.of(0, Integer.MAX_VALUE)).getContent();
 
         long nombreEnRupture = tousLesProduitsEnStockBas.stream()
@@ -114,18 +105,14 @@ public class RapportController {
                 .mapToDouble(BigDecimal::doubleValue)
                 .sum();
 
-        // --- Données de Péremption ---
         LocalDate aujourdhui = LocalDate.now();
         LocalDate dateLimite = aujourdhui.plusDays(joursAvantPeremption);
         List<Produit> produitsPeremptionProche = produitRepository.findAllByDatePeremptionBetween(aujourdhui, dateLimite);
 
-        // --- Ajout des données au modèle ---
         model.addAttribute("produitsPage", produitsPage);
         model.addAttribute("seuil", seuilStockBas);
         model.addAttribute("sort", sort);
         model.addAttribute("activeFilter", filter);
-
-        // Ajout des stats au modèle
         model.addAttribute("nombreStockBas", tousLesProduitsEnStockBas.size());
         model.addAttribute("nombreEnRupture", nombreEnRupture);
         model.addAttribute("valeurStockBas", valeurStockBas);
@@ -205,14 +192,10 @@ public class RapportController {
         LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : LocalDateTime.now().minusYears(1);
         LocalDateTime endDateTime = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : LocalDateTime.now();
 
-        if (startDate == null) {
-            startDate = LocalDate.now().minusYears(1);
-        }
-        if (endDate == null) {
-            endDate = LocalDate.now();
-        }
+        if (startDate == null) startDate = LocalDate.now().minusYears(1);
+        if (endDate == null) endDate = LocalDate.now();
 
-        org.springframework.data.domain.Sort sort = Sort.by(Sort.Direction.ASC, "dateVente");
+        Sort sort = Sort.by(Sort.Direction.ASC, "dateVente");
         List<com.example.boutique.model.Vente> ventes = venteRepository.findAllWithDetailsByDateVenteBetween(startDateTime, endDateTime, sort);
 
         Map<LocalDate, List<com.example.boutique.model.Vente>> ventesParJour = ventes.stream()
@@ -230,17 +213,13 @@ public class RapportController {
 
         int nombreTotalVentes = ventes.size();
 
-        BigDecimal panierMoyen = BigDecimal.ZERO;
-        if (nombreTotalVentes > 0) {
-            panierMoyen = totalGeneral.divide(new BigDecimal(nombreTotalVentes), 2, java.math.RoundingMode.HALF_UP);
-        }
+        BigDecimal panierMoyen = (nombreTotalVentes > 0) ? totalGeneral.divide(new BigDecimal(nombreTotalVentes), 2, java.math.RoundingMode.HALF_UP) : BigDecimal.ZERO;
 
         Map<String, BigDecimal> totalParMoyenPaiement = ventes.stream()
                 .collect(Collectors.groupingBy(
-                        com.example.boutique.model.Vente::getMoyenPaiement,
+                        v -> v.getMoyenPaiement().name(), // FIX: Convert enum to string
                         Collectors.reducing(BigDecimal.ZERO, com.example.boutique.model.Vente::getTotalFinal, BigDecimal::add)
                 ));
-
 
         model.addAttribute("ventesParJour", ventesParJour);
         model.addAttribute("sousTotauxParJour", sousTotauxParJour);
@@ -251,7 +230,6 @@ public class RapportController {
         model.addAttribute("panierMoyen", panierMoyen);
         model.addAttribute("totalParMoyenPaiement", totalParMoyenPaiement);
         model.addAttribute("dateGeneration", LocalDateTime.now());
-
 
         return "rapport-ventes";
     }
@@ -296,7 +274,7 @@ public class RapportController {
             LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : LocalDateTime.now().minusYears(1);
             LocalDateTime endDateTime = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : LocalDateTime.now();
 
-            org.springframework.data.domain.Sort sort = Sort.by(Sort.Direction.ASC, "dateVente");
+            Sort sort = Sort.by(Sort.Direction.ASC, "dateVente");
             List<com.example.boutique.model.Vente> ventes = venteRepository.findAllWithDetailsByDateVenteBetween(startDateTime, endDateTime, sort);
 
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -320,7 +298,7 @@ public class RapportController {
                         row.createCell(1).setCellValue(vente.getDateVente().toString());
                         row.createCell(2).setCellValue(vente.getClient() != null ? vente.getClient().getNom() : "Client de passage");
                         row.createCell(3).setCellValue(vente.getUtilisateur().getUsername());
-                        row.createCell(4).setCellValue(vente.getMoyenPaiement());
+                        row.createCell(4).setCellValue(vente.getMoyenPaiement().name()); // FIX: Convert enum to string
                         row.createCell(5).setCellValue(ligne.getProduit().getId());
                         row.createCell(6).setCellValue(ligne.getProduit().getNom());
                         row.createCell(7).setCellValue(ligne.getProduit().getCategorie());
@@ -343,14 +321,10 @@ public class RapportController {
             LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : LocalDateTime.now().minusYears(1);
             LocalDateTime endDateTime = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : LocalDateTime.now();
 
-            if (startDate == null) {
-                startDate = LocalDate.now().minusYears(1);
-            }
-            if (endDate == null) {
-                endDate = LocalDate.now();
-            }
+            if (startDate == null) startDate = LocalDate.now().minusYears(1);
+            if (endDate == null) endDate = LocalDate.now();
 
-            org.springframework.data.domain.Sort sort = Sort.by(Sort.Direction.ASC, "dateVente");
+            Sort sort = Sort.by(Sort.Direction.ASC, "dateVente");
             List<com.example.boutique.model.Vente> ventes = venteRepository.findAllWithDetailsByDateVenteBetween(startDateTime, endDateTime, sort);
 
             Map<String, Object> data = new HashMap<>();
@@ -362,7 +336,7 @@ public class RapportController {
             data.put("endDate", endDate);
             data.put("nombreTotalVentes", ventes.size());
             data.put("panierMoyen", ventes.isEmpty() ? BigDecimal.ZERO : totalGeneral.divide(new BigDecimal(ventes.size()), 2, java.math.RoundingMode.HALF_UP));
-            data.put("totalParMoyenPaiement", ventes.stream().collect(Collectors.groupingBy(com.example.boutique.model.Vente::getMoyenPaiement, Collectors.reducing(BigDecimal.ZERO, com.example.boutique.model.Vente::getTotalFinal, BigDecimal::add))));
+            data.put("totalParMoyenPaiement", ventes.stream().collect(Collectors.groupingBy(v -> v.getMoyenPaiement().name(), Collectors.reducing(BigDecimal.ZERO, com.example.boutique.model.Vente::getTotalFinal, BigDecimal::add)))); // FIX: Convert enum to string
             data.put("dateGeneration", LocalDateTime.now());
 
             byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("rapport-ventes", data);

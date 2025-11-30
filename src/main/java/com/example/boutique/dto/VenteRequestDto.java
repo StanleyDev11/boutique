@@ -10,6 +10,16 @@ public class VenteRequestDto {
     private Long clientId;
     private BigDecimal discountAmount;
     private String codeCaissier;
+    private BigDecimal montantPaye;
+
+    public BigDecimal getMontantPaye() {
+        return montantPaye;
+    }
+
+    public void setMontantPaye(BigDecimal montantPaye) {
+        this.montantPaye = montantPaye;
+    }
+
 
     public List<CartItemDto> getCart() {
         return cart;

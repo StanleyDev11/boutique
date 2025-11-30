@@ -47,11 +47,19 @@ public class Vente {
     @Column(name = "total_final", nullable = false)
     private BigDecimal totalFinal;
 
+    @Column(name = "montant_paye")
+    private BigDecimal montantPaye;
+
+    @Column(name = "reliquat")
+    private BigDecimal reliquat;
+
+
     @Column(nullable = false)
     private String typeVente; // "Payé" ou "A crédit"
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String moyenPaiement; // "Espèces", "Carte", ou "Credit"
+    private com.example.boutique.enums.MoyenPaiement moyenPaiement; // "Espèces", "Carte", ou "Credit"
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
