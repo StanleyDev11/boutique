@@ -248,7 +248,7 @@ public class CaisseController {
 
     private BigDecimal calculateTotalByPaymentMethod(List<Vente> ventes, MoyenPaiement moyen) {
         return ventes.stream()
-            .filter(v -> v.getMoyenPaiement() == moyen)
+            .filter(v -> v.getStatus() != com.example.boutique.enums.VenteStatus.CANCELLED && v.getMoyenPaiement() == moyen)
             .map(Vente::getTotalFinal)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
     }

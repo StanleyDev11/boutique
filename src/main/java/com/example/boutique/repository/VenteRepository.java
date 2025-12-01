@@ -29,7 +29,7 @@ public interface VenteRepository extends JpaRepository<Vente, Long> {
     @Query("SELECT SUM(v.totalFinal) FROM Vente v WHERE v.utilisateur = :utilisateur AND v.dateVente >= :startDate AND v.typeVente != 'credit'")
     BigDecimal sumTotalForUserSince(@Param("utilisateur") Utilisateur utilisateur, @Param("startDate") LocalDateTime startDate);
 
-    @Query("SELECT SUM(v.totalFinal) FROM Vente v WHERE v.sessionCaisse = :sessionCaisse AND v.typeVente != 'credit'")
+    @Query("SELECT SUM(v.totalFinal) FROM Vente v WHERE v.sessionCaisse = :sessionCaisse AND v.typeVente != 'credit' AND v.status != com.example.boutique.enums.VenteStatus.CANCELLED")
     BigDecimal sumTotalForSession(@Param("sessionCaisse") SessionCaisse sessionCaisse);
 
     List<Vente> findByUtilisateurAndDateVenteAfter(Utilisateur utilisateur, LocalDateTime startDate, org.springframework.data.domain.Sort sort);

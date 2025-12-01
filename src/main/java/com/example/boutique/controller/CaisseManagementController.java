@@ -159,9 +159,12 @@ public class CaisseManagementController {
         SessionCaisse sessionCaisse = sessionCaisseRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Session de caisse non trouvée avec l'id : " + id));
         List<Vente> ventes = caisseService.getVentesBySessionCaisse(sessionCaisse);
+        List<Vente> ventesNonAnnulees = ventes.stream()
+                .filter(v -> v.getStatus() != com.example.boutique.enums.VenteStatus.CANCELLED)
+                .toList();
 
-        double totalVentes = ventes.stream().map(Vente::getTotalFinal).mapToDouble(java.math.BigDecimal::doubleValue).sum();
-        int nombreVentes = ventes.size();
+        double totalVentes = ventesNonAnnulees.stream().map(Vente::getTotalFinal).mapToDouble(java.math.BigDecimal::doubleValue).sum();
+        int nombreVentes = ventesNonAnnulees.size();
         double venteMoyenne = (nombreVentes > 0) ? totalVentes / nombreVentes : 0.0;
 
         model.addAttribute("sessionCaisse", sessionCaisse);

@@ -99,7 +99,9 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200" id="sales-table-body">
                     <th:block th:each="vente : ${ventes}">
-                        <tr class="hover:bg-gray-50 transition-colors cursor-pointer" th:attr="data-vente-id=${vente.id}">
+                        <tr class="hover:bg-gray-50 transition-colors cursor-pointer"
+                            th:attr="data-vente-id=${vente.id}"
+                            th:classappend="${vente.status.name() == 'CANCELLED' ? 'text-gray-400 line-through' : ''}">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <button class="expand-btn text-blue-500 hover:text-blue-700 transition-transform duration-300">
                                     <i class="fas fa-chevron-right"></i>
@@ -109,17 +111,26 @@
                             <td class="px-6 py-4 whitespace-nowrap" th:text="${vente.client != null ? vente.client.nom : 'Client au comptant'}"></td>
                             <td class="px-6 py-4 whitespace-nowrap" th:text="${vente.utilisateur.username}"></td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span th:switch="${vente.moyenPaiement}" class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full">
-                                    <span th:case="'ESPECES'" class="bg-green-100 text-green-800"><i class="fas fa-money-bill-wave mr-1"></i> Espèces</span>
-                                    <span th:case="'CARTE'" class="bg-blue-100 text-blue-800"><i class="fas fa-credit-card mr-1"></i> Carte</span>
-                                    <span th:case="'MOBILE'" class="bg-orange-100 text-orange-800"><i class="fas fa-mobile-alt mr-1"></i> Mobile</span>
-                                    <span th:case="'CREDIT'" class="bg-red-100 text-red-800"><i class="fas fa-book mr-1"></i> Crédit</span>
-                                    <span th:case="*" class="bg-gray-100 text-gray-800" th:text="${vente.moyenPaiement}"></span>
-                                </span>
+                                <th:block th:if="${vente.status.name() == 'CANCELLED'}">
+                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                        <i class="fas fa-times-circle mr-1"></i> Annulée
+                                    </span>
+                                </th:block>
+                                <th:block th:unless="${vente.status.name() == 'CANCELLED'}">
+                                    <span th:switch="${vente.moyenPaiement}" class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full">
+                                        <span th:case="'ESPECES'" class="bg-green-100 text-green-800"><i class="fas fa-money-bill-wave mr-1"></i> Espèces</span>
+                                        <span th:case="'CARTE'" class="bg-blue-100 text-blue-800"><i class="fas fa-credit-card mr-1"></i> Carte</span>
+                                        <span th:case="'MOBILE'" class="bg-orange-100 text-orange-800"><i class="fas fa-mobile-alt mr-1"></i> Mobile</span>
+                                        <span th:case="'CREDIT'" class="bg-red-100 text-red-800"><i class="fas fa-book mr-1"></i> Crédit</span>
+                                        <span th:case="*" class="bg-gray-100 text-gray-800" th:text="${vente.moyenPaiement}"></span>
+                                    </span>
+                                </th:block>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right font-semibold text-gray-800" th:text="${#numbers.formatInteger(vente.totalFinal, 1, 'WHITESPACE')} + ' FCFA'"></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right font-semibold"
+                                th:classappend="${vente.status.name() != 'CANCELLED' ? 'text-gray-800' : ''}"
+                                th:text="${#numbers.formatInteger(vente.totalFinal, 1, 'WHITESPACE')} + ' FCFA'"></td>
                         </tr>
-                        <tr class="details-row hidden bg-blue-50" th:id="'details-' + ${vente.id}">
+                        <tr class="details-row hidden bg-blue-50" th:id="'details-' + ${vente.id}" th:if="${vente.status.name() != 'CANCELLED'}">
                             <td colspan="6" class="p-0">
                                 <div class="p-4">
                                     <h4 class="text-md font-semibold text-gray-800 mb-3">Détails de la vente</h4>
