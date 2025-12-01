@@ -130,8 +130,19 @@ public class RapportController {
                                    @RequestParam(required = false) String nomProduit,
                                    @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate startDate,
                                    @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate endDate,
+                                   @RequestParam(required = false) Double minAmount,
+                                   @RequestParam(required = false) Double maxAmount,
+                                   @RequestParam(defaultValue = "date") String sortBy,
                                    @RequestParam(defaultValue = "0") int page,
-                                   @RequestParam(defaultValue = "10") int size) {
+                                   @RequestParam(defaultValue = "50") int size) {
+
+        model.addAttribute("nomProduit", nomProduit);
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+        model.addAttribute("minAmount", minAmount);
+        model.addAttribute("maxAmount", maxAmount);
+        model.addAttribute("sortBy", sortBy);
+        model.addAttribute("size", size);
 
         Sort sort = Sort.by(Sort.Direction.DESC, "dateVente");
         Pageable pageable = PageRequest.of(page, size, sort);
@@ -201,39 +212,20 @@ public class RapportController {
         if (endDate == null) endDate = LocalDate.now();
 
         Sort sort = Sort.by(Sort.Direction.ASC, "dateVente");
-        List<com.example.boutique.model.Vente> ventes = venteRepository.findAllWithDetailsByDateVenteBetween(startDateTime, endDateTime, sort);
+        List<com.example.boutique.model.Vente> ventes = venteRepository.findAllWithDetailsByDateVenteBetween(startDateTime, endDateTime, sort).stream().filter(v -> v.getStatus() != com.example.boutique.enums.VenteStatus.CANCELLED).collect(Collectors.toList());
 
-        Map<LocalDate, List<com.example.boutique.model.Vente>> ventesParJour = ventes.stream()
-                .collect(Collectors.groupingBy(v -> v.getDateVente().toLocalDate()));
+        List<LigneVente> allLigneVentes = ventes.stream()
+                .flatMap(vente -> vente.getLigneVentes().stream())
+                .collect(Collectors.toList());
 
-        Map<LocalDate, BigDecimal> sousTotauxParJour = ventes.stream()
-                .collect(Collectors.groupingBy(
-                        v -> v.getDateVente().toLocalDate(),
-                        Collectors.reducing(BigDecimal.ZERO, com.example.boutique.model.Vente::getTotalFinal, BigDecimal::add)
-                ));
-
-        BigDecimal totalGeneral = ventes.stream()
-                .map(com.example.boutique.model.Vente::getTotalFinal)
+        BigDecimal totalGeneral = allLigneVentes.stream()
+                .map(LigneVente::getMontantTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        int nombreTotalVentes = ventes.size();
-
-        BigDecimal panierMoyen = (nombreTotalVentes > 0) ? totalGeneral.divide(new BigDecimal(nombreTotalVentes), 2, java.math.RoundingMode.HALF_UP) : BigDecimal.ZERO;
-
-        Map<String, BigDecimal> totalParMoyenPaiement = ventes.stream()
-                .collect(Collectors.groupingBy(
-                        v -> v.getMoyenPaiement().name(), // FIX: Convert enum to string
-                        Collectors.reducing(BigDecimal.ZERO, com.example.boutique.model.Vente::getTotalFinal, BigDecimal::add)
-                ));
-
-        model.addAttribute("ventesParJour", ventesParJour);
-        model.addAttribute("sousTotauxParJour", sousTotauxParJour);
+        model.addAttribute("allLigneVentes", allLigneVentes);
         model.addAttribute("totalGeneral", totalGeneral);
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
-        model.addAttribute("nombreTotalVentes", nombreTotalVentes);
-        model.addAttribute("panierMoyen", panierMoyen);
-        model.addAttribute("totalParMoyenPaiement", totalParMoyenPaiement);
         model.addAttribute("dateGeneration", LocalDateTime.now());
 
         return "rapport-ventes";
@@ -280,7 +272,7 @@ public class RapportController {
             LocalDateTime endDateTime = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : LocalDateTime.now();
 
             Sort sort = Sort.by(Sort.Direction.ASC, "dateVente");
-            List<com.example.boutique.model.Vente> ventes = venteRepository.findAllWithDetailsByDateVenteBetween(startDateTime, endDateTime, sort);
+            List<com.example.boutique.model.Vente> ventes = venteRepository.findAllWithDetailsByDateVenteBetween(startDateTime, endDateTime, sort).stream().filter(v -> v.getStatus() != com.example.boutique.enums.VenteStatus.CANCELLED).collect(Collectors.toList());
 
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             response.setHeader("Content-Disposition", "attachment; filename=rapport_ventes.xlsx");
@@ -289,7 +281,7 @@ public class RapportController {
                 XSSFSheet sheet = workbook.createSheet("Rapport des Ventes");
 
                 Row headerRow = sheet.createRow(0);
-                String[] headers = {"ID Vente", "Date", "Client", "Caissier", "Moyen Paiement", "ID Produit", "Nom Produit", "Catégorie", "Quantité", "Prix Unitaire", "Total Ligne"};
+                String[] headers = {"Date", "Nom Produit", "Quantité", "Prix Unitaire", "Total Ligne"};
                 for (int i = 0; i < headers.length; i++) {
                     Cell cell = headerRow.createCell(i);
                     cell.setCellValue(headers[i]);
@@ -299,17 +291,11 @@ public class RapportController {
                 for (com.example.boutique.model.Vente vente : ventes) {
                     for (LigneVente ligne : vente.getLigneVentes()) {
                         Row row = sheet.createRow(rowNum++);
-                        row.createCell(0).setCellValue(vente.getId());
-                        row.createCell(1).setCellValue(vente.getDateVente().toString());
-                        row.createCell(2).setCellValue(vente.getClient() != null ? vente.getClient().getNom() : "Client de passage");
-                        row.createCell(3).setCellValue(vente.getUtilisateur().getUsername());
-                        row.createCell(4).setCellValue(vente.getMoyenPaiement().name()); // FIX: Convert enum to string
-                        row.createCell(5).setCellValue(ligne.getProduit().getId());
-                        row.createCell(6).setCellValue(ligne.getProduit().getNom());
-                        row.createCell(7).setCellValue(ligne.getProduit().getCategorie());
-                        row.createCell(8).setCellValue(ligne.getQuantite().doubleValue());
-                        row.createCell(9).setCellValue(ligne.getPrixUnitaire().doubleValue());
-                        row.createCell(10).setCellValue(ligne.getMontantTotal().doubleValue());
+                        row.createCell(0).setCellValue(vente.getDateVente().toString());
+                        row.createCell(1).setCellValue(ligne.getProduit().getNom());
+                        row.createCell(2).setCellValue(ligne.getQuantite().doubleValue());
+                        row.createCell(3).setCellValue(ligne.getPrixUnitaire().doubleValue());
+                        row.createCell(4).setCellValue(ligne.getMontantTotal().doubleValue());
                     }
                 }
                 workbook.write(response.getOutputStream());
@@ -330,18 +316,21 @@ public class RapportController {
             if (endDate == null) endDate = LocalDate.now();
 
             Sort sort = Sort.by(Sort.Direction.ASC, "dateVente");
-            List<com.example.boutique.model.Vente> ventes = venteRepository.findAllWithDetailsByDateVenteBetween(startDateTime, endDateTime, sort);
+            List<com.example.boutique.model.Vente> ventes = venteRepository.findAllWithDetailsByDateVenteBetween(startDateTime, endDateTime, sort).stream().filter(v -> v.getStatus() != com.example.boutique.enums.VenteStatus.CANCELLED).collect(Collectors.toList());
+
+            List<LigneVente> allLigneVentes = ventes.stream()
+                    .flatMap(vente -> vente.getLigneVentes().stream())
+                    .collect(Collectors.toList());
+
+            BigDecimal totalGeneral = allLigneVentes.stream()
+                    .map(LigneVente::getMontantTotal)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
 
             Map<String, Object> data = new HashMap<>();
-            data.put("ventesParJour", ventes.stream().collect(Collectors.groupingBy(v -> v.getDateVente().toLocalDate())));
-            data.put("sousTotauxParJour", ventes.stream().collect(Collectors.groupingBy(v -> v.getDateVente().toLocalDate(), Collectors.reducing(BigDecimal.ZERO, com.example.boutique.model.Vente::getTotalFinal, BigDecimal::add))));
-            BigDecimal totalGeneral = ventes.stream().map(com.example.boutique.model.Vente::getTotalFinal).reduce(BigDecimal.ZERO, BigDecimal::add);
+            data.put("allLigneVentes", allLigneVentes);
             data.put("totalGeneral", totalGeneral);
             data.put("startDate", startDate);
             data.put("endDate", endDate);
-            data.put("nombreTotalVentes", ventes.size());
-            data.put("panierMoyen", ventes.isEmpty() ? BigDecimal.ZERO : totalGeneral.divide(new BigDecimal(ventes.size()), 2, java.math.RoundingMode.HALF_UP));
-            data.put("totalParMoyenPaiement", ventes.stream().collect(Collectors.groupingBy(v -> v.getMoyenPaiement().name(), Collectors.reducing(BigDecimal.ZERO, com.example.boutique.model.Vente::getTotalFinal, BigDecimal::add)))); // FIX: Convert enum to string
             data.put("dateGeneration", LocalDateTime.now());
 
             byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("rapport-ventes", data);
