@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Récapitulatif de la Session</title>
+    <style>
+        @page {
+            size: 98mm 148mm;
+            margin: 5mm;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-size: 8pt;
+            color: #333;
+        }
+        .container {
+            width: 100%;
+            margin: 0 auto;
+            padding: 0;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 12pt;
+            color: #000;
+        }
+        .header p {
+            margin: 1px 0;
+            font-size: 7pt;
+            color: #555;
+        }
+        .report-title {
+            text-align: center;
+            font-size: 10pt;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .section {
+            margin-bottom: 8px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fdfdfd;
+            page-break-inside: avoid;
+        }
+        .section-title {
+            font-size: 9pt;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 3px;
+        }
+        .info-item {
+            display: block;
+            padding: 2px 0;
+            font-size: 8pt;
+        }
+        .info-item span:first-child {
+            font-weight: 500;
+            color: #333;
+            display: inline-block;
+            width: 90px;
+        }
+        .info-item span:last-child {
+            font-weight: bold;
+        }
+        .sales-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+            font-size: 7pt;
+        }
+        .sales-table th, .sales-table td {
+            padding: 3px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        .sales-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .sales-table .text-right {
+            text-align: right;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 6pt;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SUPERMARCHE BELALUXE</h1>
+            <p>Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo</p>
+            <p>Tél: (+228) 96 00 01 89 / 90 12 34 30</p>
+        </div>
+
+        <h2 class="report-title">Récapitulatif de la Session</h2>
+
+        <div class="section">
+            <div class="section-title">Détails de la Session</div>
+            <div>
+                <div class="info-item"><span>ID Session:</span> <span th:text="${sessionCaisse.id}"></span></div>
+                <div class="info-item"><span>Caissier (Ouverture):</span> <span th:text="${sessionCaisse.utilisateur.username}"></span></div>
+                <div class="info-item"><span>Caissier (Fermeture):</span> <span th:text="${sessionCaisse.fermeParUtilisateur != null ? sessionCaisse.fermeParUtilisateur.username : 'N/A'}"></span></div>
+                <div class="info-item"><span>Ouverture:</span> <span th:text="${#temporals.format(sessionCaisse.dateOuverture, 'dd/MM/yy HH:mm')}"></span></div>
+                <div class="info-item"><span>Fermeture:</span> <span th:text="${sessionCaisse.dateFermeture != null ? #temporals.format(sessionCaisse.dateFermeture, 'dd/MM/yy HH:mm') : 'Session ouverte'}"></span></div>
+                <div class="info-item"><span>Montant Initial:</span> <span th:text="${#numbers.formatDecimal(sessionCaisse.montantInitial, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
+                <div class="info-item"><span>Montant Final Compté:</span> <span th:text="${sessionCaisse.montantFinal != null ? #numbers.formatDecimal(sessionCaisse.montantFinal, 1, 'POINT', 2, 'COMMA') + ' FCFA' : 'N/A'}"></span></div>
+                <div class="info-item"><span>Écart:</span> <span th:text="${sessionCaisse.ecart != null ? #numbers.formatDecimal(sessionCaisse.ecart, 1, 'POINT', 2, 'COMMA') + ' FCFA' : 'N/A'}"></span></div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">Résumé Financier</div>
+             <div class="info-item"><span>Total Ventes Nettes:</span> <span th:text="${#numbers.formatDecimal(totalVentes, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
+             <div class="info-item"><span>Nbr. Ventes Valides:</span> <span th:text="${nombreVentes}"></span></div>
+             <div class="info-item"><span>Vente Moyenne:</span> <span th:text="${#numbers.formatDecimal(venteMoyenne, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
+        </div>
+
+        <div class="footer">
+            <p>Rapport généré le <span th:text="${#temporals.format(now, 'dd/MM/yyyy à HH:mm:ss')}"></span></p>
+        </div>
+    </div>
+</body>
+</html>

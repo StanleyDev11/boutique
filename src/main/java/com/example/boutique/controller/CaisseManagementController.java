@@ -8,8 +8,12 @@ import com.example.boutique.service.CaisseService;
 import com.example.boutique.repository.SessionCaisseRepository;
 import com.example.boutique.repository.UtilisateurRepository;
 
+import com.example.boutique.service.PdfGenerationService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,7 +27,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -36,11 +43,13 @@ public class CaisseManagementController {
     private final CaisseService caisseService;
     private final UtilisateurRepository utilisateurRepository;
     private final SessionCaisseRepository sessionCaisseRepository;
+    private final PdfGenerationService pdfGenerationService;
 
-    public CaisseManagementController(CaisseService caisseService, UtilisateurRepository utilisateurRepository, SessionCaisseRepository sessionCaisseRepository) {
+    public CaisseManagementController(CaisseService caisseService, UtilisateurRepository utilisateurRepository, SessionCaisseRepository sessionCaisseRepository, PdfGenerationService pdfGenerationService) {
         this.caisseService = caisseService;
         this.utilisateurRepository = utilisateurRepository;
         this.sessionCaisseRepository = sessionCaisseRepository;
+        this.pdfGenerationService = pdfGenerationService;
     }
 
     @GetMapping
@@ -174,5 +183,36 @@ public class CaisseManagementController {
         model.addAttribute("venteMoyenne", venteMoyenne);
 
         return "session-details";
+    }
+
+    @GetMapping("/session-details/{id}/pdf")
+    public ResponseEntity<byte[]> generateSessionPdf(@PathVariable Long id) throws IOException {
+        SessionCaisse sessionCaisse = sessionCaisseRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Session de caisse non trouvée avec l'id : " + id));
+        List<Vente> ventes = caisseService.getVentesBySessionCaisse(sessionCaisse);
+        List<Vente> ventesNonAnnulees = ventes.stream()
+                .filter(v -> v.getStatus() != com.example.boutique.enums.VenteStatus.CANCELLED)
+                .toList();
+
+        double totalVentes = ventesNonAnnulees.stream().map(Vente::getTotalFinal).mapToDouble(java.math.BigDecimal::doubleValue).sum();
+        int nombreVentes = ventesNonAnnulees.size();
+        double venteMoyenne = (nombreVentes > 0) ? totalVentes / nombreVentes : 0.0;
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("sessionCaisse", sessionCaisse);
+        data.put("ventes", ventes);
+        data.put("totalVentes", totalVentes);
+        data.put("nombreVentes", nombreVentes);
+        data.put("venteMoyenne", venteMoyenne);
+        data.put("now", LocalDateTime.now());
+
+        byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("recu-session-details", data);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        String filename = "recap-session-" + id + ".pdf";
+        headers.add("Content-Disposition", "inline; filename=\"" + filename + "\"");
+
+        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
     }
 }
