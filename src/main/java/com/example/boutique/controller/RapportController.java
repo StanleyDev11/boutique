@@ -268,7 +268,7 @@ public class RapportController {
                                          @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate startDate,
                                          @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate endDate) {
         try {
-            LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : LocalDateTime.now().minusYears(1);
+            LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : LocalDate.now().atStartOfDay();
             LocalDateTime endDateTime = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : LocalDateTime.now();
 
             Sort sort = Sort.by(Sort.Direction.ASC, "dateVente");
@@ -309,7 +309,7 @@ public class RapportController {
     public ResponseEntity<byte[]> exportRapportVentesPdf(@RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate startDate,
                                                      @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate endDate) {
         try {
-            LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : LocalDateTime.now().minusYears(1);
+            LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : LocalDate.now().atStartOfDay();
             LocalDateTime endDateTime = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : LocalDateTime.now();
 
             if (startDate == null) startDate = LocalDate.now().minusYears(1);
