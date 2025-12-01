@@ -227,7 +227,7 @@ public class CaisseController {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_PDF);
             String filename = "rapport-caisse-" + savedSession.getId() + ".pdf";
-            headers.add("Content-Disposition", "inline; filename=\"" + filename + "\"");
+            headers.add("Content-Disposition", "attachment; filename=\"" + filename + "\"");
             
             return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
 
