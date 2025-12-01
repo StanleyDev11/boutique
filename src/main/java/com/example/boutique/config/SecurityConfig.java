@@ -52,6 +52,7 @@ public class SecurityConfig {
                 .permitAll()
             )
             .logout(logout -> logout
+                .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET")) // Allow GET requests for logout
                 .invalidateHttpSession(true) // Invalidate HTTP session on logout
                 .deleteCookies("JSESSIONID") // Delete JSESSIONID cookie on logout
                 .logoutSuccessUrl("/login?logout") // Page après la déconnexion

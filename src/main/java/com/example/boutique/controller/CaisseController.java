@@ -222,7 +222,6 @@ public class CaisseController {
 
             byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("recu-fermeture-caisse", data);
 
-            new SecurityContextLogoutHandler().logout(request, response, authentication);
             
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_PDF);
