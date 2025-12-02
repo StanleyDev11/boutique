@@ -56,7 +56,7 @@ public class ProduitController {
                                @RequestParam(defaultValue = "produits") String tab,
                                @RequestParam(required = false) String keyword,
                                @RequestParam(defaultValue = "0") int page,
-                               @RequestParam(defaultValue = "10") int size,
+                               @RequestParam(defaultValue = "50") int size,
                                @RequestParam(defaultValue = "nom") String sortField,
                                @RequestParam(defaultValue = "asc") String sortDir,
                                @RequestHeader(value = "X-Requested-With", required = false) String requestedWith) {

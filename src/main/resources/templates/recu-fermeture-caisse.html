@@ -142,21 +142,9 @@
                     <td class="label">Total des Ventes (Espèces)</td>
                     <td class="value" th:text="'+ ' + ${#numbers.formatDecimal(totalVentesEspeces ?: 0, 0, 'COMMA', 0, 'POINT')} + ' FCFA'"></td>
                 </tr>
-                 <tr>
-                    <td class="label">Total des Ventes (Autres)</td>
-                    <td class="value" th:text="'+ ' + ${#numbers.formatDecimal(totalVentesAutres ?: 0, 0, 'COMMA', 0, 'POINT')} + ' FCFA'"></td>
-                </tr>
-                <tr class="total-row" style="border-top: 2px solid #ccc;">
-                    <td class="label">Montant Total qui doit etre dans la caisse</td>
-                    <td class="value" th:text="${#numbers.formatDecimal(totalTheorique ?: 0, 0, 'COMMA', 0, 'POINT')} + ' FCFA'"></td>
-                </tr>
                 <tr>
                     <td class="label">Montant Total déclarer par le caissier</td>
                     <td class="value" th:text="${#numbers.formatDecimal(session.montantFinal ?: 0, 0, 'COMMA', 0, 'POINT')} + ' FCFA'"></td>
-                </tr>
-                <tr class="total-row" style="border-top: 2px solid #ccc; background-color: #f0f0f0;">
-                    <td class="label">Écart Constaté</td>
-                    <td class="value" th:classappend="${session.ecart > 0 ? 'ecart-positif' : (session.ecart < 0 ? 'ecart-negatif' : '')}" th:text="${#numbers.formatDecimal(session.ecart ?: 0, 0, 'COMMA', 0, 'POINT')} + ' FCFA'"></td>
                 </tr>
             </table>
         </div>

@@ -173,28 +173,87 @@ public class CaisseManagementController {
                 .filter(v -> v.getStatus() != com.example.boutique.enums.VenteStatus.CANCELLED)
                 .toList();
 
-        double totalVentes = ventesNonAnnulees.stream().map(Vente::getTotalFinal).mapToDouble(java.math.BigDecimal::doubleValue).sum();
-        double totalVentesEspeces = ventesNonAnnulees.stream()
-            .filter(v -> v.getMoyenPaiement() == MoyenPaiement.ESPECES)
-            .mapToDouble(v -> v.getTotalFinal().doubleValue())
-            .sum();
+                double totalVentes = ventesNonAnnulees.stream().map(Vente::getTotalFinal).mapToDouble(java.math.BigDecimal::doubleValue).sum();
 
-        int nombreVentes = ventesNonAnnulees.size();
-        double venteMoyenne = (nombreVentes > 0) ? totalVentes / nombreVentes : 0.0;
+        
 
-        java.math.BigDecimal theoreticalCashMontantFinal = sessionCaisse.getMontantInitial().add(java.math.BigDecimal.valueOf(totalVentesEspeces));
-        java.math.BigDecimal montantCompté = sessionCaisse.getMontantFinal();
-        java.math.BigDecimal ecartCalcule = (montantCompté != null) ? montantCompté.subtract(theoreticalCashMontantFinal) : null;
+                double totalVentesEspeces = ventesNonAnnulees.stream()
 
-        model.addAttribute("sessionCaisse", sessionCaisse);
-        model.addAttribute("ventes", ventes);
-        model.addAttribute("totalVentes", totalVentes);
-        model.addAttribute("totalVentesEspeces", totalVentesEspeces);
-        model.addAttribute("nombreVentes", nombreVentes);
-        model.addAttribute("venteMoyenne", venteMoyenne);
-        model.addAttribute("theoreticalCashMontantFinal", theoreticalCashMontantFinal);
-        model.addAttribute("montantCompté", montantCompté);
-        model.addAttribute("ecartCalcule", ecartCalcule);
+                    .filter(v -> v.getMoyenPaiement() == MoyenPaiement.ESPECES)
+
+                    .mapToDouble(v -> v.getTotalFinal().doubleValue())
+
+                    .sum();
+
+                
+
+                double totalVentesCarte = ventesNonAnnulees.stream()
+
+                    .filter(v -> v.getMoyenPaiement() == MoyenPaiement.CARTE)
+
+                    .mapToDouble(v -> v.getTotalFinal().doubleValue())
+
+                    .sum();
+
+                    
+
+                double totalVentesMobile = ventesNonAnnulees.stream()
+
+                    .filter(v -> v.getMoyenPaiement() == MoyenPaiement.MOBILE)
+
+                    .mapToDouble(v -> v.getTotalFinal().doubleValue())
+
+                    .sum();
+
+        
+
+                double totalVentesCredit = ventesNonAnnulees.stream()
+
+                    .filter(v -> v.getMoyenPaiement() == MoyenPaiement.CREDIT)
+
+                    .mapToDouble(v -> v.getTotalFinal().doubleValue())
+
+                    .sum();
+
+        
+
+                int nombreVentes = ventesNonAnnulees.size();
+
+                double venteMoyenne = (nombreVentes > 0) ? totalVentes / nombreVentes : 0.0;
+
+        
+
+                java.math.BigDecimal theoreticalCashMontantFinal = sessionCaisse.getMontantInitial().add(java.math.BigDecimal.valueOf(totalVentesEspeces));
+
+                java.math.BigDecimal montantCompté = sessionCaisse.getMontantFinal();
+
+                java.math.BigDecimal ecartCalcule = (montantCompté != null) ? montantCompté.subtract(theoreticalCashMontantFinal) : null;
+
+        
+
+                model.addAttribute("sessionCaisse", sessionCaisse);
+
+                model.addAttribute("ventes", ventes);
+
+                model.addAttribute("totalVentes", totalVentes);
+
+                model.addAttribute("totalVentesEspeces", totalVentesEspeces);
+
+                model.addAttribute("totalVentesCarte", totalVentesCarte);
+
+                model.addAttribute("totalVentesMobile", totalVentesMobile);
+
+                model.addAttribute("totalVentesCredit", totalVentesCredit);
+
+                model.addAttribute("nombreVentes", nombreVentes);
+
+                model.addAttribute("venteMoyenne", venteMoyenne);
+
+                model.addAttribute("theoreticalCashMontantFinal", theoreticalCashMontantFinal);
+
+                model.addAttribute("montantCompté", montantCompté);
+
+                model.addAttribute("ecartCalcule", ecartCalcule);
 
         return "session-details";
     }

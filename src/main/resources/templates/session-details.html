@@ -39,14 +39,23 @@
             </a>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-            <div class="flex items-center"><i class="fas fa-user text-gray-500 mr-3"></i>Caissier: <span class="font-medium text-gray-900 ml-2" th:text="${sessionCaisse.utilisateur.username}"></span></div>
             <div class="flex items-center"><i class="fas fa-money-bill-wave text-gray-500 mr-3"></i>Montant initial: <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(sessionCaisse.montantInitial, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
-            <div class="flex items-center"><i class="fas fa-calendar-alt text-gray-500 mr-3"></i>Date d'ouverture: <span class="font-medium text-gray-900 ml-2" th:text="${#temporals.format(sessionCaisse.dateOuverture, 'dd/MM/yyyy HH:mm')}"></span></div>
-            <div class="flex items-center"><i class="fas fa-shopping-cart text-gray-500 mr-3"></i>Total des Ventes (Tous): <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(totalVentes, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
-            <div class="flex items-center"><i class="fas fa-money-bill-wave text-gray-500 mr-3"></i>Ventes (Espèces): <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(totalVentesEspeces, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
-            <div class="flex items-center"><i class="fas fa-calculator text-gray-500 mr-3"></i>Montant final (Théorique): <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(theoreticalCashMontantFinal, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
+            <div class="flex items-center"><i class="fas fa-shopping-cart text-gray-500 mr-3"></i>Montant total de vente: <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(totalVentes, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
             <div class="flex items-center"><i class="fas fa-cash-register text-gray-500 mr-3"></i>Montant compté: <span class="font-medium text-gray-900 ml-2" th:text="${montantCompté != null ? #numbers.formatDecimal(montantCompté, 1, 'POINT', 2, 'COMMA') + ' FCFA' : 'N/A'}"></span></div>
-            <div class="flex items-center"><i class="fas fa-balance-scale-left text-gray-500 mr-3"></i>Écart: <span class="font-medium text-gray-900 ml-2" th:text="${ecartCalcule != null ? #numbers.formatDecimal(ecartCalcule, 1, 'POINT', 2, 'COMMA') + ' FCFA' : 'N/A'}"></span></div>
+            <div class="flex items-center"><i class="fas fa-credit-card text-gray-500 mr-3"></i>Montant à crédit: <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(totalVentesCredit, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
+            <div class="flex items-center hidden"><i class="fas fa-balance-scale-left text-gray-500 mr-3"></i>Écart: <span class="font-medium text-gray-900 ml-2" th:text="${ecartCalcule != null ? #numbers.formatDecimal(ecartCalcule, 1, 'POINT', 2, 'COMMA') + ' FCFA' : 'N/A'}"></span></div>
+            <div class="flex items-center hidden"><i class="fas fa-calculator text-gray-500 mr-3"></i>Montant final (Théorique): <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(theoreticalCashMontantFinal, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
+            
+            <div class="col-span-full border-t my-4"></div>
+
+            <div class="flex items-center"><i class="fas fa-money-bill-wave text-gray-500 mr-3"></i>Ventes (Espèces): <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(totalVentesEspeces, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
+            <div class="flex items-center"><i class="fas fa-credit-card text-gray-500 mr-3"></i>Ventes (Carte): <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(totalVentesCarte, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
+            <div class="flex items-center hidden"><i class="fas fa-mobile-alt text-gray-500 mr-3"></i>Ventes (Mobile): <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(totalVentesMobile, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
+
+            <div class="col-span-full border-t my-4"></div>
+
+            <div class="flex items-center"><i class="fas fa-user text-gray-500 mr-3"></i>Caissier: <span class="font-medium text-gray-900 ml-2" th:text="${sessionCaisse.utilisateur.username}"></span></div>
+            <div class="flex items-center"><i class="fas fa-calendar-alt text-gray-500 mr-3"></i>Date d'ouverture: <span class="font-medium text-gray-900 ml-2" th:text="${#temporals.format(sessionCaisse.dateOuverture, 'dd/MM/yyyy HH:mm')}"></span></div>
             <div class="flex items-center"><i class="fas fa-calendar-times text-gray-500 mr-3"></i>Date de fermeture: <span class="font-medium text-gray-900 ml-2" th:text="${sessionCaisse.dateFermeture != null ? #temporals.format(sessionCaisse.dateFermeture, 'dd/MM/yyyy HH:mm') : 'Session ouverte'}"></span></div>
             <div th:if="${sessionCaisse.fermeParUtilisateur}" class="flex items-center"><i class="fas fa-user-lock text-gray-500 mr-3"></i>Fermé par: <span class="font-medium text-gray-900 ml-2" th:text="${sessionCaisse.fermeParUtilisateur.username}"></span></div>
         </div>
