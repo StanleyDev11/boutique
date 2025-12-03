@@ -30,7 +30,7 @@ public class UserUtils {
         return null;
     }
 
-    public long countAdmins(List<Utilisateur> utilisateurs) {
+    public static long countAdmins(List<Utilisateur> utilisateurs) {
         if (utilisateurs == null) {
             return 0;
         }
@@ -39,7 +39,7 @@ public class UserUtils {
                 .count();
     }
 
-    public long countUsers(List<Utilisateur> utilisateurs) {
+    public static long countUsers(List<Utilisateur> utilisateurs) {
         if (utilisateurs == null) {
             return 0;
         }
@@ -48,7 +48,7 @@ public class UserUtils {
                 .count();
     }
 
-    public long countCaissiers(List<Utilisateur> utilisateurs) {
+    public static long countCaissiers(List<Utilisateur> utilisateurs) {
         if (utilisateurs == null) {
             return 0;
         }
@@ -57,7 +57,7 @@ public class UserUtils {
                 .count();
     }
 
-    public long countGestionnaires(List<Utilisateur> utilisateurs) {
+    public static long countGestionnaires(List<Utilisateur> utilisateurs) {
         if (utilisateurs == null) {
             return 0;
         }
