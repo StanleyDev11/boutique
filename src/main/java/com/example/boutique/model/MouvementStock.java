@@ -38,9 +38,9 @@ public class MouvementStock {
 
     private String description;
 
-    private String numeroFacture;
-
-    private String nomFournisseur;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "facture_id")
+    private Facture facture;
 
     @ManyToOne
     @JoinColumn(name = "utilisateur_id")

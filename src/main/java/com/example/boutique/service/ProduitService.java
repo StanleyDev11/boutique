@@ -71,7 +71,7 @@ public class ProduitService {
                 mouvement.setTypeMouvement(TypeMouvement.ENTREE);
                 mouvement.setDateMouvement(LocalDateTime.now());
                 mouvement.setDescription("Stock initial");
-                stockService.enregistrerMouvement(mouvement);
+                stockService.enregistrerMouvement(mouvement, productBatchDto.getNumeroFacture(), productBatchDto.getNomFournisseur());
             }
         }
     }

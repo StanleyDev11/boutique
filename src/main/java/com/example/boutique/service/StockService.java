@@ -1,6 +1,8 @@
 package com.example.boutique.service;
 
 import com.example.boutique.dto.CartItemDto;
+import com.example.boutique.dto.MouvementStockBatchDto;
+import com.example.boutique.dto.MouvementStockItemDto;
 import com.example.boutique.dto.VenteRequestDto;
 import com.example.boutique.enums.TypeMouvement;
 import com.example.boutique.model.*;
@@ -12,9 +14,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -26,20 +30,101 @@ public class StockService {
     private final ClientRepository clientRepository;
     private final LigneVenteRepository ligneVenteRepository;
     private final SessionCaisseRepository sessionCaisseRepository;
+    private final FactureService factureService;
 
 
-    public StockService(MouvementStockRepository mouvementStockRepository, ProduitRepository produitRepository, VenteRepository venteRepository, ClientRepository clientRepository, LigneVenteRepository ligneVenteRepository, SessionCaisseRepository sessionCaisseRepository) {
+    public StockService(MouvementStockRepository mouvementStockRepository, ProduitRepository produitRepository, VenteRepository venteRepository, ClientRepository clientRepository, LigneVenteRepository ligneVenteRepository, SessionCaisseRepository sessionCaisseRepository, FactureService factureService) {
         this.mouvementStockRepository = mouvementStockRepository;
         this.produitRepository = produitRepository;
         this.venteRepository = venteRepository;
         this.clientRepository = clientRepository;
         this.ligneVenteRepository = ligneVenteRepository;
         this.sessionCaisseRepository = sessionCaisseRepository;
+        this.factureService = factureService;
     }
 
-    public void enregistrerMouvement(MouvementStock mouvement) {
+    @Transactional(rollbackFor = Exception.class)
+    public void enregistrerMouvementBatch(MouvementStockBatchDto batchDto) {
+        if (batchDto.getMouvements() == null || batchDto.getMouvements().isEmpty()) {
+            throw new IllegalArgumentException("La liste des mouvements ne peut pas être vide.");
+        }
+
+        // 1. Create Invoice if it's an incoming movement
+        Facture facture = null;
+        if (batchDto.getTypeMouvement() == TypeMouvement.ENTREE && batchDto.getNumeroFacture() != null && !batchDto.getNumeroFacture().isBlank()) {
+            facture = factureService.creerFactureAchat(batchDto);
+        }
+
+        // 2. Update stock and create movements
+        List<MouvementStock> mouvementsASauvegarder = new ArrayList<>();
+        List<Long> produitIds = batchDto.getMouvements().stream()
+                .map(MouvementStockItemDto::getProduitId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        Map<Long, Produit> produitsMap = new HashMap<>();
+        for (Long produitId : produitIds) {
+            Produit produit = produitRepository.findByIdForUpdate(produitId)
+                    .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé avec l'ID: " + produitId));
+            produitsMap.put(produitId, produit);
+        }
+
+        for (MouvementStockItemDto itemDto : batchDto.getMouvements()) {
+            Produit produit = produitsMap.get(itemDto.getProduitId());
+            BigDecimal quantiteMouvement = itemDto.getQuantite();
+            if (quantiteMouvement == null || quantiteMouvement.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("La quantité pour le produit '" + produit.getNom() + "' doit être positive.");
+            }
+
+            // Update product's purchase price if it's an incoming movement
+            // This assumes the DTO can carry the new purchase price, which it currently does not.
+            // For now, we rely on the price already on the product.
+
+            BigDecimal stockActuel = produit.getQuantiteEnStock();
+            BigDecimal nouveauStock;
+
+            switch (batchDto.getTypeMouvement()) {
+                case ENTREE:
+                    nouveauStock = stockActuel.add(quantiteMouvement);
+                    break;
+                case SORTIE_VENTE:
+                case SORTIE_PERTE:
+                case PERIME:
+                case CASSE_DEFECTUEUX:
+                case AVOIR:
+                    if (stockActuel.compareTo(quantiteMouvement) < 0) {
+                        throw new IllegalStateException("Quantité en stock (" + stockActuel + ") insuffisante pour le produit: " + produit.getNom());
+                    }
+                    nouveauStock = stockActuel.subtract(quantiteMouvement);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Type de mouvement non supporté: " + batchDto.getTypeMouvement());
+            }
+            produit.setQuantiteEnStock(nouveauStock);
+
+            MouvementStock mouvement = new MouvementStock();
+            mouvement.setProduit(produit);
+            mouvement.setQuantite(quantiteMouvement);
+            mouvement.setTypeMouvement(batchDto.getTypeMouvement());
+            mouvement.setFacture(facture); // Link to the new invoice
+            mouvement.setDescription(batchDto.getDescription());
+            mouvement.setDateMouvement(LocalDateTime.now());
+            mouvementsASauvegarder.add(mouvement);
+        }
+
+        produitRepository.saveAll(produitsMap.values());
+        mouvementStockRepository.saveAll(mouvementsASauvegarder);
+    }
+
+    public void enregistrerMouvement(MouvementStock mouvement, String numeroFacture, String nomFournisseur) {
         Produit produit = produitRepository.findById(mouvement.getProduit().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé"));
+
+        // Find or create the invoice and associate it with the movement
+        if (mouvement.getTypeMouvement() == TypeMouvement.ENTREE) {
+            Facture facture = factureService.findOrCreateFacture(numeroFacture, nomFournisseur);
+            mouvement.setFacture(facture);
+        }
 
         BigDecimal quantiteMouvement = mouvement.getQuantite();
         BigDecimal stockActuel = produit.getQuantiteEnStock();
@@ -194,7 +279,7 @@ public class StockService {
             mouvementStock.setUtilisateur(vente.getUtilisateur());
 
             // La méthode enregistrerMouvement gère déjà la logique d'addition au stock pour le type ENTREE
-            enregistrerMouvement(mouvementStock);
+            enregistrerMouvement(mouvementStock, null, null);
         }
     }
 }

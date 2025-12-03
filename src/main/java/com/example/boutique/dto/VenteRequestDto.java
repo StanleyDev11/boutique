@@ -11,6 +11,7 @@ public class VenteRequestDto {
     private BigDecimal discountAmount;
     private String codeCaissier;
     private BigDecimal montantPaye;
+    private Long tabId; // Ajout du champ tabId
 
     public BigDecimal getMontantPaye() {
         return montantPaye;
@@ -67,5 +68,13 @@ public class VenteRequestDto {
 
     public void setCodeCaissier(String codeCaissier) {
         this.codeCaissier = codeCaissier;
+    }
+
+    public Long getTabId() {
+        return tabId;
+    }
+
+    public void setTabId(Long tabId) {
+        this.tabId = tabId;
     }
 }

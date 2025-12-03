@@ -168,7 +168,7 @@ class ProduitServiceTest {
         when(produitRepository.findByCodeBarres("BP1")).thenReturn(Optional.empty());
         when(produitRepository.findByCodeBarres("BP2")).thenReturn(Optional.empty());
         when(produitRepository.saveAll(anyList())).thenReturn(List.of(savedProduit1, savedProduit2));
-        doNothing().when(stockService).enregistrerMouvement(any(MouvementStock.class));
+        doNothing().when(stockService).enregistrerMouvement(any(MouvementStock.class), anyString(), anyString());
 
         // When
         produitService.saveNewProductBatch(batchDto);
@@ -177,7 +177,7 @@ class ProduitServiceTest {
         verify(produitRepository, times(1)).findByCodeBarres("BP1");
         verify(produitRepository, times(1)).findByCodeBarres("BP2");
         verify(produitRepository, times(1)).saveAll(anyList());
-        verify(stockService, times(1)).enregistrerMouvement(any(MouvementStock.class)); // Only for dto1 (quantiteEnStock > 0)
+        verify(stockService, times(1)).enregistrerMouvement(any(MouvementStock.class), anyString(), anyString()); // Only for dto1 (quantiteEnStock > 0)
     }
 
     @Test
@@ -209,6 +209,6 @@ class ProduitServiceTest {
         assertEquals("Le code-barres 'EXISTING_BARCODE' existe déjà pour le produit 'Existing Product Name'.", thrown.getMessage());
         verify(produitRepository, times(1)).findByCodeBarres("EXISTING_BARCODE");
         verify(produitRepository, never()).saveAll(anyList());
-        verify(stockService, never()).enregistrerMouvement(any(MouvementStock.class));
+        verify(stockService, never()).enregistrerMouvement(any(MouvementStock.class), anyString(), anyString());
     }
 }

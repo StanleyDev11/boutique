@@ -136,7 +136,7 @@ public class ProduitController {
             return "redirect:/produits?tab=factures";
         }
 
-        List<MouvementStock> mouvements = mouvementStockRepository.findByProduitNumeroFactureAndTypeMouvementOrderByProduitNomAsc(numeroFacture, TypeMouvement.ENTREE);
+        List<MouvementStock> mouvements = mouvementStockRepository.findByProduit_NumeroFactureAndTypeMouvementOrderByProduit_NomAsc(numeroFacture, TypeMouvement.ENTREE);
 
         model.addAttribute("produits", produits);
         model.addAttribute("factureInfo", factureInfoOpt.get());

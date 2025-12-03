@@ -39,6 +39,7 @@ public interface MouvementStockRepository extends JpaRepository<MouvementStock, 
            "GROUP BY FUNCTION('DATE', m.dateMouvement)")
     List<MouvementStatDto> countMouvementsByDayAndType(@Param("startDate") LocalDateTime startDate, @Param("type") TypeMouvement type);
 
-    List<MouvementStock> findByProduitNumeroFactureAndTypeMouvementOrderByProduitNomAsc(String numeroFacture, TypeMouvement type);
+    // Méthode ajoutée pour ProduitController afin de récupérer les mouvements par numéro de facture
+    List<MouvementStock> findByProduit_NumeroFactureAndTypeMouvementOrderByProduit_NomAsc(String numeroFacture, TypeMouvement typeMouvement);
 
 }

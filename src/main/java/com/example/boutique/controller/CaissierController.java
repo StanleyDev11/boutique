@@ -9,6 +9,7 @@ import com.example.boutique.repository.ProduitRepository;
 import com.example.boutique.repository.SessionCaisseRepository;
 import com.example.boutique.repository.UtilisateurRepository;
 import com.example.boutique.service.StockService;
+import com.example.boutique.service.PanierTemporaireService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -33,13 +34,15 @@ public class CaissierController {
     private final ClientRepository clientRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final SessionCaisseRepository sessionCaisseRepository;
+    private final PanierTemporaireService panierTemporaireService;
 
-    public CaissierController(ProduitRepository produitRepository, StockService stockService, ClientRepository clientRepository, UtilisateurRepository utilisateurRepository, SessionCaisseRepository sessionCaisseRepository) {
+    public CaissierController(ProduitRepository produitRepository, StockService stockService, ClientRepository clientRepository, UtilisateurRepository utilisateurRepository, SessionCaisseRepository sessionCaisseRepository, PanierTemporaireService panierTemporaireService) {
         this.produitRepository = produitRepository;
         this.stockService = stockService;
         this.clientRepository = clientRepository;
         this.utilisateurRepository = utilisateurRepository;
         this.sessionCaisseRepository = sessionCaisseRepository;
+        this.panierTemporaireService = panierTemporaireService;
     }
 
     @GetMapping
@@ -75,6 +78,12 @@ public class CaissierController {
             }
 
             stockService.enregistrerVente(venteRequest, utilisateur);
+
+            // Supprimer le panier temporaire après la vente
+            if (venteRequest.getTabId() != null) {
+                panierTemporaireService.deletePanier(venteRequest.getTabId(), utilisateur);
+            }
+
             return ResponseEntity.ok(Map.of("success", true, "message", "Vente enregistrée avec succès !"));
         } catch (IllegalArgumentException | IllegalStateException e) {
             logger.warn("Erreur de logique métier lors de la vente : {}", e.getMessage());

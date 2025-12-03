@@ -312,15 +312,6 @@
   let activeTabIndex = 0;
   let nextTabId = 1;
 
-  function saveState() {
-      const state = {
-          tabs: tabs,
-          activeTabIndex: activeTabIndex,
-          nextTabId: nextTabId
-      };
-      localStorage.setItem('cashierState', JSON.stringify(state));
-  }
-
   document.addEventListener('DOMContentLoaded', function() {
       // --- DOM Elements ---
       const searchInput = document.getElementById('search-input');
@@ -383,38 +374,76 @@
           }
       }
 
-      // --- State Loading ---
-      function loadState() {
-          const savedState = localStorage.getItem('cashierState');
-          if (savedState) {
-              const state = JSON.parse(savedState);
-              tabs = state.tabs;
-              activeTabIndex = state.activeTabIndex;
-              nextTabId = state.nextTabId;
-              if (activeTabIndex >= tabs.length) {
-                  activeTabIndex = tabs.length - 1;
+      // --- Initialization ---
+      async function loadTabsFromDB() {
+          try {
+              const response = await fetch('/api/paniers');
+              if (!response.ok) throw new Error('Could not fetch tabs.');
+              const savedTabs = await response.json();
+
+              if (savedTabs && savedTabs.length > 0) {
+                  tabs = savedTabs.map(t => ({...JSON.parse(t.cartData), dbId: t.id, tabId: t.tabId}));
+                  // Find the highest tabId to correctly set nextTabId
+                  const maxId = Math.max(...tabs.map(t => t.id));
+                  nextTabId = maxId + 1;
+              } else {
+                  // Create a default tab if none exist
+                  tabs = [{ id: 1, cart: [], selectedClient: null, discountAmount: 0, discountPercentage: 0 }];
+                  nextTabId = 2;
+                  // Save this new default tab to the backend
+                  await saveActiveTabToDB();
               }
-          }
-          if (tabs.length === 0) {
+              activeTabIndex = 0;
+              switchTab(activeTabIndex);
+          } catch (error) {
+              console.error("Error loading tabs:", error);
+              Swal.fire('Erreur de chargement', 'Impossible de charger les paniers existants.', 'error');
+              // Fallback to a single default tab
               tabs = [{ id: 1, cart: [], selectedClient: null, discountAmount: 0, discountPercentage: 0 }];
               activeTabIndex = 0;
               nextTabId = 2;
+              switchTab(activeTabIndex);
           }
       }
 
-      // --- Initialization ---
-      loadState();
+      loadTabsFromDB();
       searchInput.focus();
-      switchTab(activeTabIndex);
+      // switchTab is now called inside loadTabsFromDB
+      // switchTab(activeTabIndex);
 
       const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true });
 
       // --- Tab Management ---
+      async function saveActiveTabToDB() {
+          const activeTab = tabs[activeTabIndex];
+          if (!activeTab) return;
+
+          const payload = {
+              tabId: activeTab.id,
+              cartData: JSON.stringify(activeTab) // sérialise tout l'objet tab
+          };
+
+          try {
+              const response = await fetch('/api/paniers', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
+                  body: JSON.stringify(payload)
+              });
+              if (!response.ok) throw new Error('Failed to save tab.');
+              const savedTab = await response.json();
+              // Mettre à jour l'ID de la base de données sur l'onglet si ce n'était pas déjà fait
+              activeTab.dbId = savedTab.id;
+          } catch (error) {
+              console.error('Error saving tab:', error);
+              Toast.fire({ icon: 'error', title: 'Erreur de sauvegarde', text: 'Le panier n\'a pas pu être sauvegardé.' });
+          }
+      }
+
       function renderTabs() {
           tabsContainer.innerHTML = '';
           tabs.forEach((tab, index) => {
               const tabButton = document.createElement('button');
-              tabButton.className = `px-4 py-2 rounded-lg text-sm font-medium flex items-center transition-all duration-300 ` +
+              tabButton.className = `px-4 py-2 rounded-lg text-sm font-medium flex items-center transition-all duration-300 relative ` +
                   (index === activeTabIndex ? 'tab-active shadow' : 'bg-white text-gray-600 hover:bg-indigo-50 shadow-sm');
               let content = `Caisse ${tab.id}`;
               if (tab.cart.length > 0) {
@@ -423,15 +452,68 @@
               if (tab.selectedClient) {
                   content += ` <i class="fas fa-user ml-2 text-xs"></i>`;
               }
+              // Ajouter un bouton de fermeture
+              if (tabs.length > 1) { // Ne pas afficher le bouton si c'est le dernier onglet
+                  content += `<button data-tab-index="${index}" class="close-tab-btn absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs opacity-80 hover:opacity-100">&times;</button>`;
+              }
+
               tabButton.innerHTML = content;
-              tabButton.addEventListener('click', () => switchTab(index));
+              tabButton.addEventListener('click', (e) => {
+                  if (e.target.classList.contains('close-tab-btn')) {
+                      e.stopPropagation();
+                      closeTab(parseInt(e.target.dataset.tabIndex));
+                  } else {
+                      switchTab(index);
+                  }
+              });
+
               tabsContainer.appendChild(tabButton);
           });
-          saveState();
       }
 
-      function addNewTab() {
-          tabs.push({ id: nextTabId++, cart: [], selectedClient: null, discountAmount: 0, discountPercentage: 0 });
+      async function deleteTabFromDatabase(tabId) {
+          try {
+              const response = await fetch(`/api/paniers/${tabId}`, {
+                  method: 'DELETE',
+                  headers: { [csrfHeader]: csrfToken }
+              });
+              if (!response.ok) throw new Error('Failed to delete tab.');
+          } catch (error) {
+              console.error('Error deleting tab:', error);
+              Toast.fire({ icon: 'error', title: 'Erreur de suppression', text: 'Le panier n\'a pas pu être supprimé.' });
+          }
+      }
+
+      function closeTab(index) {
+          const tabToClose = tabs[index];
+          Swal.fire({
+              title: `Fermer la Caisse ${tabToClose.id}?`,
+              text: "Toutes les données de ce panier seront perdues.",
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#d33',
+              confirmButtonText: 'Oui, fermer!',
+              cancelButtonText: 'Annuler'
+          }).then(async (result) => {
+              if (result.isConfirmed) {
+                  await deleteTabFromDatabase(tabToClose.id);
+                  tabs.splice(index, 1);
+
+                  // Ajuster l'index actif
+                  if (activeTabIndex >= index) {
+                      activeTabIndex = Math.max(0, activeTabIndex - 1);
+                  }
+                  
+                  switchTab(activeTabIndex);
+              }
+          });
+      }
+
+      async function addNewTab() {
+          const newTabObject = { id: nextTabId++, cart: [], selectedClient: null, discountAmount: 0, discountPercentage: 0 };
+          tabs.push(newTabObject);
+          activeTabIndex = tabs.length - 1;
+          await saveActiveTabToDB(); // Sauvegarde le nouvel onglet
           switchTab(tabs.length - 1);
       }
 
@@ -532,6 +614,7 @@
           }
           renderActiveTabContent();
           renderTabs();
+          saveActiveTabToDB(); // Sauvegarder
           Toast.fire({ icon: 'success', title: `${name} ajouté` });
           searchInput.focus();
       }
@@ -552,6 +635,7 @@
           }
           renderActiveTabContent();
           renderTabs();
+          saveActiveTabToDB(); // Sauvegarder
       }
 
       function clearCart() {
@@ -572,6 +656,7 @@
                   tab.selectedClient = null;
                   renderActiveTabContent();
                   renderTabs();
+                  saveActiveTabToDB(); // Sauvegarder
                   Toast.fire({ icon: 'success', title: 'Panier vidé' });
               }
           });
@@ -598,6 +683,7 @@
           clientSearchResults.classList.add('hidden');
           renderClientSection();
           renderTabs();
+          saveActiveTabToDB(); // Sauvegarder
       }
 
       async function openAddClientModal() {
@@ -678,6 +764,7 @@
               tab.discountPercentage = percentValue;
               tab.discountAmount = (subTotal * percentValue) / 100;
               renderActiveTabContent();
+              saveActiveTabToDB(); // Sauvegarder
           }
       }
 
@@ -725,7 +812,6 @@
           discountAmount.textContent = `-${Math.trunc(discount)} FCFA`;
           finalTotal.textContent = `${Math.trunc(finalTotalValue)} FCFA`;
           renderClientSection();
-          saveState();
       }
 
       async function openPaymentModal() {
@@ -880,14 +966,14 @@
                                             clientId: tab.selectedClient ? tab.selectedClient.id : null,
                                             discountAmount: tab.discountAmount,
                                             codeCaissier: formValues.codeCaissier,
-                                            montantPaye: formValues.tenderedAmount
+                                            montantPaye: formValues.tenderedAmount,
+                                            tabId: tab.id // Ajouter l'ID de l'onglet
                                         })              })
               .then(res => res.json())
               .then(data => {
                   if (data.success) {
                       const completedTab = JSON.parse(JSON.stringify(tab));
                       tabs[activeTabIndex] = { id: tabs[activeTabIndex].id, cart: [], selectedClient: null, discountAmount: 0 };
-                      saveState();
 
                       Swal.fire({
                           title: 'Vente enregistrée!',
@@ -1027,6 +1113,7 @@
               tabs[activeTabIndex].cart = tabs[activeTabIndex].cart.filter(i => i.id !== productId);
               renderActiveTabContent();
               renderTabs();
+              saveActiveTabToDB(); // Sauvegarder
           }
       });
       clearCartButton.addEventListener('click', clearCart);
@@ -1063,6 +1150,7 @@
           tabs[activeTabIndex].selectedClient = null;
           renderClientSection();
           renderTabs();
+          saveActiveTabToDB(); // Sauvegarder
       });
       
   });
