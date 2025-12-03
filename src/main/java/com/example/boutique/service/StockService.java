@@ -124,6 +124,11 @@ public class StockService {
         if (mouvement.getTypeMouvement() == TypeMouvement.ENTREE) {
             Facture facture = factureService.findOrCreateFacture(numeroFacture, nomFournisseur);
             mouvement.setFacture(facture);
+
+            // If a facture was found or created, add a line item to it
+            if (facture != null) {
+                factureService.addLigneToFacture(facture, produit, mouvement.getQuantite());
+            }
         }
 
         BigDecimal quantiteMouvement = mouvement.getQuantite();

@@ -84,6 +84,36 @@ public class FactureService {
     }
 
     @Transactional
+    public void addLigneToFacture(Facture facture, Produit produit, BigDecimal quantite) {
+        if (facture == null || produit == null || quantite == null || quantite.compareTo(BigDecimal.ZERO) <= 0) {
+            return; // Do nothing if parameters are invalid
+        }
+
+        LigneFacture ligne = new LigneFacture();
+        ligne.setFacture(facture);
+        ligne.setProduit(produit);
+        ligne.setQuantite(quantite);
+
+        BigDecimal prixAchat = produit.getPrixAchat();
+        if (prixAchat == null) {
+            // Depending on business rules, we could default to zero or throw an exception.
+            // Throwing an exception is safer to enforce data integrity.
+            throw new IllegalStateException("Le produit '" + produit.getNom() + "' n'a pas de prix d'achat défini. Impossible d'ajouter à la facture.");
+        }
+        ligne.setPrixUnitaire(prixAchat);
+
+        BigDecimal montantLigne = prixAchat.multiply(quantite);
+        ligne.setMontantTotalLigne(montantLigne);
+
+        ligneFactureRepository.save(ligne);
+
+        // Update the total amount on the parent Facture
+        BigDecimal montantTotalActuel = facture.getMontantTotal() == null ? BigDecimal.ZERO : facture.getMontantTotal();
+        facture.setMontantTotal(montantTotalActuel.add(montantLigne));
+        factureRepository.save(facture);
+    }
+
+    @Transactional
     public Facture findOrCreateFacture(String numeroFacture, String nomFournisseur) {
         if (numeroFacture == null || numeroFacture.isBlank()) {
             return null; // No invoice if no number is provided

@@ -1,0 +1,28 @@
+feat: Restore and enhance stock and invoice management features
+
+This commit addresses several issues and enhancements:
+
+- **Restored 'Produit' and 'Facture' related functionalities:**
+  - Reverted problematic changes to `ProduitController` and `facture-details.html`.
+  - Reintroduced `FactureInfoDTO.java` (deleted by previous user changes).
+
+- **Integrated 'Panier Temporaire' and 'Facture' entities:**
+  - Added new files for `PanierTemporaire` (controller, DTO, model, repository, service) and `Facture` (model, repository, service) based on user's desired uncommitted work.
+  - Modified `VenteRequestDto` to include `tabId` for `PanierTemporaire` integration.
+  - Adjusted `CaissierController` to work with `PanierTemporaireService`.
+
+- **Resolved 'Mouvement Stock' inconsistencies:**
+  - Added `findByProduit_NumeroFactureAndTypeMouvementOrderByProduit_NomAsc` to `MouvementStockRepository` to support restored `ProduitController`.
+  - Updated `stock-history.html` to correctly display `numeroFacture` and `nomFournisseur` from the new `Facture` entity linked via `MouvementStock`.
+
+- **Re-enabled invoice input for single stock movements:**
+  - Added "Numéro de Facture" and "Nom du Fournisseur" fields to `stock-form.html`.
+  - Modified `StockController` and `StockService` to process these fields, using a new `findOrCreateFacture` method in `FactureService` to link single stock entries to invoices.
+
+- **Updated UI elements:**
+  - Added "Mouvement en Lot" button to `produits.html`.
+
+- **Fixed compilation errors across the application:**
+  - Updated calls to `stockService.enregistrerMouvement` in `StockService`, `ProduitService`, and `ProduitServiceTest` to match the new method signature.
+
+This extensive set of changes brings the application to a consistent and functional state, incorporating previously desired features while resolving critical breaking changes.
