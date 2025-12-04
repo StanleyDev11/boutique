@@ -86,8 +86,11 @@
 
     <!-- Liste des Produits Périmant Bientôt -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-8">
-        <div class="p-4 bg-blue-50 border-b">
+        <div class="p-4 bg-blue-50 border-b flex justify-between items-center">
             <h3 class="text-lg font-semibold text-gray-900"><i class="fas fa-calendar-times mr-2"></i>Produits Périmant Bientôt (<span th:text="${joursAvantPeremption}"></span> jours)</h3>
+            <a th:href="@{/rapports/imprimer/peremption}" target="_blank" class="px-3 py-1 text-sm rounded-md bg-blue-500 text-white hover:bg-blue-600">
+                <i class="fas fa-print mr-1"></i> Imprimer Périmés
+            </a>
         </div>
         <div class="p-4">
             <div th:if="${produitsPeremptionProche.empty}" class="text-center text-gray-500 py-4">Aucun produit n'arrive à péremption dans la période sélectionnée.</div>
@@ -128,6 +131,9 @@
                     <a th:href="@{/rapports/stock-bas(sort='asc', filter=${activeFilter}, searchTerm=${searchTerm})}" class="px-3 py-1 text-sm rounded-md" th:classappend="${sort == 'asc'} ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'">Stock Asc.</a>
                     <a th:href="@{/rapports/stock-bas(sort='desc', filter=${activeFilter}, searchTerm=${searchTerm})}" class="px-3 py-1 text-sm rounded-md" th:classappend="${sort == 'desc'} ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'">Stock Desc.</a>
                 </div>
+                <a th:href="@{/rapports/imprimer/stock-bas(filter='rupture')}" target="_blank" class="px-3 py-1 text-sm rounded-md bg-red-500 text-white hover:bg-red-600">
+                    <i class="fas fa-print mr-1"></i> Imprimer Rupture
+                </a>
                 <form th:action="@{/rapports/stock-bas}" method="get" class="relative">
                     <input type="hidden" name="filter" th:value="${activeFilter}" />
                     <input type="hidden" name="sort" th:value="${sort}" />

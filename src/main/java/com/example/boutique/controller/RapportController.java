@@ -66,7 +66,7 @@ public class RapportController {
                                   @RequestParam(required = false) String filter,
                                   @RequestParam(defaultValue = "asc") String sort,
                                   @RequestParam(defaultValue = "0") int page,
-                                  @RequestParam(defaultValue = "8") int size,
+                                  @RequestParam(defaultValue = "50") int size,
                                   @RequestParam(required = false) String searchTerm) {
 
         int seuilStockBasInt = parametreService.getSeuilStockBas();
@@ -344,5 +344,40 @@ public class RapportController {
             logger.error("Erreur lors de la génération du rapport PDF des ventes.", e);
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    @GetMapping("/imprimer/stock-bas")
+    public String imprimerRapportStockBas(Model model,
+                                        @RequestParam(required = false) String filter) {
+        int seuilStockBasInt = parametreService.getSeuilStockBas();
+        BigDecimal seuilStockBas = BigDecimal.valueOf(seuilStockBasInt);
+
+        List<Produit> produits;
+        if ("rupture".equals(filter)) {
+            produits = produitRepository.findAllByQuantiteEnStock(BigDecimal.ZERO, PageRequest.of(0, Integer.MAX_VALUE)).getContent();
+        } else {
+            produits = produitRepository.findAllByQuantiteEnStockLessThanEqual(seuilStockBas, PageRequest.of(0, Integer.MAX_VALUE)).getContent();
+        }
+
+        model.addAttribute("produits", produits);
+        model.addAttribute("dateGeneration", LocalDateTime.now());
+        model.addAttribute("typeRapport", "rupture".equals(filter) ? "Produits en Rupture de Stock" : "Produits en Stock Bas");
+
+        return "rapport-stock-bas-print";
+    }
+
+    @GetMapping("/imprimer/peremption")
+    public String imprimerRapportPeremption(Model model) {
+        int joursAvantPeremption = parametreService.getJoursAvantPeremption();
+        LocalDate aujourdhui = LocalDate.now();
+        LocalDate dateLimite = aujourdhui.plusDays(joursAvantPeremption);
+        List<Produit> produitsPeremptionProche = produitRepository.findAllByDatePeremptionBetween(aujourdhui, dateLimite);
+
+        model.addAttribute("produits", produitsPeremptionProche);
+        model.addAttribute("dateGeneration", LocalDateTime.now());
+        model.addAttribute("joursAvantPeremption", joursAvantPeremption);
+        model.addAttribute("typeRapport", "Produits avec date de péremption proche");
+
+        return "rapport-peremption-print";
     }
 }
