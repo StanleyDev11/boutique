@@ -25,6 +25,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -255,7 +256,9 @@ public class ProduitController {
 
     @GetMapping("/etiquettes")
     public String showEtiquettesPage(Model model) {
-        List<Produit> produits = produitRepository.findAll(Sort.by("nom"));
+        List<Produit> produits = produitRepository.findAll(Sort.by("nom")).stream()
+                .filter(produit -> produit.getQuantiteEnStock().compareTo(BigDecimal.ZERO) > 0)
+                .collect(Collectors.toList());
         model.addAttribute("produits", produits);
         return "etiquettes";
     }

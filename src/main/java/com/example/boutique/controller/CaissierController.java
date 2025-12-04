@@ -63,6 +63,7 @@ public class CaissierController {
     }
 
     @PostMapping("/vendre")
+    @ResponseBody
     public ResponseEntity<Map<String, Object>> vendre(@RequestBody VenteRequestDto venteRequest) {
         try {
             String code = venteRequest.getCodeCaissier();

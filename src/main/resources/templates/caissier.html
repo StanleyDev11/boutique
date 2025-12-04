@@ -960,7 +960,7 @@
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
                                         body: JSON.stringify({
-                                            cart: tab.cart,
+                                            cart: tab.cart.map(item => ({ id: item.id, quantity: item.quantity })),
                                             saleType: formValues.saleType,
                                             paymentMethod: formValues.paymentMethod,
                                             clientId: tab.selectedClient ? tab.selectedClient.id : null,
