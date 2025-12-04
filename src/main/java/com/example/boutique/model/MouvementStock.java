@@ -40,6 +40,7 @@ public class MouvementStock {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "facture_id")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Facture facture;
 
     @ManyToOne

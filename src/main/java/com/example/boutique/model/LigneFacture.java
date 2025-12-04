@@ -12,6 +12,7 @@ public class LigneFacture {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "facture_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonBackReference
     private Facture facture;
 
     @ManyToOne(fetch = FetchType.LAZY)

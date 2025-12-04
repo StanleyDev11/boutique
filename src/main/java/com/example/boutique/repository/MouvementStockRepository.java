@@ -28,9 +28,9 @@ public interface MouvementStockRepository extends JpaRepository<MouvementStock, 
     List<MouvementStock> findByTypeMouvementAndDateMouvementBetween(TypeMouvement type, LocalDateTime start, LocalDateTime end);
 
     // Pour les produits les plus vendus
-    @Query("SELECT new com.example.boutique.dto.ProduitVenteDto(m.produit, SUM(m.quantite)) " +
+    @Query("SELECT new com.example.boutique.dto.ProduitVenteDto(m.produit, SUM(m.quantite) as totalVendu) " +
            "FROM MouvementStock m WHERE m.typeMouvement = com.example.boutique.enums.TypeMouvement.SORTIE_VENTE " +
-           "GROUP BY m.produit ORDER BY SUM(m.quantite) DESC")
+           "GROUP BY m.produit ORDER BY totalVendu DESC")
     List<ProduitVenteDto> findTopSellingProducts(Pageable pageable);
 
     // Pour le graphique

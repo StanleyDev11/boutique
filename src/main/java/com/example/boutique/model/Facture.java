@@ -25,6 +25,7 @@ public class Facture {
     private BigDecimal montantTotal;
 
     @OneToMany(mappedBy = "facture", cascade = CascadeType.ALL, orphanRemoval = true)
+    @com.fasterxml.jackson.annotation.JsonManagedReference
     private List<LigneFacture> lignes = new ArrayList<>();
 
     // Getters and Setters
