@@ -38,8 +38,8 @@ public interface ProduitRepository extends JpaRepository<Produit, Long> {
     Page<Produit> findByNomContainingIgnoreCaseAndQuantiteEnStock(String nom, BigDecimal stock, Pageable pageable);
     Page<Produit> findByNomContainingIgnoreCaseAndQuantiteEnStockLessThanEqual(String nom, BigDecimal seuil, Pageable pageable);
 
-    // Méthode pour trouver les produits dont la date de péremption est dans un intervalle donné
-    List<Produit> findAllByDatePeremptionBetween(LocalDate startDate, LocalDate endDate);
+    // Méthode pour trouver les produits dont la date de péremption est dans un intervalle donné et le stock est > 0
+    List<Produit> findAllByDatePeremptionBetweenAndQuantiteEnStockGreaterThan(LocalDate startDate, LocalDate endDate, BigDecimal quantite);
 
     // Méthode pour compter les produits en stock bas
     long countByQuantiteEnStockLessThanEqual(BigDecimal seuil);
