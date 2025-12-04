@@ -1,0 +1,92 @@
+<div th:fragment="facture-form" class="p-4 sm:p-6 md:p-8 bg-gray-50">
+    <div class="flex justify-between items-start mb-6">
+        <div>
+            <h2 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500">
+                Nouvelle Facture d'Achat
+            </h2>
+            <p class="text-gray-500 mt-1">Ajoutez les produits reçus pour mettre à jour votre stock.</p>
+        </div>
+        <button type="button" class="text-gray-400 hover:text-gray-600" onclick="Swal.close()">
+            <i class="fas fa-times fa-lg"></i>
+        </button>
+    </div>
+
+    <form id="facture-form" th:action="@{/produits/save-facture}" method="post">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200/80 mb-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center"><i class="fas fa-file-invoice text-blue-500 mr-3"></i>Informations sur la facture</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label for="numeroFacture" class="block text-sm font-medium text-gray-700 mb-1">Numéro de Facture</label>
+                    <div class="relative">
+                        <i class="fas fa-hashtag absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="numeroFacture" name="numeroFacture" class="w-full pl-10 pr-4 py-2.5 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition">
+                    </div>
+                </div>
+                <div>
+                    <label for="nomFournisseur" class="block text-sm font-medium text-gray-700 mb-1">Nom du Fournisseur</label>
+                    <div class="relative">
+                        <i class="fas fa-truck absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="nomFournisseur" name="nomFournisseur" class="w-full pl-10 pr-4 py-2.5 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition">
+                    </div>
+                </div>
+                <div>
+                    <label for="dateFacture" class="block text-sm font-medium text-gray-700 mb-1">Date de la Facture</label>
+                    <div class="relative">
+                        <i class="fas fa-calendar-alt absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="date" id="dateFacture" name="dateFacture" class="w-full pl-10 pr-4 py-2.5 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200/80">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center"><i class="fas fa-boxes text-blue-500 mr-3"></i>Produits de la Facture</h3>
+            <div id="product-invoice-list" class="space-y-4">
+                <!-- Product lines will be dynamically added here -->
+            </div>
+            <button type="button" id="add-product-to-invoice-btn" class="mt-4 w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center border-2 border-dashed border-blue-200">
+                <i class="fas fa-plus mr-2"></i>Ajouter une ligne de produit
+            </button>
+        </div>
+    </form>
+
+    <!-- Template for a new product line -->
+    <template id="product-line-template">
+        <div class="product-line bg-gray-50/70 p-4 rounded-xl border relative animate-fade-in">
+             <div class="grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-3 items-end">
+                <div class="md:col-span-3">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Produit *</label>
+                    <div class="product-selection-container">
+                        <select name="produits[0].id" class="product-select w-full py-2 pl-3 pr-8 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition">
+                            <option value="">Sélectionner un produit</option>
+                            <th:block th:each="produit : ${produits}">
+                                <option th:value="${produit.id}" th:text="${produit.nom}" th:attr="data-prix-achat=${produit.prixAchat}, data-prix-vente=${produit.prixVenteUnitaire}"></option>
+                            </th:block>
+                        </select>
+                    </div>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Prix d'achat *</label>
+                    <input type="number" step="any" name="produits[0].prixAchat" required class="prix-achat w-full py-2 px-3 rounded-lg border-gray-300 shadow-sm" placeholder="0.00">
+                </div>
+                 <div class="md:col-span-2">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Prix de vente *</label>
+                    <input type="number" step="any" name="produits[0].prixVenteUnitaire" required class="prix-vente w-full py-2 px-3 rounded-lg border-gray-300 shadow-sm" placeholder="0.00">
+                </div>
+                <div class="md:col-span-1">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Quantité *</label>
+                    <input type="number" step="any" name="produits[0].quantite" required class="quantite w-full py-2 px-3 rounded-lg border-gray-300 shadow-sm" placeholder="1" value="1">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Péremption</label>
+                    <input type="date" name="produits[0].datePeremption" class="date-peremption w-full py-2 px-3 rounded-lg border-gray-300 shadow-sm">
+                </div>
+                <div class="md:col-span-2 flex justify-end">
+                    <button type="button" class="remove-product-invoice-btn text-gray-400 hover:text-red-600 hover:bg-red-100 rounded-full w-9 h-9 flex items-center justify-center transition-all duration-200">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+</div>

@@ -441,6 +441,9 @@
                     </div>
                 </div>
                 <div class="flex space-x-3 w-full lg:w-auto">
+                    <button type="button" onclick="openFactureModal()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl flex items-center justify-center font-semibold flex-1 lg:flex-none">
+                        <i class="fas fa-plus mr-2"></i>Ajouter Facture
+                    </button>
                     <button type="submit" class="btn-primary text-white px-6 py-3 rounded-xl flex items-center justify-center font-semibold flex-1 lg:flex-none">
                         <i class="fas fa-search mr-2"></i>Rechercher
                     </button>
@@ -452,7 +455,7 @@
         </div>
 
         <div id="facture-list-container" class="glass-card rounded-2xl overflow-hidden">
-            <div th:if="${facturesInfos != null && !facturesInfos.empty}">
+            <div th:if="${factures != null && !factures.empty}">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gradient-to-r from-gray-50 to-blue-50">
@@ -475,7 +478,7 @@
                                     <i class="fas ml-2 text-xs" th:classappend="${sortField == 'dateFacture' ? (sortDir == 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort'}"></i>
                                 </a>
                             </th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider"><i class="fas fa-boxes mr-2"></i>Nb. Produits</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider"><i class="fas fa-boxes mr-2"></i>Nb. Lignes</th>
                             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider sortable-header">
                                 <a th:href="@{/produits(tab='factures', keyword=${keyword}, sortField='montantTotal', sortDir=${sortField == 'montantTotal' ? reverseSortDir : 'asc'})}" class="flex items-center hover:text-blue-600">
                                     <i class="fas fa-dollar-sign mr-2"></i>Montant Total
@@ -486,14 +489,14 @@
                         </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                        <tr th:each="facture : ${facturesInfos}" class="product-row">
+                        <tr th:each="facture : ${factures}" class="product-row">
                             <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900" th:text="${facture.numeroFacture}"></td>
                             <td class="px-6 py-4 whitespace-nowrap text-gray-700" th:text="${facture.nomFournisseur}"></td>
                             <td class="px-6 py-4 whitespace-nowrap text-gray-700" th:text="${#temporals.format(facture.dateFacture, 'dd/MM/yyyy HH:mm')}"></td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-gray-700" th:text="${facture.nombreProduits}"></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-gray-700" th:text="${#lists.size(facture.lignes)}"></td>
                             <td class="px-6 py-4 whitespace-nowrap font-semibold text-gray-900" th:text="${facture.montantTotal != null ? #numbers.formatDecimal(facture.montantTotal, 0, 'COMMA', 2, 'POINT') + ' FCFA' : 'N/A'}"></td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <a th:href="@{/produits/facture/{numeroFacture}(numeroFacture=${facture.numeroFacture})}"
+                                <a th:href="@{/produits/facture/{id}(id=${facture.id})}"
                                    class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 p-3 rounded-lg transition duration-200 flex items-center justify-center font-medium">
                                     <i class="fas fa-eye mr-2"></i>Détail
                                 </a>
@@ -503,7 +506,7 @@
                     </table>
                 </div>
             </div>
-            <div th:if="${facturesInfos == null || facturesInfos.empty}" class="text-center py-16">
+            <div th:if="${factures == null || factures.empty}" class="text-center py-16">
                  <div class="max-w-md mx-auto">
                     <div class="bg-blue-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                         <i class="fas fa-file-invoice-dollar text-3xl text-blue-500"></i>
@@ -695,6 +698,136 @@
         }
     }
 
+    async function openFactureModal() {
+        const url = '/produits/facture-form';
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error('Could not load the form.');
+            }
+            const formHtml = await response.text();
+
+            Swal.fire({
+                html: formHtml,
+                width: '90%',
+                showCancelButton: true,
+                showConfirmButton: true,
+                confirmButtonText: '<i class="fas fa-save mr-2"></i>Sauvegarder',
+                cancelButtonText: '<i class="fas fa-times mr-2"></i>Annuler',
+                confirmButtonColor: '#2563eb',
+                cancelButtonColor: '#6b7280',
+                showLoaderOnConfirm: true,
+                didOpen: () => {
+                    if (!window.factureFormInitialized) {
+                         let productIndex = 0;
+                         const productListContainer = document.getElementById('product-invoice-list');
+                         const addProductBtn = document.getElementById('add-product-to-invoice-btn');
+                         const productLineTemplate = document.getElementById('product-line-template');
+
+                         function addNewProductLine() {
+                             const templateContent = productLineTemplate.innerHTML;
+                             const newHtml = templateContent.replace(/\[0\]/g, `[${productIndex}]`);
+
+                             const newProductLine = document.createElement('div');
+                             newProductLine.innerHTML = newHtml;
+                             const productLineElement = newProductLine.firstElementChild;
+
+
+                             const productSelect = productLineElement.querySelector('.product-select');
+                             productSelect.addEventListener('change', function(e) {
+                                 const selectedOption = e.target.options[e.target.selectedIndex];
+                                 if (selectedOption.value) {
+                                     const prixAchatInput = productLineElement.querySelector('.prix-achat');
+                                     const prixVenteInput = productLineElement.querySelector('.prix-vente');
+                                     prixAchatInput.value = selectedOption.getAttribute('data-prix-achat') || '0.00';
+                                     prixVenteInput.value = selectedOption.getAttribute('data-prix-vente') || '0.00';
+
+                                     const productSelectionContainer = productLineElement.querySelector('.product-selection-container');
+                                     productSelectionContainer.innerHTML = `
+                                        <input type="hidden" name="produits[${productIndex-1}].id" value="${selectedOption.value}">
+                                        <div class="flex items-center justify-between w-full py-2 pl-3 pr-8 rounded-lg bg-gray-100">
+                                            <span class="font-semibold text-gray-800">${selectedOption.text}</span>
+                                            <button type="button" class="change-product-btn text-gray-500 hover:text-blue-600 text-xs">Changer</button>
+                                        </div>
+                                     `;
+
+                                     productSelectionContainer.querySelector('.change-product-btn').addEventListener('click', () => {
+                                         productSelectionContainer.innerHTML = '';
+                                         productSelectionContainer.appendChild(productSelect);
+                                     })
+                                 }
+                             });
+
+                             const removeBtn = productLineElement.querySelector('.remove-product-invoice-btn');
+                             removeBtn.addEventListener('click', () => {
+                                 productLineElement.style.animation = 'fade-out 0.3s ease-out forwards';
+                                 setTimeout(() => productLineElement.remove(), 300);
+                             });
+
+                             productListContainer.appendChild(productLineElement);
+                             productIndex++;
+                         }
+
+                         addProductBtn.addEventListener('click', addNewProductLine);
+
+                         addNewProductLine();
+                         window.factureFormInitialized = true;
+                    }
+                },
+                preConfirm: () => {
+                    const form = document.getElementById('facture-form');
+                    if (!form.checkValidity()) {
+                        form.reportValidity();
+                        return false;
+                    }
+                    const formData = new FormData(form);
+                    const url = '/produits/save-facture';
+
+                    return fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            [csrfHeader]: csrfToken
+                        },
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(errorData => {
+                                throw new Error(errorData.message || 'Une erreur est survenue.');
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (!data.success) {
+                            throw new Error(data.message);
+                        }
+                        return data;
+                    })
+                    .catch(error => {
+                        Swal.showValidationMessage(error.message);
+                    });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Succès!',
+                        text: result.value.message,
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                }
+            });
+
+        } catch (error) {
+            Swal.fire('Erreur', 'Impossible de charger le formulaire.', 'error');
+        }
+    }
+
     function confirmDelete(productId, productName) {
         Swal.fire({
             title: 'Êtes-vous sûr ?',
@@ -742,21 +875,23 @@
         }
 
         const searchInput = document.getElementById('search-input');
-        searchInput.addEventListener('input', function() {
-            const keyword = this.value;
-            const url = new URL(window.location.href);
-            url.searchParams.set('keyword', keyword);
-            url.searchParams.set('page', '0'); // Reset to first page
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const keyword = this.value;
+                const url = new URL(window.location.href);
+                url.searchParams.set('keyword', keyword);
+                url.searchParams.set('page', '0'); // Reset to first page
 
-            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                .then(response => response.text())
-                .then(html => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    const newContent = doc.getElementById('product-list-container').innerHTML;
-                    document.getElementById('product-list-container').innerHTML = newContent;
-                });
-        });
+                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(response => response.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const newContent = doc.getElementById('product-list-container').innerHTML;
+                        document.getElementById('product-list-container').innerHTML = newContent;
+                    });
+            });
+        }
 
         // --- Barcode Scanner Logic ---
         let barcodeBuffer = '';

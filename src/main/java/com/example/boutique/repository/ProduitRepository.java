@@ -1,7 +1,7 @@
 package com.example.boutique.repository;
 
 import com.example.boutique.dto.CategoryProductCount;
-import com.example.boutique.dto.FactureInfoDTO;
+
 import com.example.boutique.model.Produit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +26,7 @@ public interface ProduitRepository extends JpaRepository<Produit, Long> {
 
     Page<Produit> findByNomContainingIgnoreCaseOrCodeBarresContainingOrNumeroFactureContainingIgnoreCase(String nom, String codeBarres, String numeroFacture, Pageable pageable);
 
-    List<Produit> findByNomContainingIgnoreCaseOrCodeBarresContaining(String nom, String codeBarres, Sort sort);
+    Page<Produit> findByNomContainingIgnoreCaseOrCodeBarresContaining(String nom, String codeBarres, Pageable pageable);
 
     // Méthode paginée pour le rapport de stock bas
     Page<Produit> findAllByQuantiteEnStockLessThanEqual(BigDecimal seuil, Pageable pageable);
@@ -59,32 +59,7 @@ public interface ProduitRepository extends JpaRepository<Produit, Long> {
     @Query("SELECT DISTINCT p.numeroFacture FROM Produit p WHERE p.numeroFacture IS NOT NULL AND p.numeroFacture != ''")
     List<String> findDistinctNumeroFacture();
 
-    @Query("SELECT new com.example.boutique.dto.FactureInfoDTO(" +
-            "p.numeroFacture, " +
-            "p.nomFournisseur, " +
-            "MIN(m.dateMouvement), " +
-            "COUNT(DISTINCT p.id), " +
-            "SUM(p.prixAchat * m.quantite)) " +
-            "FROM MouvementStock m JOIN m.produit p " +
-            "WHERE p.numeroFacture IS NOT NULL AND p.numeroFacture <> '' " +
-            "AND m.typeMouvement = com.example.boutique.enums.TypeMouvement.ENTREE " +
-            "GROUP BY p.numeroFacture, p.nomFournisseur " +
-            "ORDER BY MIN(m.dateMouvement) DESC")
-    List<FactureInfoDTO> findFactureInfos();
 
-    @Query("SELECT new com.example.boutique.dto.FactureInfoDTO(" +
-            "p.numeroFacture, " +
-            "p.nomFournisseur, " +
-            "MIN(m.dateMouvement), " +
-            "COUNT(DISTINCT p.id), " +
-            "SUM(p.prixAchat * m.quantite)) " +
-            "FROM MouvementStock m JOIN m.produit p " +
-            "WHERE p.numeroFacture = :numeroFacture " +
-            "AND m.typeMouvement = com.example.boutique.enums.TypeMouvement.ENTREE " +
-            "GROUP BY p.numeroFacture, p.nomFournisseur")
-    Optional<FactureInfoDTO> findFactureInfoByNumeroFacture(@Param("numeroFacture") String numeroFacture);
-
-    List<Produit> findByNumeroFacture(String numeroFacture);
 
     @Query("SELECT p FROM Produit p WHERE p.quantiteEnStock <= :seuil ORDER BY p.quantiteEnStock ASC")
     List<Produit> findTopNByQuantiteEnStockLessThanEqualOrderByQuantiteEnStockAsc(@Param("seuil") BigDecimal seuil, Pageable pageable);

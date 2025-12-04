@@ -116,6 +116,38 @@ public class StockService {
         mouvementStockRepository.saveAll(mouvementsASauvegarder);
     }
 
+    // Nouvelle méthode simplifiée pour la mise à jour du stock
+    public void enregistrerMouvement(MouvementStock mouvement) {
+        Produit produit = produitRepository.findByIdForUpdate(mouvement.getProduit().getId())
+                .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé pour l'ID: " + mouvement.getProduit().getId()));
+
+        BigDecimal quantiteMouvement = mouvement.getQuantite();
+        BigDecimal stockActuel = produit.getQuantiteEnStock();
+        BigDecimal nouveauStock;
+
+        switch (mouvement.getTypeMouvement()) {
+            case ENTREE:
+                nouveauStock = stockActuel.add(quantiteMouvement);
+                break;
+            case SORTIE_VENTE:
+            case SORTIE_PERTE:
+            case PERIME:
+            case CASSE_DEFECTUEUX:
+            case AVOIR:
+                if (stockActuel.compareTo(quantiteMouvement) < 0) {
+                    throw new IllegalStateException("Quantité en stock (" + stockActuel + ") insuffisante pour le produit: " + produit.getNom());
+                }
+                nouveauStock = stockActuel.subtract(quantiteMouvement);
+                break;
+            default:
+                throw new IllegalArgumentException("Type de mouvement non supporté: " + mouvement.getTypeMouvement());
+        }
+
+        produit.setQuantiteEnStock(nouveauStock);
+        produitRepository.save(produit);
+        mouvementStockRepository.save(mouvement);
+    }
+
     public void enregistrerMouvement(MouvementStock mouvement, String numeroFacture, String nomFournisseur) {
         Produit produit = produitRepository.findById(mouvement.getProduit().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé"));

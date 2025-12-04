@@ -1,11 +1,17 @@
 package com.example.boutique.service;
 
+import com.example.boutique.dto.FactureDto;
 import com.example.boutique.dto.ProductBatchDto;
 import com.example.boutique.dto.ProduitDto;
+import com.example.boutique.dto.ProduitFactureDto;
+import com.example.boutique.enums.TypeMouvement;
+import com.example.boutique.model.Facture;
+import com.example.boutique.model.LigneFacture;
 import com.example.boutique.model.MouvementStock;
 import com.example.boutique.model.Produit;
+import com.example.boutique.repository.FactureRepository;
+import com.example.boutique.repository.MouvementStockRepository;
 import com.example.boutique.repository.ProduitRepository;
-import com.example.boutique.enums.TypeMouvement;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,17 +19,24 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProduitService {
 
     private final ProduitRepository produitRepository;
     private final StockService stockService;
+    private final MouvementStockRepository mouvementStockRepository;
+    private final FactureRepository factureRepository;
 
-    public ProduitService(ProduitRepository produitRepository, StockService stockService) {
+
+    public ProduitService(ProduitRepository produitRepository, StockService stockService, MouvementStockRepository mouvementStockRepository, FactureRepository factureRepository) {
         this.produitRepository = produitRepository;
         this.stockService = stockService;
+        this.mouvementStockRepository = mouvementStockRepository;
+        this.factureRepository = factureRepository;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -70,7 +83,7 @@ public class ProduitService {
                 mouvement.setQuantite(dto.getQuantiteEnStock());
                 mouvement.setTypeMouvement(TypeMouvement.ENTREE);
                 mouvement.setDateMouvement(LocalDateTime.now());
-                mouvement.setDescription("Stock initial");
+                mouvement.setDescription("Achat facture: " + productBatchDto.getNumeroFacture());
                 stockService.enregistrerMouvement(mouvement, productBatchDto.getNumeroFacture(), productBatchDto.getNomFournisseur());
             }
         }
@@ -87,5 +100,69 @@ public class ProduitService {
             }
         }
         return produitRepository.save(produit);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void saveFacture(FactureDto factureDto) {
+        // 1. Créer l'entité Facture
+        Facture facture = new Facture();
+        facture.setNumeroFacture(factureDto.getNumeroFacture());
+        facture.setNomFournisseur(factureDto.getNomFournisseur());
+        facture.setDateFacture(factureDto.getDateFacture() != null ? factureDto.getDateFacture().atStartOfDay() : LocalDateTime.now());
+
+        BigDecimal montantTotalFacture = BigDecimal.ZERO;
+        List<LigneFacture> lignesFacture = new ArrayList<>();
+
+        // 2. Traiter chaque produit du DTO
+        for (ProduitFactureDto produitDto : factureDto.getProduits()) {
+            if (produitDto.getId() == null || produitDto.getQuantite() <= 0) continue;
+
+            Produit produit = produitRepository.findById(produitDto.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé pour l'ID: " + produitDto.getId()));
+
+            BigDecimal quantite = BigDecimal.valueOf(produitDto.getQuantite());
+            BigDecimal prixAchat = produitDto.getPrixAchat();
+
+            if (prixAchat == null) {
+                throw new IllegalArgumentException("Le prix d'achat est requis pour le produit: " + produit.getNom());
+            }
+
+            BigDecimal montantLigne = prixAchat.multiply(quantite);
+
+            // 3. Créer la LigneFacture
+            LigneFacture ligne = new LigneFacture();
+            ligne.setFacture(facture);
+            ligne.setProduit(produit);
+            ligne.setQuantite(quantite);
+            ligne.setPrixUnitaire(prixAchat);
+            ligne.setMontantTotalLigne(montantLigne);
+            lignesFacture.add(ligne);
+
+            montantTotalFacture = montantTotalFacture.add(montantLigne);
+
+            // 4. Mettre à jour le prix du produit (si nécessaire)
+            produit.setPrixAchat(prixAchat);
+            if (produitDto.getPrixVenteUnitaire() != null) {
+                produit.setPrixVenteUnitaire(produitDto.getPrixVenteUnitaire());
+            }
+            produit.setDatePeremption(produitDto.getDatePeremption());
+            produitRepository.save(produit);
+
+            // 5. Créer le MouvementStock
+            MouvementStock mouvement = new MouvementStock();
+            mouvement.setProduit(produit);
+            mouvement.setQuantite(quantite);
+            mouvement.setTypeMouvement(TypeMouvement.ENTREE);
+            mouvement.setDateMouvement(facture.getDateFacture());
+            mouvement.setDescription("Achat facture: " + facture.getNumeroFacture());
+            mouvement.setFacture(facture); // Lier le mouvement à la facture
+
+            stockService.enregistrerMouvement(mouvement); // Utilise la nouvelle méthode
+        }
+
+        // 6. Mettre à jour la facture avec les lignes et le montant total et la sauvegarder
+        facture.setLignes(lignesFacture);
+        facture.setMontantTotal(montantTotalFacture);
+        factureRepository.save(facture);
     }
 }
