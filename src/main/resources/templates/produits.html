@@ -455,7 +455,7 @@
         </div>
 
         <div id="facture-list-container" class="glass-card rounded-2xl overflow-hidden">
-            <div th:if="${factures != null && !factures.empty}">
+            <div th:if="${facturesPage != null && !facturesPage.empty}">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gradient-to-r from-gray-50 to-blue-50">
@@ -489,7 +489,7 @@
                         </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                        <tr th:each="facture : ${factures}" class="product-row">
+                        <tr th:each="facture : ${facturesPage.content}" class="product-row">
                             <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900" th:text="${facture.numeroFacture}"></td>
                             <td class="px-6 py-4 whitespace-nowrap text-gray-700" th:text="${facture.nomFournisseur}"></td>
                             <td class="px-6 py-4 whitespace-nowrap text-gray-700" th:text="${#temporals.format(facture.dateFacture, 'dd/MM/yyyy HH:mm')}"></td>
@@ -506,7 +506,7 @@
                     </table>
                 </div>
             </div>
-            <div th:if="${factures == null || factures.empty}" class="text-center py-16">
+            <div th:if="${facturesPage == null || facturesPage.empty}" class="text-center py-16">
                  <div class="max-w-md mx-auto">
                     <div class="bg-blue-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                         <i class="fas fa-file-invoice-dollar text-3xl text-blue-500"></i>
