@@ -9,6 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -522,11 +523,57 @@
 </div>
 
 <!-- Votre code JavaScript existant reste exactement le même -->
-<script th:inline="javascript">
+    <script th:inline="javascript">
     /*<![CDATA[*/
+
+    function productLine(produitsJson) {
+        return {
+            products: [],
+            search: '',
+            selectedProduct: { id: null, nom: '' },
+            open: false,
+            index: 0,
+            init(el) {
+                this.products = JSON.parse(produitsJson);
+                const productLineEl = el;
+                this.index = Array.from(productLineEl.parentElement.children).indexOf(productLineEl);
+
+                 // Renommer les champs pour correspondre à l'index
+                productLineEl.querySelectorAll('[name]').forEach(field => {
+                    field.name = field.name.replace(/\[\d+\]/, `[${this.index}]`);
+                });
+            },
+            get filteredProducts() {
+                if (!this.search) {
+                    return this.products.slice(0, 50); // Limite l'affichage
+                }
+                return this.products.filter(p =>
+                    p.nom.toLowerCase().includes(this.search.toLowerCase()) ||
+                    (p.codeBarres && p.codeBarres.toLowerCase().includes(this.search.toLowerCase()))
+                ).slice(0, 50);
+            },
+            selectProduct(product) {
+                this.selectedProduct = product;
+                this.open = false;
+                this.search = product.nom;
+
+                // Mettre à jour les champs de la ligne via les refs
+                this.$refs.prixAchat.value = product.prixAchat || '0.00';
+                this.$refs.prixVente.value = product.prixVenteUnitaire || '0.00';
+                this.$refs.datePeremption.value = product.datePeremption || '';
+            },
+            clearSelection() {
+                this.selectedProduct = { id: null, nom: '' };
+                this.search = '';
+                 this.$refs.prixAchat.value = '';
+                this.$refs.prixVente.value = '';
+                this.$refs.datePeremption.value = '';
+            }
+        }
+    }
+
     const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
     const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
-
     async function openProductModal(productId, batch = false) {
         let url;
         if (batch) {
@@ -720,63 +767,27 @@
                 cancelButtonColor: '#6b7280',
                 showLoaderOnConfirm: true,
                 didOpen: () => {
-                    if (!window.factureFormInitialized) {
-                         let productIndex = 0;
-                         const productListContainer = document.getElementById('product-invoice-list');
-                         const addProductBtn = document.getElementById('add-product-to-invoice-btn');
-                         const productLineTemplate = document.getElementById('product-line-template');
-
-                         function addNewProductLine() {
-                             const templateContent = productLineTemplate.innerHTML;
-                             const newHtml = templateContent.replace(/\[0\]/g, `[${productIndex}]`);
-
-                             const newProductLine = document.createElement('div');
-                             newProductLine.innerHTML = newHtml;
-                             const productLineElement = newProductLine.firstElementChild;
-
-
-                             const productSelect = productLineElement.querySelector('.product-select');
-                             productSelect.addEventListener('change', function(e) {
-                                 const selectedOption = e.target.options[e.target.selectedIndex];
-                                 if (selectedOption.value) {
-                                     const prixAchatInput = productLineElement.querySelector('.prix-achat');
-                                     const prixVenteInput = productLineElement.querySelector('.prix-vente');
-                                     const datePeremptionInput = productLineElement.querySelector('.date-peremption');
-                                     prixAchatInput.value = selectedOption.getAttribute('data-prix-achat') || '0.00';
-                                     prixVenteInput.value = selectedOption.getAttribute('data-prix-vente') || '0.00';
-                                     datePeremptionInput.value = selectedOption.getAttribute('data-date-peremption') || '';
-
-                                     const productSelectionContainer = productLineElement.querySelector('.product-selection-container');
-                                     productSelectionContainer.innerHTML = `
-                                        <input type="hidden" name="produits[${productIndex-1}].id" value="${selectedOption.value}">
-                                        <div class="flex items-center justify-between w-full py-2 pl-3 pr-8 rounded-lg bg-gray-100">
-                                            <span class="font-semibold text-gray-800">${selectedOption.text}</span>
-                                            <button type="button" class="change-product-btn text-gray-500 hover:text-blue-600 text-xs">Changer</button>
-                                        </div>
-                                     `;
-
-                                     productSelectionContainer.querySelector('.change-product-btn').addEventListener('click', () => {
-                                         productSelectionContainer.innerHTML = '';
-                                         productSelectionContainer.appendChild(productSelect);
-                                     })
-                                 }
-                             });
-
-                             const removeBtn = productLineElement.querySelector('.remove-product-invoice-btn');
-                             removeBtn.addEventListener('click', () => {
-                                 productLineElement.style.animation = 'fade-out 0.3s ease-out forwards';
-                                 setTimeout(() => productLineElement.remove(), 300);
-                             });
-
-                             productListContainer.appendChild(productLineElement);
-                             productIndex++;
-                         }
-
-                         addProductBtn.addEventListener('click', addNewProductLine);
-
-                         addNewProductLine();
-                         window.factureFormInitialized = true;
+                    const modalBody = Swal.getHtmlContainer();
+                    
+                    // Alpine n'est pas encore initialisé sur le contenu de Swal. On le fait manuellement.
+                     if (window.Alpine) {
+                        window.Alpine.initTree(modalBody);
                     }
+
+                    const productListContainer = document.getElementById('product-invoice-list');
+                    const addProductBtn = document.getElementById('add-product-to-invoice-btn');
+                    const productLineTemplate = document.getElementById('product-line-template');
+
+                    function addNewProductLine() {
+                        if (!productLineTemplate) return;
+                        const clone = productLineTemplate.content.cloneNode(true);
+                        productListContainer.appendChild(clone);
+                    }
+
+                    addProductBtn.addEventListener('click', addNewProductLine);
+
+                    // Ajouter une première ligne par défaut
+                    addNewProductLine();
                 },
                 preConfirm: () => {
                     const form = document.getElementById('facture-form');

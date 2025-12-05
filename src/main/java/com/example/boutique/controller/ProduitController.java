@@ -180,7 +180,31 @@ public class ProduitController {
 
     @GetMapping("/facture-form")
     public String getFactureFormFragment(Model model) {
-        model.addAttribute("produits", produitRepository.findAll(Sort.by("nom")));
+        List<Produit> produits = produitRepository.findAll(Sort.by("nom"));
+        List<java.util.Map<String, Object>> productMaps = new java.util.ArrayList<>();
+        for (Produit p : produits) {
+            java.util.Map<String, Object> productMap = new java.util.HashMap<>();
+            productMap.put("id", p.getId());
+            productMap.put("nom", p.getNom());
+            productMap.put("codeBarres", p.getCodeBarres());
+            productMap.put("prixAchat", p.getPrixAchat());
+            productMap.put("prixVenteUnitaire", p.getPrixVenteUnitaire());
+            productMap.put("datePeremption", p.getDatePeremption());
+            productMaps.add(productMap);
+        }
+
+        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+        mapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        String produitsJson = "[]";
+        try {
+            produitsJson = mapper.writeValueAsString(productMaps);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            logger.error("Erreur lors de la sérialisation des produits en JSON pour le formulaire de facture.", e);
+        }
+
+        model.addAttribute("produitsJson", produitsJson);
         return "fragments/facture-form :: facture-form";
     }
 
