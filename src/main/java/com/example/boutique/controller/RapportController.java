@@ -63,11 +63,14 @@ public class RapportController {
 
     @GetMapping("/stock-bas")
     public String rapportStockBas(Model model,
+                                  @RequestParam(defaultValue = "stock") String tab,
                                   @RequestParam(required = false) String filter,
                                   @RequestParam(defaultValue = "asc") String sort,
                                   @RequestParam(defaultValue = "0") int page,
                                   @RequestParam(defaultValue = "50") int size,
                                   @RequestParam(required = false) String searchTerm) {
+
+        model.addAttribute("activeTab", tab);
 
         int seuilStockBasInt = parametreService.getSeuilStockBas();
         BigDecimal seuilStockBas = BigDecimal.valueOf(seuilStockBasInt);
