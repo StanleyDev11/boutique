@@ -215,8 +215,14 @@ public class ProduitController {
             produitService.saveFacture(factureDto);
             return ResponseEntity.ok(Map.of("success", true, "message", "La facture a été sauvegardée avec succès !"));
         } catch (IllegalArgumentException e) {
+            // Erreurs métier prévues (ex: produit non trouvé, prix manquant)
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        } catch (DataIntegrityViolationException e) {
+            // Erreurs liées à la base de données (ex: contrainte de non-nullité, valeur unique)
+            logger.warn("Erreur d'intégrité des données lors de la sauvegarde de la facture : {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur de données. Il est possible qu'un champ obligatoire soit manquant ou qu'une valeur dupliquée soit interdite. Veuillez vérifier les informations saisies."));
         } catch (Exception e) {
+            // Toutes les autres erreurs inattendues
             logger.error("Erreur inattendue lors de la sauvegarde de la facture.", e);
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Une erreur inattendue est survenue lors de la sauvegarde de la facture."));
         }
