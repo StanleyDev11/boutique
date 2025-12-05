@@ -60,7 +60,7 @@
                         <select name="produits[0].id" class="product-select w-full py-2 pl-3 pr-8 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition">
                             <option value="">Sélectionner un produit</option>
                             <th:block th:each="produit : ${produits}">
-                                <option th:value="${produit.id}" th:text="${produit.nom}" th:attr="data-prix-achat=${produit.prixAchat}, data-prix-vente=${produit.prixVenteUnitaire}"></option>
+                                <option th:value="${produit.id}" th:text="${produit.nom}" th:attr="data-prix-achat=${produit.prixAchat}, data-prix-vente=${produit.prixVenteUnitaire}, data-date-peremption=${produit.datePeremption}"></option>
                             </th:block>
                         </select>
                     </div>
