@@ -946,7 +946,11 @@
               .then(data => {
                   if (data.success) {
                       const completedTab = JSON.parse(JSON.stringify(tab));
-                      // tabs[activeTabIndex] = { id: tabs[activeTabIndex].id, cart: [], selectedClient: null, discountAmount: 0 };
+                      // Vider le panier actif, mais conserver son ID et son dbId
+                      tabs[activeTabIndex].cart = [];
+                      tabs[activeTabIndex].selectedClient = null;
+                      tabs[activeTabIndex].discountAmount = 0;
+                      tabs[activeTabIndex].discountPercentage = 0; // Réinitialiser le pourcentage de remise aussi
 
                       Swal.fire({
                           title: 'Vente enregistrée!',
@@ -960,7 +964,11 @@
                           if (result.isConfirmed) {
                               printReceipt(completedTab, formValues, finalTotalValue, false);
                           }
-                          // location.reload();
+                          // Après avoir vidé le panier, rafraîchir l'affichage et sauvegarder en DB
+                          renderActiveTabContent();
+                          renderTabs(); // Pour mettre à jour l'icône de client ou le nombre d'articles si nécessaire
+                          saveActiveTabToDB();
+                          // location.reload(); // Reste commenté
                       });
                   } else {
                       Swal.fire('Erreur!', data.message, 'error');
