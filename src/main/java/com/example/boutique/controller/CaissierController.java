@@ -80,10 +80,10 @@ public class CaissierController {
 
             stockService.enregistrerVente(venteRequest, utilisateur);
 
-            // Supprimer le panier temporaire après la vente
-            if (venteRequest.getTabId() != null) {
-                panierTemporaireService.deletePanier(venteRequest.getTabId(), utilisateur);
-            }
+            // La suppression du panier temporaire est désactivée pour permettre la persistance des onglets.
+            // if (venteRequest.getTabId() != null) {
+            //     panierTemporaireService.deletePanier(venteRequest.getTabId(), utilisateur);
+            // }
 
             return ResponseEntity.ok(Map.of("success", true, "message", "Vente enregistrée avec succès !"));
         } catch (IllegalArgumentException | IllegalStateException e) {

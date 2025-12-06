@@ -382,9 +382,15 @@
               const savedTabs = await response.json();
 
               if (savedTabs && savedTabs.length > 0) {
-                  tabs = savedTabs.map(t => ({...JSON.parse(t.cartData), dbId: t.id, tabId: t.tabId}));
-                  // Find the highest tabId to correctly set nextTabId
-                  const maxId = Math.max(...tabs.map(t => t.id));
+                  // Correction: Assurer que l'ID de l'onglet est bien le tabId de la DB
+                  tabs = savedTabs.map(t => {
+                      const cartData = JSON.parse(t.cartData);
+                      cartData.id = t.tabId; // L'ID principal de l'onglet est le tabId
+                      cartData.dbId = t.id; // Stocker l'ID de la DB (PK) séparément
+                      return cartData;
+                  });
+                  // Correction: Utiliser tabId (maintenant 't.id') pour trouver le max
+                  const maxId = Math.max(0, ...tabs.map(t => t.id));
                   nextTabId = maxId + 1;
               } else {
                   // Create a default tab if none exist
@@ -452,19 +458,11 @@
               if (tab.selectedClient) {
                   content += ` <i class="fas fa-user ml-2 text-xs"></i>`;
               }
-              // Ajouter un bouton de fermeture
-              if (tabs.length > 1) { // Ne pas afficher le bouton si c'est le dernier onglet
-                  content += `<button data-tab-index="${index}" class="close-tab-btn absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs opacity-80 hover:opacity-100">&times;</button>`;
-              }
+              // Le bouton de fermeture a été supprimé comme demandé.
 
               tabButton.innerHTML = content;
               tabButton.addEventListener('click', (e) => {
-                  if (e.target.classList.contains('close-tab-btn')) {
-                      e.stopPropagation();
-                      closeTab(parseInt(e.target.dataset.tabIndex));
-                  } else {
-                      switchTab(index);
-                  }
+                  switchTab(index);
               });
 
               tabsContainer.appendChild(tabButton);
@@ -482,31 +480,6 @@
               console.error('Error deleting tab:', error);
               Toast.fire({ icon: 'error', title: 'Erreur de suppression', text: 'Le panier n\'a pas pu être supprimé.' });
           }
-      }
-
-      function closeTab(index) {
-          const tabToClose = tabs[index];
-          Swal.fire({
-              title: `Fermer la Caisse ${tabToClose.id}?`,
-              text: "Toutes les données de ce panier seront perdues.",
-              icon: 'warning',
-              showCancelButton: true,
-              confirmButtonColor: '#d33',
-              confirmButtonText: 'Oui, fermer!',
-              cancelButtonText: 'Annuler'
-          }).then(async (result) => {
-              if (result.isConfirmed) {
-                  await deleteTabFromDatabase(tabToClose.id);
-                  tabs.splice(index, 1);
-
-                  // Ajuster l'index actif
-                  if (activeTabIndex >= index) {
-                      activeTabIndex = Math.max(0, activeTabIndex - 1);
-                  }
-                  
-                  switchTab(activeTabIndex);
-              }
-          });
       }
 
       async function addNewTab() {
@@ -973,7 +946,7 @@
               .then(data => {
                   if (data.success) {
                       const completedTab = JSON.parse(JSON.stringify(tab));
-                      tabs[activeTabIndex] = { id: tabs[activeTabIndex].id, cart: [], selectedClient: null, discountAmount: 0 };
+                      // tabs[activeTabIndex] = { id: tabs[activeTabIndex].id, cart: [], selectedClient: null, discountAmount: 0 };
 
                       Swal.fire({
                           title: 'Vente enregistrée!',
@@ -987,7 +960,7 @@
                           if (result.isConfirmed) {
                               printReceipt(completedTab, formValues, finalTotalValue, false);
                           }
-                          location.reload();
+                          // location.reload();
                       });
                   } else {
                       Swal.fire('Erreur!', data.message, 'error');
