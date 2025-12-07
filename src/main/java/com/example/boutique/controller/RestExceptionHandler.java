@@ -18,8 +18,11 @@ public class RestExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, String>> handleDataIntegrityViolation(DataIntegrityViolationException e) {
         logger.warn("Violation de contrainte de données : {}", e.getMessage());
-        // Message générique car la cause exacte peut varier (unique, not null, etc.)
-        return new ResponseEntity<>(Map.of("error", "L'opération a violé une contrainte de données. Vérifiez si l'élément existe déjà."), HttpStatus.BAD_REQUEST);
+        logger.debug("Cause racine de la violation: {}", e.getMostSpecificCause().getMessage());
+        String errorMessage = "L'opération a échoué en raison d'un conflit de données. " +
+                "Cela peut être dû à la duplication d'une valeur qui doit être unique (comme un code-barres ou un nom) " +
+                "ou à la tentative de supprimer un élément utilisé par d'autres enregistrements.";
+        return new ResponseEntity<>(Map.of("error", errorMessage), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -31,6 +34,6 @@ public class RestExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleAllExceptions(Exception e) {
         logger.error("Erreur inattendue dans une API REST", e);
-        return new ResponseEntity<>(Map.of("error", "Une erreur technique est survenue."), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(Map.of("error", "Une erreur technique inattendue est survenue. L'administrateur a été notifié."), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

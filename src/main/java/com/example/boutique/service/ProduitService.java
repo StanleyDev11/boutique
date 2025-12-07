@@ -104,11 +104,13 @@ public class ProduitService {
 
     @Transactional(rollbackFor = Exception.class)
     public void saveFacture(FactureDto factureDto) {
-        // 1. Créer l'entité Facture
+        // 1. Créer et sauvegarder l'entité Facture en premier
         Facture facture = new Facture();
         facture.setNumeroFacture(factureDto.getNumeroFacture());
         facture.setNomFournisseur(factureDto.getNomFournisseur());
         facture.setDateFacture(factureDto.getDateFacture() != null ? factureDto.getDateFacture().atStartOfDay() : LocalDateTime.now());
+        facture.setMontantTotal(BigDecimal.ZERO); // Montant initial
+        Facture savedFacture = factureRepository.save(facture);
 
         BigDecimal montantTotalFacture = BigDecimal.ZERO;
         List<LigneFacture> lignesFacture = new ArrayList<>();
@@ -129,9 +131,9 @@ public class ProduitService {
 
             BigDecimal montantLigne = prixAchat.multiply(quantite);
 
-            // 3. Créer la LigneFacture
+            // 3. Créer la LigneFacture avec la facture déjà sauvegardée
             LigneFacture ligne = new LigneFacture();
-            ligne.setFacture(facture);
+            ligne.setFacture(savedFacture);
             ligne.setProduit(produit);
             ligne.setQuantite(quantite);
             ligne.setPrixUnitaire(prixAchat);
@@ -148,21 +150,21 @@ public class ProduitService {
             produit.setDatePeremption(produitDto.getDatePeremption());
             produitRepository.save(produit);
 
-            // 5. Créer le MouvementStock
+            // 5. Créer le MouvementStock avec la facture déjà sauvegardée
             MouvementStock mouvement = new MouvementStock();
             mouvement.setProduit(produit);
             mouvement.setQuantite(quantite);
             mouvement.setTypeMouvement(TypeMouvement.ENTREE);
-            mouvement.setDateMouvement(facture.getDateFacture());
-            mouvement.setDescription("Achat facture: " + facture.getNumeroFacture());
-            mouvement.setFacture(facture); // Lier le mouvement à la facture
+            mouvement.setDateMouvement(savedFacture.getDateFacture());
+            mouvement.setDescription("Achat facture: " + savedFacture.getNumeroFacture());
+            mouvement.setFacture(savedFacture); // Lier le mouvement à la facture sauvegardée
 
-            stockService.enregistrerMouvement(mouvement); // Utilise la nouvelle méthode
+            stockService.enregistrerMouvement(mouvement);
         }
 
-        // 6. Mettre à jour la facture avec les lignes et le montant total et la sauvegarder
-        facture.setLignes(lignesFacture);
-        facture.setMontantTotal(montantTotalFacture);
-        factureRepository.save(facture);
+        // 6. Mettre à jour la facture avec les lignes et le montant total final et la sauvegarder
+        savedFacture.setLignes(lignesFacture);
+        savedFacture.setMontantTotal(montantTotalFacture);
+        factureRepository.save(savedFacture);
     }
 }
