@@ -22,17 +22,20 @@ public class PdfGenerationService {
 
     private final TemplateEngine templateEngine;
     private final OkHttpStreamFactory okHttpStreamFactory;
+    private final ParametreService parametreService;
 
     @Autowired
-    public PdfGenerationService(TemplateEngine templateEngine, OkHttpStreamFactory okHttpStreamFactory) {
+    public PdfGenerationService(TemplateEngine templateEngine, OkHttpStreamFactory okHttpStreamFactory, ParametreService parametreService) {
         this.templateEngine = templateEngine;
         this.okHttpStreamFactory = okHttpStreamFactory;
+        this.parametreService = parametreService;
         XRLog.listRegisteredLoggers().forEach(logger -> XRLog.setLevel(logger, Level.WARNING));
     }
 
     public byte[] generatePdfFromHtml(String templateName, Map<String, Object> data) throws IOException {
         Context context = new Context();
         context.setVariables(data);
+        context.setVariable("globalParameters", parametreService.getAllParametres());
         String html = templateEngine.process(templateName, context);
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();

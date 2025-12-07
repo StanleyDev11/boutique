@@ -76,9 +76,9 @@
 </head>
 <body>
     <div class="header">
-        <h1>SUPERMARCHE BELALUXE</h1>
-        <p>Bd. Jean Paul II, Près de la TDE, Hédzranawoé - Lomé, Togo</p>
-        <p>Tél: (+228) 96 00 01 89 / 90 12 34 30</p>
+        <h1 th:text="${globalParameters.nom_entreprise}"></h1>
+        <p th:text="${globalParameters.adresse_entreprise}"></p>
+        <p th:text="'Tél: ' + ${globalParameters.telephone_entreprise}"></p>
     </div>
 
     <div class="header-info">

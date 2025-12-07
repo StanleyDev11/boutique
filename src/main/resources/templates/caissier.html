@@ -294,8 +294,8 @@
       <span>Clients: <span class="font-semibold" th:text="${clients.size}"></span></span>
     </div>
   </div>
-  <div class="text-xs text-gray-500">
-    BELALUXE Supermarché &copy; 2025
+  <div class="text-xs text-gray-500" th:with="currentYear=${#temporals.format(#temporals.createNow(), 'yyyy')}">
+    <span th:text="${globalParameters.nom_entreprise}"></span> &copy; <span th:text="${currentYear}"></span>
   </div>
 </div>
 </div>
@@ -306,6 +306,7 @@
   const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
   const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
   const initialClients = /*[[${clients}]]*/ [];
+  const globalParameters = /*[[${globalParameters}]]*/ {};
 
   // --- Global State ---
   let tabs = [];
@@ -1016,10 +1017,9 @@
                   ${isDraft ? '<div class="watermark">DRAFT</div>' : ''}
                   <div class="container">
                       <div class="header center">
-                          <h1>SUPERMARCHE BELALUXE</h1>
-                          <p>Bd. Jean Paul II, Près de la TDE, Hédzranawoé</p>
-                          <p>Lomé - Togo</p>
-                          <p>Tél: (+228) 96 00 01 89 / 90 12 34 30</p>
+                          <h1>${globalParameters.nom_entreprise}</h1>
+                          <p>${globalParameters.adresse_entreprise}</p>
+                          <p>Tél: ${globalParameters.telephone_entreprise}</p>
                       </div>
                       <hr>
                       <div class="info">

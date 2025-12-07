@@ -42,14 +42,14 @@
             <div class="flex items-center"><i class="fas fa-money-bill-wave text-gray-500 mr-3"></i>Montant initial: <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(sessionCaisse.montantInitial, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
             <div class="flex items-center"><i class="fas fa-shopping-cart text-gray-500 mr-3"></i>Montant total de vente: <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(totalVentes, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
             <div class="flex items-center"><i class="fas fa-cash-register text-gray-500 mr-3"></i>Montant compté: <span class="font-medium text-gray-900 ml-2" th:text="${montantCompté != null ? #numbers.formatDecimal(montantCompté, 1, 'POINT', 2, 'COMMA') + ' FCFA' : 'N/A'}"></span></div>
-            <div class="flex items-center"><i class="fas fa-credit-card text-gray-500 mr-3"></i>Montant à crédit: <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(totalVentesCredit, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
+            <div class="flex items-center"><i class="fas fa-credit-card text-gray-500 mr-3"></i>Montant à crédit: <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(totalVentesCredit ?: 0, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
             <div class="flex items-center hidden"><i class="fas fa-balance-scale-left text-gray-500 mr-3"></i>Écart: <span class="font-medium text-gray-900 ml-2" th:text="${ecartCalcule != null ? #numbers.formatDecimal(ecartCalcule, 1, 'POINT', 2, 'COMMA') + ' FCFA' : 'N/A'}"></span></div>
             <div class="flex items-center hidden"><i class="fas fa-calculator text-gray-500 mr-3"></i>Montant final (Théorique): <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(theoreticalCashMontantFinal, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
             
             <div class="col-span-full border-t my-4"></div>
 
-            <div class="flex items-center"><i class="fas fa-money-bill-wave text-gray-500 mr-3"></i>Ventes (Espèces): <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(totalVentesEspeces, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
-            <div class="flex items-center"><i class="fas fa-credit-card text-gray-500 mr-3"></i>Ventes (Carte): <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(totalVentesCarte, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
+            <div class="flex items-center"><i class="fas fa-money-bill-wave text-gray-500 mr-3"></i>Ventes (Espèces): <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(totalVentesEspeces ?: 0, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
+            <div class="flex items-center"><i class="fas fa-credit-card text-gray-500 mr-3"></i>Ventes (Carte): <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(totalVentesCarte ?: 0, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
             <div class="flex items-center hidden"><i class="fas fa-mobile-alt text-gray-500 mr-3"></i>Ventes (Mobile): <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(totalVentesMobile, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
 
             <div class="col-span-full border-t my-4"></div>

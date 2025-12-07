@@ -48,7 +48,7 @@ public class ParametreService {
     }
 
     public void updateParametres(Map<String, String> parametres) {
-        List<String> validKeys = List.of(SEUIL_STOCK_BAS_KEY, JOURS_AVANT_PEREMPTION_KEY);
+        List<String> validKeys = List.of(SEUIL_STOCK_BAS_KEY, JOURS_AVANT_PEREMPTION_KEY, "nom_entreprise", "adresse_entreprise", "telephone_entreprise");
 
         for (String key : validKeys) {
             if (parametres.containsKey(key)) {

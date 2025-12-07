@@ -50,6 +50,12 @@ public class GlobalControllerAdvice {
         return false;
     }
 
+
+    @ModelAttribute("globalParameters")
+    public java.util.Map<String, String> addGlobalParameters() {
+        return parametreService.getAllParametres();
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ModelAndView handleAllExceptions(Exception ex) {

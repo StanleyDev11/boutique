@@ -335,6 +335,7 @@ public class RapportController {
             data.put("startDate", startDate);
             data.put("endDate", endDate);
             data.put("dateGeneration", LocalDateTime.now());
+            data.put("globalParameters", parametreService.getAllParametres());
 
             byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("rapport-ventes", data);
 
@@ -370,6 +371,7 @@ public class RapportController {
             data.put("produits", produits);
             data.put("dateGeneration", LocalDateTime.now());
             data.put("typeRapport", typeRapport);
+            data.put("globalParameters", parametreService.getAllParametres());
 
             byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("rapport-stock-bas-print", data);
 
@@ -398,6 +400,7 @@ public class RapportController {
             data.put("dateGeneration", LocalDateTime.now());
             data.put("joursAvantPeremption", joursAvantPeremption);
             data.put("typeRapport", "Produits avec date de péremption proche");
+            data.put("globalParameters", parametreService.getAllParametres());
 
             byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("rapport-peremption-print", data);
 

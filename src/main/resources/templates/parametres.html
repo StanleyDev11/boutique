@@ -229,6 +229,40 @@
                         </div>
                     </div>
 
+                    <!-- Section Informations de l'entreprise -->
+                    <div class="settings-card p-6 rounded-2xl border-l-blue-500">
+                        <div class="section-header">
+                            <div class="flex items-center space-x-4">
+                                <div class="setting-icon bg-blue-100 text-blue-600">
+                                    <i class="fas fa-building"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-semibold text-gray-800">Informations de l'entreprise</h3>
+                                    <p class="text-gray-600 mt-1">Gérez les informations publiques de votre entreprise</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Nom de l'entreprise -->
+                            <div class="space-y-4">
+                                <label for="nom_entreprise" class="block text-sm font-semibold text-gray-800 mb-2">Nom de l'entreprise</label>
+                                <input type="text" id="nom_entreprise" name="nom_entreprise" th:value="${parametres.get('nom_entreprise')}" class="input-field w-full pl-4 pr-12 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                            </div>
+
+                            <!-- Adresse de l'entreprise -->
+                            <div class="space-y-4">
+                                <label for="adresse_entreprise" class="block text-sm font-semibold text-gray-800 mb-2">Adresse de l'entreprise</label>
+                                <input type="text" id="adresse_entreprise" name="adresse_entreprise" th:value="${parametres.get('adresse_entreprise')}" class="input-field w-full pl-4 pr-12 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                            </div>
+
+                            <!-- Téléphone de l'entreprise -->
+                            <div class="space-y-4">
+                                <label for="telephone_entreprise" class="block text-sm font-semibold text-gray-800 mb-2">Téléphone de l'entreprise</label>
+                                <input type="text" id="telephone_entreprise" name="telephone_entreprise" th:value="${parametres.get('telephone_entreprise')}" class="input-field w-full pl-4 pr-12 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                            </div>
+                        </div>
+                    </div>
 
                 </div>
 

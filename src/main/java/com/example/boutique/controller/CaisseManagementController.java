@@ -1,3 +1,4 @@
+
 package com.example.boutique.controller;
 
 import com.example.boutique.model.Caisse;
@@ -5,10 +6,10 @@ import com.example.boutique.model.SessionCaisse;
 import com.example.boutique.model.Utilisateur;
 import com.example.boutique.enums.MoyenPaiement;
 import com.example.boutique.model.Vente;
-import com.example.boutique.service.CaisseService;
 import com.example.boutique.repository.SessionCaisseRepository;
 import com.example.boutique.repository.UtilisateurRepository;
-
+import com.example.boutique.service.CaisseService;
+import com.example.boutique.service.ParametreService;
 import com.example.boutique.service.PdfGenerationService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -45,12 +46,14 @@ public class CaisseManagementController {
     private final UtilisateurRepository utilisateurRepository;
     private final SessionCaisseRepository sessionCaisseRepository;
     private final PdfGenerationService pdfGenerationService;
+    private final ParametreService parametreService;
 
-    public CaisseManagementController(CaisseService caisseService, UtilisateurRepository utilisateurRepository, SessionCaisseRepository sessionCaisseRepository, PdfGenerationService pdfGenerationService) {
+    public CaisseManagementController(CaisseService caisseService, UtilisateurRepository utilisateurRepository, SessionCaisseRepository sessionCaisseRepository, PdfGenerationService pdfGenerationService, ParametreService parametreService) {
         this.caisseService = caisseService;
         this.utilisateurRepository = utilisateurRepository;
         this.sessionCaisseRepository = sessionCaisseRepository;
         this.pdfGenerationService = pdfGenerationService;
+        this.parametreService = parametreService;
     }
 
     @GetMapping
@@ -237,14 +240,6 @@ public class CaisseManagementController {
 
                 model.addAttribute("totalVentes", totalVentes);
 
-                model.addAttribute("totalVentesEspeces", totalVentesEspeces);
-
-                model.addAttribute("totalVentesCarte", totalVentesCarte);
-
-                model.addAttribute("totalVentesMobile", totalVentesMobile);
-
-                model.addAttribute("totalVentesCredit", totalVentesCredit);
-
                 model.addAttribute("nombreVentes", nombreVentes);
 
                 model.addAttribute("venteMoyenne", venteMoyenne);
@@ -278,6 +273,8 @@ public class CaisseManagementController {
         data.put("nombreVentes", nombreVentes);
         data.put("venteMoyenne", venteMoyenne);
         data.put("now", LocalDateTime.now());
+        data.put("globalParameters", parametreService.getAllParametres());
+
 
         byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("recu-session-details", data);
 
