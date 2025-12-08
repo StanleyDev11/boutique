@@ -2,6 +2,7 @@ package com.example.boutique.repository;
 
 import com.example.boutique.dto.CategorySales;
 import com.example.boutique.dto.ProduitVenteDto;
+import com.example.boutique.dto.ProduitVenteStatsDto;
 import com.example.boutique.model.LigneVente;
 import com.example.boutique.model.Vente;
 import org.springframework.data.domain.Page;
@@ -34,6 +35,9 @@ public interface LigneVenteRepository extends JpaRepository<LigneVente, Long> {
 
     @Query("SELECT lv.produit, sum(lv.quantite) FROM LigneVente lv GROUP BY lv.produit ORDER BY sum(lv.quantite) DESC")
     List<Object[]> findMostSoldProducts();
+
+    @Query("SELECT new com.example.boutique.dto.ProduitVenteStatsDto(lv.produit, SUM(lv.quantite), SUM(lv.montantTotal)) FROM LigneVente lv WHERE lv.vente.status = com.example.boutique.enums.VenteStatus.COMPLETED GROUP BY lv.produit ORDER BY SUM(lv.quantite) DESC")
+    List<ProduitVenteStatsDto> findProduitVenteStats();
 
     @Query(value = "SELECT lv FROM LigneVente lv JOIN FETCH lv.vente", countQuery = "SELECT count(lv) FROM LigneVente lv")
     Page<LigneVente> findAllWithVente(Pageable pageable);

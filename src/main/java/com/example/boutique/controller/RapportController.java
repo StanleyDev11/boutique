@@ -130,6 +130,7 @@ public class RapportController {
 
     @GetMapping("/ventes-historique")
     public String ventesHistorique(Model model,
+                                   @RequestParam(defaultValue = "historique") String tab,
                                    @RequestParam(required = false) String nomProduit,
                                    @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate startDate,
                                    @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate endDate,
@@ -139,7 +140,7 @@ public class RapportController {
                                    @RequestParam(defaultValue = "0") int page,
                                    @RequestParam(defaultValue = "50") int size) {
 
-        model.addAttribute("nomProduit", nomProduit);
+        model.addAttribute("activeTab", tab);
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
         model.addAttribute("minAmount", minAmount);
@@ -199,6 +200,10 @@ public class RapportController {
                 })
                 .collect(Collectors.toList());
         model.addAttribute("mostSoldProducts", mostSoldProducts);
+
+        // Add stats for the new "Sales by Product" tab
+        List<com.example.boutique.dto.ProduitVenteStatsDto> produitVenteStats = ligneVenteRepository.findProduitVenteStats();
+        model.addAttribute("produitVenteStats", produitVenteStats);
 
         return "ventes-historique";
     }

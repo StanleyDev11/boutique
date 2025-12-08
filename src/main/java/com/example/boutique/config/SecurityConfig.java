@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .requestMatchers("/produits").hasAnyRole("ADMIN", "GESTIONNAIRE") // Admin et Gestionnaire peuvent voir les produits
                 .requestMatchers("/gestion-caisses/**").hasAnyRole("ADMIN", "GESTIONNAIRE")
                 .requestMatchers("/ventes/*/annuler").hasAnyRole("ADMIN", "GESTIONNAIRE")
+                .requestMatchers("/.well-known/**").permitAll() // Ignore requests from browser dev tools
                 .anyRequest().authenticated() // Toutes les autres pages nécessitent une connexion
             )
             .sessionManagement(session -> session
