@@ -148,9 +148,15 @@ public class ProduitService {
                 produit.setPrixVenteUnitaire(produitDto.getPrixVenteUnitaire());
             }
             produit.setDatePeremption(produitDto.getDatePeremption());
+
+            // Mettre à jour la quantité en stock
+            BigDecimal stockActuel = produit.getQuantiteEnStock();
+            BigDecimal nouveauStock = stockActuel.add(quantite);
+            produit.setQuantiteEnStock(nouveauStock);
+
             produitRepository.save(produit);
 
-            // 5. Créer le MouvementStock avec la facture déjà sauvegardée
+            // 5. Créer et sauvegarder le MouvementStock avec la facture déjà sauvegardée
             MouvementStock mouvement = new MouvementStock();
             mouvement.setProduit(produit);
             mouvement.setQuantite(quantite);
@@ -159,7 +165,7 @@ public class ProduitService {
             mouvement.setDescription("Achat facture: " + savedFacture.getNumeroFacture());
             mouvement.setFacture(savedFacture); // Lier le mouvement à la facture sauvegardée
 
-            stockService.enregistrerMouvement(mouvement);
+            mouvementStockRepository.save(mouvement); // Sauvegarde directe
         }
 
         // 6. Mettre à jour la facture avec les lignes et le montant total final et la sauvegarder
