@@ -2,6 +2,7 @@ package com.example.boutique.controller;
 
 import com.example.boutique.dto.FactureDto;
 import com.example.boutique.dto.ProductBatchDto;
+import com.example.boutique.dto.ProduitFactureDto;
 import com.example.boutique.enums.TypeMouvement;
 import com.example.boutique.model.Facture;
 import com.example.boutique.model.LigneFacture;
@@ -19,7 +20,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -178,8 +181,9 @@ public class ProduitController {
         return "produit-form :: form-content";
     }
 
-    @GetMapping("/facture-form")
-    public String getFactureFormFragment(Model model) {
+    @GetMapping({"/facture-form", "/facture-form/{id}"})
+    public String getFactureFormFragment(@PathVariable(required = false) Long id, Model model) {
+        // Préparation du JSON de tous les produits pour la recherche côté client
         List<Produit> produits = produitRepository.findAll(Sort.by("nom"));
         List<java.util.Map<String, Object>> productMaps = new java.util.ArrayList<>();
         for (Produit p : produits) {
@@ -203,16 +207,85 @@ public class ProduitController {
         } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
             logger.error("Erreur lors de la sérialisation des produits en JSON pour le formulaire de facture.", e);
         }
-
         model.addAttribute("produitsJson", produitsJson);
+
+        // Si un ID est fourni (mode édition), charger les données de la facture existante
+        if (id != null) {
+            Facture facture = factureRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Facture non trouvée pour l'ID: " + id));
+
+            FactureDto dto = new FactureDto();
+            dto.setId(facture.getId());
+            dto.setNumeroFacture(facture.getNumeroFacture());
+            dto.setNomFournisseur(facture.getNomFournisseur());
+            dto.setDateFacture(facture.getDateFacture().toLocalDate());
+
+            List<ProduitFactureDto> produitsDto = facture.getLignes().stream().map(ligne -> {
+                ProduitFactureDto pDto = new ProduitFactureDto();
+                pDto.setId(ligne.getProduit().getId());
+                pDto.setNom(ligne.getProduit().getNom());
+                pDto.setPrixAchat(ligne.getPrixUnitaire());
+                pDto.setPrixVenteUnitaire(ligne.getProduit().getPrixVenteUnitaire());
+                pDto.setQuantite(ligne.getQuantite().doubleValue());
+                pDto.setDatePeremption(ligne.getProduit().getDatePeremption());
+                return pDto;
+            }).collect(Collectors.toList());
+            dto.setProduits(produitsDto);
+
+            model.addAttribute("factureDto", dto);
+            model.addAttribute("pageTitle", "Modifier la Facture d'Achat");
+        } else {
+            model.addAttribute("factureDto", new FactureDto());
+            model.addAttribute("pageTitle", "Nouvelle Facture d'Achat");
+        }
+
         return "fragments/facture-form :: facture-form";
+    }
+
+    @GetMapping("/facture/details/{id}")
+    @ResponseBody
+    public ResponseEntity<?> getFactureDetails(@PathVariable Long id) {
+        try {
+            Facture facture = factureRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Facture non trouvée pour l'ID: " + id));
+
+            // Manual conversion from Entity to DTO
+            FactureDto dto = new FactureDto();
+            dto.setId(facture.getId());
+            dto.setNumeroFacture(facture.getNumeroFacture());
+            dto.setNomFournisseur(facture.getNomFournisseur());
+            dto.setDateFacture(facture.getDateFacture().toLocalDate());
+
+            List<ProduitFactureDto> produitsDto = facture.getLignes().stream().map(ligne -> {
+                ProduitFactureDto pDto = new ProduitFactureDto();
+                pDto.setId(ligne.getProduit().getId());
+                pDto.setNom(ligne.getProduit().getNom());
+                pDto.setPrixAchat(ligne.getPrixUnitaire());
+                pDto.setPrixVenteUnitaire(ligne.getProduit().getPrixVenteUnitaire());
+                pDto.setQuantite(ligne.getQuantite().doubleValue());
+                pDto.setDatePeremption(ligne.getProduit().getDatePeremption());
+                return pDto;
+            }).collect(Collectors.toList());
+
+            dto.setProduits(produitsDto);
+
+            return ResponseEntity.ok(dto);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("success", false, "message", e.getMessage()));
+        }
     }
 
     @PostMapping("/save-facture")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> saveFacture(@ModelAttribute FactureDto factureDto) {
         try {
-            produitService.saveFacture(factureDto);
+            // Si un ID est présent, c'est une mise à jour. On supprime l'ancienne version d'abord.
+            if (factureDto.getId() != null) {
+                produitService.deleteFacture(factureDto.getId());
+            }
+            // Ensuite, on crée la nouvelle facture (ou la facture modifiée)
+            produitService.createFacture(factureDto);
+            
             return ResponseEntity.ok(Map.of("success", true, "message", "La facture a été sauvegardée avec succès !"));
         } catch (IllegalArgumentException e) {
             // Erreurs métier prévues (ex: produit non trouvé, prix manquant)
@@ -281,6 +354,22 @@ public class ProduitController {
         } catch (Exception e) {
             logger.error("Erreur inattendue lors de la suppression du produit avec l'ID : " + id, e);
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Une erreur inattendue est survenue lors de la suppression du produit."));
+        }
+    }
+
+    @PostMapping("/facture/delete/{id}")
+    @ResponseBody
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> deleteFacture(@PathVariable Long id) {
+        try {
+            produitService.deleteFacture(id);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Facture supprimée avec succès. Le stock a été mis à jour."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        } catch (Exception e) {
+            logger.error("Erreur inattendue lors de la suppression de la facture avec l'ID : " + id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                 .body(Map.of("success", false, "message", "Une erreur inattendue est survenue lors de la suppression de la facture."));
         }
     }
 

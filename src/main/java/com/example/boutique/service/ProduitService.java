@@ -19,9 +19,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class ProduitService {
@@ -41,7 +39,6 @@ public class ProduitService {
 
     @Transactional(rollbackFor = Exception.class)
     public void saveNewProductBatch(ProductBatchDto productBatchDto) {
-        // Barcode validation
         for (ProduitDto dto : productBatchDto.getProduits()) {
             if (dto.getCodeBarres() != null && !dto.getCodeBarres().isEmpty()) {
                 Optional<Produit> existing = produitRepository.findByCodeBarres(dto.getCodeBarres());
@@ -63,7 +60,7 @@ public class ProduitService {
             }
             produit.setPromotionActive(dto.isPromotionActive());
             produit.setCategorie(dto.getCategorie());
-            produit.setQuantiteEnStock(BigDecimal.ZERO); // Initial stock is 0 before movement
+            produit.setQuantiteEnStock(BigDecimal.ZERO);
             produit.setUniteDeVente(dto.getUniteDeVente());
             produit.setDatePeremption(dto.getDatePeremption());
             produit.setNomFournisseur(productBatchDto.getNomFournisseur());
@@ -91,10 +88,8 @@ public class ProduitService {
 
     @Transactional(rollbackFor = Exception.class)
     public Produit saveProduit(Produit produit) {
-        // Check for duplicate barcode before saving
         if (produit.getCodeBarres() != null && !produit.getCodeBarres().isEmpty()) {
             Optional<Produit> existing = produitRepository.findByCodeBarres(produit.getCodeBarres());
-            // If a product with this barcode exists, and it's not the same product we are editing
             if (existing.isPresent() && !existing.get().getId().equals(produit.getId())) {
                 throw new IllegalArgumentException("Le code-barres '" + produit.getCodeBarres() + "' est déjà utilisé par le produit '" + existing.get().getNom() + "'.");
             }
@@ -103,19 +98,17 @@ public class ProduitService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void saveFacture(FactureDto factureDto) {
-        // 1. Créer et sauvegarder l'entité Facture en premier
+    public void createFacture(FactureDto factureDto) {
         Facture facture = new Facture();
         facture.setNumeroFacture(factureDto.getNumeroFacture());
         facture.setNomFournisseur(factureDto.getNomFournisseur());
         facture.setDateFacture(factureDto.getDateFacture() != null ? factureDto.getDateFacture().atStartOfDay() : LocalDateTime.now());
-        facture.setMontantTotal(BigDecimal.ZERO); // Montant initial
+        facture.setMontantTotal(BigDecimal.ZERO);
         Facture savedFacture = factureRepository.save(facture);
 
         BigDecimal montantTotalFacture = BigDecimal.ZERO;
         List<LigneFacture> lignesFacture = new ArrayList<>();
 
-        // 2. Traiter chaque produit du DTO
         for (ProduitFactureDto produitDto : factureDto.getProduits()) {
             if (produitDto.getId() == null || produitDto.getQuantite() <= 0) continue;
 
@@ -131,7 +124,6 @@ public class ProduitService {
 
             BigDecimal montantLigne = prixAchat.multiply(quantite);
 
-            // 3. Créer la LigneFacture avec la facture déjà sauvegardée
             LigneFacture ligne = new LigneFacture();
             ligne.setFacture(savedFacture);
             ligne.setProduit(produit);
@@ -142,35 +134,59 @@ public class ProduitService {
 
             montantTotalFacture = montantTotalFacture.add(montantLigne);
 
-            // 4. Mettre à jour le prix du produit (si nécessaire)
             produit.setPrixAchat(prixAchat);
             if (produitDto.getPrixVenteUnitaire() != null) {
                 produit.setPrixVenteUnitaire(produitDto.getPrixVenteUnitaire());
             }
             produit.setDatePeremption(produitDto.getDatePeremption());
 
-            // Mettre à jour la quantité en stock
             BigDecimal stockActuel = produit.getQuantiteEnStock();
             BigDecimal nouveauStock = stockActuel.add(quantite);
             produit.setQuantiteEnStock(nouveauStock);
 
             produitRepository.save(produit);
 
-            // 5. Créer et sauvegarder le MouvementStock avec la facture déjà sauvegardée
             MouvementStock mouvement = new MouvementStock();
             mouvement.setProduit(produit);
             mouvement.setQuantite(quantite);
             mouvement.setTypeMouvement(TypeMouvement.ENTREE);
             mouvement.setDateMouvement(savedFacture.getDateFacture());
             mouvement.setDescription("Achat facture: " + savedFacture.getNumeroFacture());
-            mouvement.setFacture(savedFacture); // Lier le mouvement à la facture sauvegardée
+            mouvement.setFacture(savedFacture); 
 
-            mouvementStockRepository.save(mouvement); // Sauvegarde directe
+            mouvementStockRepository.save(mouvement);
         }
 
-        // 6. Mettre à jour la facture avec les lignes et le montant total final et la sauvegarder
         savedFacture.setLignes(lignesFacture);
         savedFacture.setMontantTotal(montantTotalFacture);
         factureRepository.save(savedFacture);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteFacture(Long id) {
+        Facture facture = factureRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Facture non trouvée avec l'ID: " + id));
+
+        for (LigneFacture ligne : facture.getLignes()) {
+            Produit produit = ligne.getProduit();
+            BigDecimal quantite = ligne.getQuantite();
+
+            MouvementStock mouvementAnnulation = new MouvementStock();
+            mouvementAnnulation.setProduit(produit);
+            mouvementAnnulation.setQuantite(quantite);
+            mouvementAnnulation.setTypeMouvement(TypeMouvement.SORTIE_PERTE);
+            mouvementAnnulation.setDateMouvement(LocalDateTime.now());
+            mouvementAnnulation.setDescription("Annulation facture N°: " + facture.getNumeroFacture());
+            
+            stockService.enregistrerMouvement(mouvementAnnulation);
+        }
+
+        List<MouvementStock> mouvementsLies = mouvementStockRepository.findByFacture(facture);
+        for (MouvementStock mv : mouvementsLies) {
+            mv.setFacture(null);
+            mouvementStockRepository.save(mv);
+        }
+
+        factureRepository.deleteById(id);
     }
 }

@@ -4,12 +4,21 @@ import java.time.LocalDate;
 import java.util.List;
 
 public class FactureDto {
+    private Long id;
     private String numeroFacture;
     private String nomFournisseur;
     private LocalDate dateFacture;
     private List<ProduitFactureDto> produits;
 
     // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public String getNumeroFacture() {
         return numeroFacture;
     }

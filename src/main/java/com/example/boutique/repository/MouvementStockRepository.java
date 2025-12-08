@@ -3,6 +3,7 @@ package com.example.boutique.repository;
 import com.example.boutique.dto.MouvementStatDto;
 import com.example.boutique.dto.ProduitVenteDto;
 import com.example.boutique.enums.TypeMouvement;
+import com.example.boutique.model.Facture;
 import com.example.boutique.model.MouvementStock;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -41,5 +42,7 @@ public interface MouvementStockRepository extends JpaRepository<MouvementStock, 
 
     // Méthode ajoutée pour ProduitController afin de récupérer les mouvements par numéro de facture
     List<MouvementStock> findByProduit_NumeroFactureAndTypeMouvementOrderByProduit_NomAsc(String numeroFacture, TypeMouvement typeMouvement);
+
+    List<MouvementStock> findByFacture(Facture facture);
 
 }
