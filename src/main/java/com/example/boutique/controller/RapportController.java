@@ -201,8 +201,10 @@ public class RapportController {
                 .collect(Collectors.toList());
         model.addAttribute("mostSoldProducts", mostSoldProducts);
 
-        // Add stats for the new "Sales by Product" tab
-        List<com.example.boutique.dto.ProduitVenteStatsDto> produitVenteStats = ligneVenteRepository.findProduitVenteStats();
+        // Add stats for the new "Sales by Product" tab, applying filters
+        LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : null;
+        LocalDateTime endDateTime = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : null;
+        List<com.example.boutique.dto.ProduitVenteStatsDto> produitVenteStats = ligneVenteRepository.findProduitVenteStats(nomProduit, startDateTime, endDateTime);
         model.addAttribute("produitVenteStats", produitVenteStats);
 
         return "ventes-historique";
@@ -414,6 +416,74 @@ public class RapportController {
 
         } catch (IOException e) {
             logger.error("Erreur lors de la génération du rapport PDF de péremption.", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/produits/export/excel")
+    public void exportVentesParProduitExcel(HttpServletResponse response,
+                                     @RequestParam(required = false) String keyword,
+                                     @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate startDate,
+                                     @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate endDate) throws IOException {
+        
+        LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : null;
+        LocalDateTime endDateTime = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : null;
+
+        List<com.example.boutique.dto.ProduitVenteStatsDto> stats = ligneVenteRepository.findProduitVenteStats(keyword, startDateTime, endDateTime);
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=rapport_ventes_par_produit.xlsx");
+
+        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+            XSSFSheet sheet = workbook.createSheet("Ventes par Produit");
+
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"Produit", "Quantité Vendue", "Prix Vente Actuel", "Revenu Total"};
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+            }
+
+            int rowNum = 1;
+            for (com.example.boutique.dto.ProduitVenteStatsDto stat : stats) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(stat.getProduit().getNom());
+                row.createCell(1).setCellValue(stat.getTotalQuantiteVendue().doubleValue());
+                if (stat.getProduit().getPrixVenteUnitaire() != null) {
+                    row.createCell(2).setCellValue(stat.getProduit().getPrixVenteUnitaire().doubleValue());
+                }
+                row.createCell(3).setCellValue(stat.getTotalRevenu().doubleValue());
+            }
+            workbook.write(response.getOutputStream());
+        }
+    }
+
+    @GetMapping("/produits/export/pdf")
+    public ResponseEntity<byte[]> exportVentesParProduitPdf(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        try {
+            LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : null;
+            LocalDateTime endDateTime = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : null;
+
+            List<com.example.boutique.dto.ProduitVenteStatsDto> stats = ligneVenteRepository.findProduitVenteStats(keyword, startDateTime, endDateTime);
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("produitVenteStats", stats);
+            data.put("startDate", startDate != null ? startDate : LocalDate.now().minusYears(1));
+            data.put("endDate", endDate != null ? endDate : LocalDate.now());
+            data.put("dateGeneration", LocalDateTime.now());
+
+            byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("rapport-ventes-par-produit-print", data);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "rapport_ventes_par_produit.pdf");
+
+            return ResponseEntity.ok().headers(headers).body(pdfBytes);
+        } catch (IOException e) {
+            logger.error("Erreur lors de la génération du rapport PDF des ventes par produit.", e);
             return ResponseEntity.internalServerError().build();
         }
     }

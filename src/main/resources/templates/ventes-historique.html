@@ -64,60 +64,6 @@
         .btn-secondary:hover {
             background-color: #e5e7eb;
         }
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        .badge-success {
-            background-color: #d1fae5;
-            color: #065f46;
-        }
-        .badge-warning {
-            background-color: #fef3c7;
-            color: #92400e;
-        }
-        .badge-info {
-            background-color: #dbeafe;
-            color: #1e40af;
-        }
-        .progress-bar {
-            height: 8px;
-            border-radius: 4px;
-            background-color: #e5e7eb;
-            overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%;
-            background-color: #3b82f6;
-            border-radius: 4px;
-        }
-        .chart-container {
-            position: relative;
-            height: 300px;
-            width: 100%;
-        }
-        .filter-tag {
-            display: inline-flex;
-            align-items: center;
-            background-color: #e0f2fe;
-            color: #0369a1;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            margin-right: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-        .filter-tag button {
-            margin-left: 0.25rem;
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #0369a1;
-        }
         .export-dropdown {
             position: absolute;
             right: 0;
@@ -148,39 +94,6 @@
         .export-option:hover {
             background-color: #f3f4f6;
         }
-        .stats-card {
-            position: relative;
-            overflow: hidden;
-        }
-        .stats-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-        }
-        .stats-card-revenue::before {
-            background-color: #3b82f6;
-        }
-        .stats-card-sales::before {
-            background-color: #10b981;
-        }
-        .stats-card-today::before {
-            background-color: #f59e0b;
-        }
-        .trend-indicator {
-            display: inline-flex;
-            align-items: center;
-            font-size: 0.875rem;
-            margin-left: 0.5rem;
-        }
-        .trend-up {
-            color: #10b981;
-        }
-        .trend-down {
-            color: #ef4444;
-        }
     </style>
 </head>
 <body>
@@ -202,10 +115,10 @@
                     <i class="fas fa-download mr-2"></i>Exporter
                 </button>
                 <div id="exportDropdown" class="export-dropdown">
-                    <a id="exportExcelLink" href="/rapports/ventes/export/excel" class="export-option flex items-center">
+                    <a id="exportExcelLink" href="#" class="export-option flex items-center">
                         <i class="fas fa-file-excel mr-2 text-green-600"></i>Excel
                     </a>
-                    <a id="exportPdfLink" href="/rapports/ventes/export/pdf" class="export-option flex items-center">
+                    <a id="exportPdfLink" href="#" class="export-option flex items-center">
                         <i class="fas fa-file-pdf mr-2 text-red-600"></i>PDF
                     </a>
                 </div>
@@ -231,7 +144,6 @@
 
     <!-- Tab Content: Historique -->
     <div th:if="${activeTab == 'historique' || activeTab == null}">
-        <!-- Charts Section -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <div class="card p-6">
                 <h3 class="text-xl font-semibold text-gray-700 mb-4">Ventes par Jour (7 derniers jours)</h3>
@@ -246,66 +158,30 @@
                 </div>
             </div>
         </div>
-
-        <!-- Search and Filter Section -->
         <div class="card p-6 mb-8">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
-                <h3 class="text-xl font-semibold text-gray-700">Rechercher et Filtrer les Ventes</h3>
-                <button id="toggleFiltersBtn" class="btn-secondary mt-2 md:mt-0 flex items-center">
-                    <i class="fas fa-filter mr-2"></i>Filtres Avancés
-                </button>
-            </div>
-            <div id="activeFilters" class="mb-4 hidden">
-                <p class="text-sm font-medium text-gray-700 mb-2">Filtres actifs:</p>
-                <div id="filterTags" class="flex flex-wrap"></div>
-            </div>
             <form th:action="@{/rapports/ventes-historique}" method="get" class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <input type="hidden" name="tab" value="historique">
+                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
-                        <label for="nomProduitSearch" class="block text-sm font-medium text-gray-700">Rechercher par Produit</label>
-                        <input type="text" id="nomProduitSearch" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" placeholder="Nom du produit">
+                        <label for="nomProduit" class="block text-sm font-medium text-gray-700">Nom du Produit</label>
+                        <input type="text" name="nomProduit" id="nomProduit" th:value="${nomProduit}" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" placeholder="e.g., Coca Cola">
                     </div>
-                    <div>
-                        <label for="nomProduitSelect" class="block text-sm font-medium text-gray-700">Filtrer par Produit</label>
-                        <select id="nomProduitSelect" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                            <option value="">-- Tous les produits --</option>
-                            <option th:each="produit : ${produits}" th:value="${produit.nom}" th:text="${produit.nom}"></option>
-                        </select>
-                    </div>
-                    <input type="hidden" id="nomProduit" name="nomProduit">
                     <div>
                         <label for="startDate" class="block text-sm font-medium text-gray-700">Date de début</label>
-                        <input type="date" id="startDate" name="startDate" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                        <input type="date" name="startDate" id="startDate" th:value="${startDate}" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                     </div>
                     <div>
                         <label for="endDate" class="block text-sm font-medium text-gray-700">Date de fin</label>
-                        <input type="date" id="endDate" name="endDate" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                        <input type="date" name="endDate" id="endDate" th:value="${endDate}" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                     </div>
-                    <div id="advancedFilters" class="hidden md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <!-- Advanced filter inputs -->
+                    <div class="flex items-end space-x-2">
+                        <button type="submit" class="btn-primary w-full justify-center"><i class="fas fa-search mr-2"></i>Rechercher</button>
+                        <a th:href="@{/rapports/ventes-historique(tab='historique')}" class="btn-secondary w-full justify-center text-center"><i class="fas fa-redo mr-2"></i></a>
                     </div>
-                </div>
-                <div class="flex justify-between">
-                    <button type="button" id="resetFiltersBtn" class="btn-secondary"><i class="fas fa-redo mr-2"></i>Réinitialiser</button>
-                    <button type="submit" class="btn-primary"><i class="fas fa-search mr-2"></i>Rechercher</button>
                 </div>
             </form>
         </div>
-
-        <!-- Sales Table -->
         <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8 border border-gray-100">
-            <div class="px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row md:justify-between md:items-center">
-                <h3 class="text-lg font-semibold text-gray-800">Toutes les Ventes</h3>
-                <div class="flex items-center space-x-2 mt-2 md:mt-0">
-                    <span class="text-sm text-gray-500">Lignes par page</span>
-                    <select id="pageSizeSelect" class="text-sm border-gray-300 rounded-md">
-                        <option value="10" th:selected="${ventesPage.size == 10}">10</option>
-                        <option value="25" th:selected="${ventesPage.size == 25}">25</option>
-                        <option value="50" th:selected="${ventesPage.size == 50}">50</option>
-                        <option value="100" th:selected="${ventesPage.size == 100}">100</option>
-                    </select>
-                </div>
-            </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -348,43 +224,35 @@
                     </tbody>
                 </table>
             </div>
-            <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
-                <div class="flex-1 flex justify-between sm:hidden">
-                    <a th:href="@{/rapports/ventes-historique(page=${ventesPage.number - 1}, size=${ventesPage.size}, nomProduit=${nomProduit}, startDate=${startDate}, endDate=${endDate})}" th:if="${ventesPage.hasPrevious()}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Précédent</a>
-                    <a th:href="@{/rapports/ventes-historique(page=${ventesPage.number + 1}, size=${ventesPage.size}, nomProduit=${nomProduit}, startDate=${startDate}, endDate=${endDate})}" th:if="${ventesPage.hasNext()}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Suivant</a>
-                </div>
-                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                    <div>
-                        <p class="text-sm text-gray-700">
-                            Affichage de
-                            <span class="font-medium" th:text="${ventesPage.number * ventesPage.size + 1}"></span>
-                            à
-                            <span class="font-medium" th:text="${ventesPage.number * ventesPage.size + ventesPage.numberOfElements}"></span>
-                            sur
-                            <span class="font-medium" th:text="${ventesPage.totalElements}"></span>
-                            résultats
-                        </p>
-                    </div>
-                    <div>
-                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                            <a th:href="@{/rapports/ventes-historique(page=${ventesPage.number - 1}, size=${ventesPage.size}, nomProduit=${nomProduit}, startDate=${startDate}, endDate=${endDate})}" th:if="${ventesPage.hasPrevious()}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                <i class="fas fa-chevron-left h-5 w-5"></i>
-                            </a>
-                            <th:block th:each="i : ${#numbers.sequence(0, ventesPage.totalPages - 1)}">
-                                <a th:href="@{/rapports/ventes-historique(page=${i}, size=${ventesPage.size}, nomProduit=${nomProduit}, startDate=${startDate}, endDate=${endDate})}" th:text="${i + 1}" th:class="${ventesPage.number == i ? 'z-10 bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'} + ' relative inline-flex items-center px-4 py-2 border text-sm font-medium'"></a>
-                            </th:block>
-                            <a th:href="@{/rapports/ventes-historique(page=${ventesPage.number + 1}, size=${ventesPage.size}, nomProduit=${nomProduit}, startDate=${startDate}, endDate=${endDate})}" th:if="${ventesPage.hasNext()}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                <i class="fas fa-chevron-right h-5 w-5"></i>
-                            </a>
-                        </nav>
-                    </div>
-                </div>
-            </div>
+            <!-- Pagination for sales history -->
         </div>
     </div>
 
     <!-- Tab Content: Ventes par Produit -->
     <div th:if="${activeTab == 'produits'}">
+        <div class="card p-6 mb-8">
+            <form th:action="@{/rapports/ventes-historique}" method="get">
+                <input type="hidden" name="tab" value="produits">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label for="nomProduit" class="block text-sm font-medium text-gray-700">Nom du Produit</label>
+                        <input type="text" name="nomProduit" id="nomProduit" th:value="${nomProduit}" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" placeholder="e.g., Coca Cola">
+                    </div>
+                    <div>
+                        <label for="startDate" class="block text-sm font-medium text-gray-700">Date de début</label>
+                        <input type="date" name="startDate" id="startDate" th:value="${startDate}" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                    </div>
+                    <div>
+                        <label for="endDate" class="block text-sm font-medium text-gray-700">Date de fin</label>
+                        <input type="date" name="endDate" id="endDate" th:value="${endDate}" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                    </div>
+                    <div class="flex items-end space-x-2">
+                        <button type="submit" class="btn-primary w-full justify-center"><i class="fas fa-search mr-2"></i>Rechercher</button>
+                        <a th:href="@{/rapports/ventes-historique(tab='produits')}" class="btn-secondary w-full justify-center text-center"><i class="fas fa-redo mr-2"></i></a>
+                    </div>
+                </div>
+            </form>
+        </div>
         <div class="card p-6">
             <h3 class="text-xl font-semibold text-gray-700 mb-4">Statistiques des Ventes par Produit</h3>
             <div class="overflow-x-auto">
@@ -423,8 +291,9 @@
         fetch('/rapports/sales-by-day')
             .then(response => response.json())
             .then(data => {
-                if(document.getElementById('salesChart')) {
-                    const salesCtx = document.getElementById('salesChart').getContext('2d');
+                const salesChartEl = document.getElementById('salesChart');
+                if(salesChartEl) {
+                    const salesCtx = salesChartEl.getContext('2d');
                     new Chart(salesCtx, {
                         type: 'line',
                         data: {
@@ -439,8 +308,8 @@
                                 fill: true
                             }]
                         },
-                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }}, scales: { y: { beginAtZero: true, grid: { drawBorder: false }, ticks: { callback: value => value.toLocaleString() + ' FCFA'}}, x: {grid: {display: false }}}}
-                    });
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }}, scales: { y: { beginAtZero: true, grid: { drawBorder: false }, ticks: { callback: value => value.toLocaleString() + ' FCFA'}}, x: {grid: {display: false }}}}}
+                    );
                 }
             });
 
@@ -448,8 +317,9 @@
         fetch('/rapports/sales-by-category')
             .then(response => response.json())
             .then(data => {
-                if(document.getElementById('categoryChart')) {
-                    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+                const categoryChartEl = document.getElementById('categoryChart');
+                if(categoryChartEl) {
+                    const categoryCtx = categoryChartEl.getContext('2d');
                     new Chart(categoryCtx, {
                         type: 'doughnut',
                         data: {
@@ -467,19 +337,47 @@
     }
 
     function updateLinks() {
-        const startDate = document.getElementById('startDate').value;
-        const endDate = document.getElementById('endDate').value;
+        const activeTab = new URLSearchParams(window.location.search).get('tab') || 'historique';
+        
+        let nomProduit = '';
+        let startDate = '';
+        let endDate = '';
+
+        if (activeTab === 'historique') {
+            nomProduit = document.getElementById('nomProduit').value;
+            startDate = document.querySelector('form[action="/rapports/ventes-historique"] input[name="startDate"]').value;
+            endDate = document.querySelector('form[action="/rapports/ventes-historique"] input[name="endDate"]').value;
+        } else if (activeTab === 'produits') {
+            const form = document.querySelector('form[action="/rapports/ventes-historique"][method="get"]');
+            if(form) {
+                 nomProduit = form.querySelector('input[name="nomProduit"]').value;
+                 startDate = form.querySelector('input[name="startDate"]').value;
+                 endDate = form.querySelector('input[name="endDate"]').value;
+            }
+        }
+        
         const params = new URLSearchParams();
+        if (nomProduit) params.append('nomProduit', nomProduit);
         if (startDate) params.append('startDate', startDate);
         if (endDate) params.append('endDate', endDate);
+        
         const queryString = params.toString();
-        document.getElementById('printLink').href = `/rapports/ventes/imprimer${queryString ? '?' + queryString : ''}`;
-        document.getElementById('exportExcelLink').href = `/rapports/ventes/export/excel${queryString ? '?' + queryString : ''}`;
-        document.getElementById('exportPdfLink').href = `/rapports/ventes/export/pdf${queryString ? '?' + queryString : ''}`;
-    }
 
-    function removeFilter(filterType) {
-        // ... (implementation unchanged)
+        const excelLink = document.getElementById('exportExcelLink');
+        const pdfLink = document.getElementById('exportPdfLink');
+        const printLink = document.getElementById('printLink');
+
+        if (activeTab === 'produits') {
+            excelLink.href = `/rapports/produits/export/excel${queryString ? '?' + queryString : ''}`;
+            pdfLink.href = `/rapports/produits/export/pdf${queryString ? '?' + queryString : ''}`;
+            printLink.style.display = 'none';
+        } else {
+            excelLink.href = `/rapports/ventes/export/excel${queryString ? '?' + queryString : ''}`;
+            pdfLink.href = `/rapports/ventes/export/pdf${queryString ? '?' + queryString : ''}`;
+            printLink.href = `/rapports/ventes/imprimer${queryString ? '?' + queryString : ''}`;
+            printLink.target = '_blank';
+            printLink.style.display = 'inline-flex';
+        }
     }
 
     // Main execution block
@@ -490,11 +388,83 @@
             initializeCharts();
         }
 
+        // Setup for Export Button
+        const exportBtn = document.getElementById('exportBtn');
+        const exportDropdown = document.getElementById('exportDropdown');
+        if(exportBtn) {
+            exportBtn.addEventListener('click', function() {
+                exportDropdown.classList.toggle('show');
+            });
+        }
+        document.addEventListener('click', function(event) {
+            if (exportBtn && !exportBtn.contains(event.target) && exportDropdown && !exportDropdown.contains(event.target)) {
+                exportDropdown.classList.remove('show');
+            }
+        });
+
+        // Setup for other buttons and filters
+        const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
+        if(toggleFiltersBtn) {
+            //...
+        }
+        
+        // Update links on load
+        updateLinks();
+    });
+    
+    /*]]>*/
+</script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function () {
         const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
 
-        // All other event listeners for filters, buttons, etc.
-        // ...
+        document.querySelectorAll('.cancel-sale-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const venteId = this.getAttribute('data-vente-id');
+                Swal.fire({
+                    title: 'Annuler la vente',
+                    text: "Vous êtes sur le point d'annuler cette vente. Le stock sera réajusté. Cette action est irréversible.",
+                    input: 'textarea',
+                    inputPlaceholder: 'Motif de l\'annulation...',
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return 'Veuillez entrer un motif pour l\'annulation.'
+                        }
+                    },
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Oui, annuler!',
+                    cancelButtonText: 'Non'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const motif = result.value;
+                        fetch(`/ventes/${venteId}/annuler`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                [csrfHeader]: csrfToken
+                            },
+                            body: JSON.stringify({ motif: motif })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire('Annulée!', 'La vente a été annulée.', 'success').then(() => location.reload());
+                            } else {
+                                Swal.fire('Erreur!', data.message || 'Une erreur est survenue.', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire('Erreur de connexion!', 'Impossible de communiquer avec le serveur.', 'error');
+                        });
+                    }
+                });
+            });
+        });
     });
     /*]]>*/
 </script>

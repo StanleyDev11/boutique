@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Rapport des Ventes par Produit</title>
+    <style>
+        body { font-family: 'Helvetica', sans-serif; font-size: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #dddddd; text-align: left; padding: 8px; }
+        thead { background-color: #f2f2f2; }
+        h1 { text-align: center; }
+        .footer { text-align: center; font-size: 8px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Rapport des Ventes par Produit</h1>
+    <p>Période du <span th:text="${#temporals.format(startDate, 'dd/MM/yyyy')}"></span> au <span th:text="${#temporals.format(endDate, 'dd/MM/yyyy')}"></span></p>
+    <p>Généré le: <span th:text="${#temporals.format(dateGeneration, 'dd/MM/yyyy HH:mm')}"></span></p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Produit</th>
+                <th>Quantité Vendue</th>
+                <th>Prix de Vente Actuel</th>
+                <th>Revenu Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="stat : ${produitVenteStats}">
+                <td th:text="${stat.produit.nom}"></td>
+                <td th:text="${#numbers.formatDecimal(stat.totalQuantiteVendue, 0, 'COMMA', 0, 'POINT')}"></td>
+                <td th:text="${stat.produit.prixVenteUnitaire != null ? #numbers.formatDecimal(stat.produit.prixVenteUnitaire, 0, 'COMMA', 2, 'POINT') + ' FCFA' : 'N/A'}"></td>
+                <td th:text="${#numbers.formatDecimal(stat.totalRevenu, 0, 'COMMA', 2, 'POINT')} + ' FCFA'"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        Rapport généré par le système de gestion de boutique.
+    </div>
+</body>
+</html>
