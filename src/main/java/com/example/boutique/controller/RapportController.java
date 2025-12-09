@@ -112,6 +112,16 @@ public class RapportController {
         LocalDate dateLimite = aujourdhui.plusDays(joursAvantPeremption);
         List<Produit> produitsPeremptionProche = produitRepository.findAllByDatePeremptionBetweenAndQuantiteEnStockGreaterThan(aujourdhui, dateLimite, BigDecimal.ZERO);
 
+        List<Produit> produitsPerimesList = produitRepository.findAllByDatePeremptionBeforeAndQuantiteEnStockGreaterThan(aujourdhui, BigDecimal.ZERO);
+
+        // Manually paginate the expired products list
+        Pageable perimesPageable = PageRequest.of(page, 150, Sort.by("datePeremption").ascending());
+        int start = (int) perimesPageable.getOffset();
+        int end = Math.min((start + perimesPageable.getPageSize()), produitsPerimesList.size());
+        List<Produit> pageContent = (produitsPerimesList.isEmpty() || start > end) ? java.util.Collections.emptyList() : produitsPerimesList.subList(start, end);
+        Page<Produit> produitsPerimesPage = new org.springframework.data.domain.PageImpl<>(pageContent, perimesPageable, produitsPerimesList.size());
+        model.addAttribute("produitsPerimesPage", produitsPerimesPage);
+
         // Force initialization to prevent LazyInitializationException in the template
         List<Produit> initializedProduits = produitsPage.getContent();
         // Simply accessing the list might be enough if the transaction is managed correctly up to the view layer,
@@ -437,6 +447,30 @@ public class RapportController {
 
         } catch (IOException e) {
             logger.error("Erreur lors de la génération du rapport PDF de péremption.", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/imprimer/perimes")
+    public ResponseEntity<byte[]> imprimerRapportPerimes() {
+        try {
+            LocalDate aujourdhui = LocalDate.now();
+            List<Produit> produitsPerimes = produitRepository.findAllByDatePeremptionBeforeAndQuantiteEnStockGreaterThan(aujourdhui, BigDecimal.ZERO);
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("produits", produitsPerimes);
+            data.put("dateGeneration", LocalDateTime.now());
+            data.put("typeRapport", "Produits Périmés");
+
+            byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("rapport-perimes-print", data);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "rapport-perimes.pdf");
+
+            return ResponseEntity.ok().headers(headers).body(pdfBytes);
+        } catch (IOException e) {
+            logger.error("Erreur lors de la génération du rapport PDF des produits périmés.", e);
             return ResponseEntity.internalServerError().build();
         }
     }

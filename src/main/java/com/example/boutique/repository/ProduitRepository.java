@@ -63,4 +63,7 @@ public interface ProduitRepository extends JpaRepository<Produit, Long> {
 
     @Query("SELECT p FROM Produit p WHERE p.quantiteEnStock <= :seuil ORDER BY p.quantiteEnStock ASC")
     List<Produit> findTopNByQuantiteEnStockLessThanEqualOrderByQuantiteEnStockAsc(@Param("seuil") BigDecimal seuil, Pageable pageable);
+
+    // Méthode pour trouver les produits déjà périmés
+    List<Produit> findAllByDatePeremptionBeforeAndQuantiteEnStockGreaterThan(LocalDate date, BigDecimal quantite);
 }
