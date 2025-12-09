@@ -374,6 +374,10 @@ public class RapportController {
             data.put("endDate", endDate);
             data.put("dateGeneration", LocalDateTime.now());
 
+            data.put("boutiqueNom", parametreService.getBoutiqueNom());
+            data.put("boutiqueAdresse", parametreService.getBoutiqueAdresse());
+            data.put("boutiqueTelephone", parametreService.getBoutiqueTelephone());
+
             byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("rapport-ventes", data);
 
             HttpHeaders headers = new HttpHeaders();
@@ -409,6 +413,10 @@ public class RapportController {
             data.put("dateGeneration", LocalDateTime.now());
             data.put("typeRapport", typeRapport);
 
+            data.put("boutiqueNom", parametreService.getBoutiqueNom());
+            data.put("boutiqueAdresse", parametreService.getBoutiqueAdresse());
+            data.put("boutiqueTelephone", parametreService.getBoutiqueTelephone());
+
             byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("rapport-stock-bas-print", data);
 
             HttpHeaders headers = new HttpHeaders();
@@ -437,6 +445,10 @@ public class RapportController {
             data.put("joursAvantPeremption", joursAvantPeremption);
             data.put("typeRapport", "Produits avec date de péremption proche");
 
+            data.put("boutiqueNom", parametreService.getBoutiqueNom());
+            data.put("boutiqueAdresse", parametreService.getBoutiqueAdresse());
+            data.put("boutiqueTelephone", parametreService.getBoutiqueTelephone());
+
             byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("rapport-peremption-print", data);
 
             HttpHeaders headers = new HttpHeaders();
@@ -461,6 +473,10 @@ public class RapportController {
             data.put("produits", produitsPerimes);
             data.put("dateGeneration", LocalDateTime.now());
             data.put("typeRapport", "Produits Périmés");
+
+            data.put("boutiqueNom", parametreService.getBoutiqueNom());
+            data.put("boutiqueAdresse", parametreService.getBoutiqueAdresse());
+            data.put("boutiqueTelephone", parametreService.getBoutiqueTelephone());
 
             byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("rapport-perimes-print", data);
 
@@ -535,6 +551,10 @@ public class RapportController {
             data.put("startDate", startDate);
             data.put("endDate", endDate);
             data.put("dateGeneration", LocalDateTime.now());
+
+            data.put("boutiqueNom", parametreService.getBoutiqueNom());
+            data.put("boutiqueAdresse", parametreService.getBoutiqueAdresse());
+            data.put("boutiqueTelephone", parametreService.getBoutiqueTelephone());
 
             byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("rapport-ventes-par-produit-print", data);
 

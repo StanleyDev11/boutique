@@ -10,9 +10,29 @@
         thead { background-color: #f2f2f2; }
         h1 { text-align: center; }
         .footer { text-align: center; font-size: 8px; margin-top: 20px; }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+        }
+        .header h1 {
+            font-size: 18pt;
+            margin: 0;
+        }
+        .header p {
+            margin: 2px 0;
+            font-size: 8pt;
+            color: #555;
+        }
     </style>
 </head>
 <body>
+    <div class="header">
+        <h1 th:text="${boutiqueNom}"></h1>
+        <p th:text="${boutiqueAdresse}"></p>
+        <p th:text="${boutiqueTelephone}"></p>
+    </div>
     <h1>Rapport des Ventes par Produit</h1>
     <p>Période du <span th:text="${#temporals.format(startDate, 'dd/MM/yyyy')}"></span> au <span th:text="${#temporals.format(endDate, 'dd/MM/yyyy')}"></span></p>
     <p>Généré le: <span th:text="${#temporals.format(dateGeneration, 'dd/MM/yyyy HH:mm')}"></span></p>

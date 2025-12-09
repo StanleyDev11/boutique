@@ -45,12 +45,14 @@ public class CaisseManagementController {
     private final UtilisateurRepository utilisateurRepository;
     private final SessionCaisseRepository sessionCaisseRepository;
     private final PdfGenerationService pdfGenerationService;
+    private final com.example.boutique.service.ParametreService parametreService;
 
-    public CaisseManagementController(CaisseService caisseService, UtilisateurRepository utilisateurRepository, SessionCaisseRepository sessionCaisseRepository, PdfGenerationService pdfGenerationService) {
+    public CaisseManagementController(CaisseService caisseService, UtilisateurRepository utilisateurRepository, SessionCaisseRepository sessionCaisseRepository, PdfGenerationService pdfGenerationService, com.example.boutique.service.ParametreService parametreService) {
         this.caisseService = caisseService;
         this.utilisateurRepository = utilisateurRepository;
         this.sessionCaisseRepository = sessionCaisseRepository;
         this.pdfGenerationService = pdfGenerationService;
+        this.parametreService = parametreService;
     }
 
     @GetMapping
@@ -278,6 +280,10 @@ public class CaisseManagementController {
         data.put("nombreVentes", nombreVentes);
         data.put("venteMoyenne", venteMoyenne);
         data.put("now", LocalDateTime.now());
+
+        data.put("boutiqueNom", parametreService.getBoutiqueNom());
+        data.put("boutiqueAdresse", parametreService.getBoutiqueAdresse());
+        data.put("boutiqueTelephone", parametreService.getBoutiqueTelephone());
 
         byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("recu-session-details", data);
 

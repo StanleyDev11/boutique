@@ -14,7 +14,7 @@
                     <a sec:authorize="!hasAnyRole('ADMIN', 'GESTIONNAIRE') and hasRole('CAISSIER')" th:href="@{/caissier}" class="flex-shrink-0">
                         <img th:src="@{/lo.png}" alt="Logo" class="h-16 w-auto">
                     </a>
-                    <h1 class="text-xl sm:text-2xl font-bold text-white hidden sm:block italic ml-4">BelaLuxe</h1>
+                    <h1 class="text-xl sm:text-2xl font-bold text-white hidden sm:block italic ml-4" th:text="${boutiqueNom}">BelaLuxe</h1>
                 </div>
 
                 <!-- Desktop Menu -->

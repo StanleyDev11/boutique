@@ -47,14 +47,16 @@ public class CaisseController {
     private final VenteRepository venteRepository;
     private final CaisseRepository caisseRepository;
     private final PdfGenerationService pdfGenerationService;
+    private final com.example.boutique.service.ParametreService parametreService;
 
     @Autowired
-    public CaisseController(SessionCaisseRepository sessionCaisseRepository, UtilisateurRepository utilisateurRepository, VenteRepository venteRepository, CaisseRepository caisseRepository, PdfGenerationService pdfGenerationService) {
+    public CaisseController(SessionCaisseRepository sessionCaisseRepository, UtilisateurRepository utilisateurRepository, VenteRepository venteRepository, CaisseRepository caisseRepository, PdfGenerationService pdfGenerationService, com.example.boutique.service.ParametreService parametreService) {
         this.sessionCaisseRepository = sessionCaisseRepository;
         this.utilisateurRepository = utilisateurRepository;
         this.venteRepository = venteRepository;
         this.caisseRepository = caisseRepository;
         this.pdfGenerationService = pdfGenerationService;
+        this.parametreService = parametreService;
     }
 
     @GetMapping("/ouvrir")
@@ -219,6 +221,10 @@ public class CaisseController {
             data.put("totalTheorique", totalAttendu);
             data.put("nombreVentes", ventes.size());
             data.put("now", LocalDateTime.now());
+
+            data.put("boutiqueNom", parametreService.getBoutiqueNom());
+            data.put("boutiqueAdresse", parametreService.getBoutiqueAdresse());
+            data.put("boutiqueTelephone", parametreService.getBoutiqueTelephone());
 
             byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("recu-fermeture-caisse", data);
 
