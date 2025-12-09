@@ -50,6 +50,21 @@ public class GlobalControllerAdvice {
         return false;
     }
 
+    @ModelAttribute("boutiqueNom")
+    public String getBoutiqueNom() {
+        return parametreService.getBoutiqueNom();
+    }
+
+    @ModelAttribute("boutiqueAdresse")
+    public String getBoutiqueAdresse() {
+        return parametreService.getBoutiqueAdresse();
+    }
+
+    @ModelAttribute("boutiqueTelephone")
+    public String getBoutiqueTelephone() {
+        return parametreService.getBoutiqueTelephone();
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ModelAndView handleAllExceptions(Exception ex) {

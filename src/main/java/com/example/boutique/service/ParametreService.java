@@ -2,9 +2,8 @@ package com.example.boutique.service;
 
 import com.example.boutique.model.Parametre;
 import com.example.boutique.repository.ParametreRepository;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -14,41 +13,71 @@ public class ParametreService {
 
     private final ParametreRepository parametreRepository;
 
+    // Numerical parameters
     private static final String SEUIL_STOCK_BAS_KEY = "seuil_stock_bas";
     private static final String JOURS_AVANT_PEREMPTION_KEY = "jours_avant_peremption";
     private static final int SEUIL_STOCK_BAS_DEFAULT = 10;
     private static final int JOURS_AVANT_PEREMPTION_DEFAULT = 30;
 
+    // Boutique Info Parameters
+    public static final String BOUTIQUE_NOM_KEY = "boutique.nom";
+    public static final String BOUTIQUE_ADRESSE_KEY = "boutique.adresse";
+    public static final String BOUTIQUE_TELEPHONE_KEY = "boutique.telephone";
+    private static final String BOUTIQUE_NOM_DEFAULT = "SUPERMARCHE BELALUXE";
+    private static final String BOUTIQUE_ADRESSE_DEFAULT = "Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo";
+    private static final String BOUTIQUE_TELEPHONE_DEFAULT = "Tél: (+228) 96 00 01 89 / 90 12 34 30";
+
+
     public ParametreService(ParametreRepository parametreRepository) {
         this.parametreRepository = parametreRepository;
     }
 
-    public int getSeuilStockBas() {
-        return parametreRepository.findByCle(SEUIL_STOCK_BAS_KEY)
+    private String getStringParametre(String key, String defaultValue) {
+        return parametreRepository.findByCle(key)
+                .map(Parametre::getValeur)
+                .orElse(defaultValue);
+    }
+
+    private int getIntParametre(String key, int defaultValue) {
+        return parametreRepository.findByCle(key)
                 .map(p -> {
                     try {
                         return Integer.parseInt(p.getValeur());
                     } catch (NumberFormatException e) {
-                        return SEUIL_STOCK_BAS_DEFAULT; // Fallback to default if value is not a valid integer
+                        return defaultValue;
                     }
                 })
-                .orElse(SEUIL_STOCK_BAS_DEFAULT);
+                .orElse(defaultValue);
+    }
+
+    public String getBoutiqueNom() {
+        return getStringParametre(BOUTIQUE_NOM_KEY, BOUTIQUE_NOM_DEFAULT);
+    }
+
+    public String getBoutiqueAdresse() {
+        return getStringParametre(BOUTIQUE_ADRESSE_KEY, BOUTIQUE_ADRESSE_DEFAULT);
+    }
+
+    public String getBoutiqueTelephone() {
+        return getStringParametre(BOUTIQUE_TELEPHONE_KEY, BOUTIQUE_TELEPHONE_DEFAULT);
+    }
+
+    public int getSeuilStockBas() {
+        return getIntParametre(SEUIL_STOCK_BAS_KEY, SEUIL_STOCK_BAS_DEFAULT);
     }
 
     public int getJoursAvantPeremption() {
-        return parametreRepository.findByCle(JOURS_AVANT_PEREMPTION_KEY)
-                .map(p -> {
-                    try {
-                        return Integer.parseInt(p.getValeur());
-                    } catch (NumberFormatException e) {
-                        return JOURS_AVANT_PEREMPTION_DEFAULT; // Fallback to default
-                    }
-                })
-                .orElse(JOURS_AVANT_PEREMPTION_DEFAULT);
+        return getIntParametre(JOURS_AVANT_PEREMPTION_KEY, JOURS_AVANT_PEREMPTION_DEFAULT);
     }
 
     public void updateParametres(Map<String, String> parametres) {
-        List<String> validKeys = List.of(SEUIL_STOCK_BAS_KEY, JOURS_AVANT_PEREMPTION_KEY);
+        List<String> validKeys = List.of(
+            SEUIL_STOCK_BAS_KEY, 
+            JOURS_AVANT_PEREMPTION_KEY,
+            BOUTIQUE_NOM_KEY,
+            BOUTIQUE_ADRESSE_KEY,
+            BOUTIQUE_TELEPHONE_KEY
+        );
 
         for (String key : validKeys) {
             if (parametres.containsKey(key)) {

@@ -116,9 +116,9 @@
 
 <div class="report-container">
     <div class="report-header">
-        <h1 class="text-3xl font-bold text-gray-800">SUPERMARCHE BELALUXE</h1>
-        <p class="text-sm text-gray-600">Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo</p>
-        <p class="text-sm text-gray-600">Tél: (+228) 96 00 01 89 / 90 12 34 30</p>
+        <h1 class="text-3xl font-bold text-gray-800" th:text="${boutiqueNom}">SUPERMARCHE BELALUXE</h1>
+        <p class="text-sm text-gray-600" th:text="${boutiqueAdresse}">Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo</p>
+        <p class="text-sm text-gray-600" th:text="${boutiqueTelephone}">Tél: (+228) 96 00 01 89 / 90 12 34 30</p>
         <h2 class="text-2xl font-semibold text-gray-700 mt-4">Rapport des Ventes</h2>
         <p th:text="${'Période du ' + #temporals.format(startDate, 'dd/MM/yyyy') + ' au ' + #temporals.format(endDate, 'dd/MM/yyyy')}"></p>
         <p class="text-xs text-gray-500 mt-1" th:text="${'Généré le ' + #temporals.format(dateGeneration, 'dd/MM/yyyy HH:mm')}"></p>

@@ -208,26 +208,42 @@
                         </div>
                     </div>
 
-                    <!-- Section Sécurité -->
-                    <div class="settings-card p-6 rounded-2xl border-l-green-500">
+                    <!-- Section Informations de la Boutique -->
+                    <div class="settings-card p-6 rounded-2xl border-l-purple-500">
                         <div class="section-header">
                             <div class="flex items-center space-x-4">
-                                <div class="setting-icon bg-green-100 text-green-600">
-                                    <i class="fas fa-shield-alt"></i>
+                                <div class="setting-icon bg-purple-100 text-purple-600">
+                                    <i class="fas fa-store"></i>
                                 </div>
                                 <div>
-                                    <h3 class="text-xl font-semibold text-gray-800">Sécurité</h3>
-                                    <p class="text-gray-600 mt-1">Paramètres de sécurité et de session</p>
+                                    <h3 class="text-xl font-semibold text-gray-800">Informations de la Boutique</h3>
+                                    <p class="text-gray-600 mt-1">Configurez le nom, l'adresse et le téléphone de votre boutique</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="space-y-6">
+                            <!-- Nom de la boutique -->
+                            <div>
+                                <label for="boutique.nom" class="block text-sm font-semibold text-gray-800 mb-2">Nom de la boutique</label>
+                                <input type="text" id="boutique.nom" name="boutique.nom" th:value="${parametres.get('boutique.nom')}" class="input-field w-full pl-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                            </div>
 
+                            <!-- Adresse de la boutique -->
+                            <div>
+                                <label for="boutique.adresse" class="block text-sm font-semibold text-gray-800 mb-2">Adresse</label>
+                                <input type="text" id="boutique.adresse" name="boutique.adresse" th:value="${parametres.get('boutique.adresse')}" class="input-field w-full pl-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                            </div>
 
-
+                            <!-- Téléphone de la boutique -->
+                            <div>
+                                <label for="boutique.telephone" class="block text-sm font-semibold text-gray-800 mb-2">Téléphone</label>
+                                <input type="text" id="boutique.telephone" name="boutique.telephone" th:value="${parametres.get('boutique.telephone')}" class="input-field w-full pl-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                            </div>
                         </div>
                     </div>
+
+
 
 
                 </div>

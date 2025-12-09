@@ -59,9 +59,9 @@
     <header class="mb-8 border-b pb-4">
         <div class="flex justify-between items-start">
             <div class="text-left">
-                <h1 class="text-2xl font-bold text-gray-800">SUPERMARCHE BELALUXE</h1>
-                <p class="text-sm text-gray-600">Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo</p>
-                <p class="text-sm text-gray-600">Tél: (+228) 96 00 01 89 / 90 12 34 30</p>
+                <h1 class="text-2xl font-bold text-gray-800" th:text="${boutiqueNom}">SUPERMARCHE BELALUXE</h1>
+                <p class="text-sm text-gray-600" th:text="${boutiqueAdresse}">Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo</p>
+                <p class="text-sm text-gray-600" th:text="${boutiqueTelephone}">Tél: (+228) 96 00 01 89 / 90 12 34 30</p>
             </div>
             <div class="text-right">
                 <h2 class="text-xl font-semibold text-gray-700">Inventaire des Produits</h2>
@@ -120,7 +120,7 @@
                 <p>Total de <span class="font-bold" th:text="${#lists.size(produits)}"></span> produits listés.</p>
             </div>
             <div class="text-right">
-                <p>&copy; <span th:text="${#temporals.year(printDate)}"></span> SUPERMARCHE BELALUXE. Tous droits réservés.</p>
+                <p>&copy; <span th:text="${#temporals.year(printDate)}"></span> <span th:text="${boutiqueNom}"></span>. Tous droits réservés.</p>
             </div>
         </div>
     </footer>
