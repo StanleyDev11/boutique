@@ -67,7 +67,7 @@ public class RapportController {
                                   @RequestParam(required = false) String filter,
                                   @RequestParam(defaultValue = "asc") String sort,
                                   @RequestParam(defaultValue = "0") int page,
-                                  @RequestParam(defaultValue = "50") int size,
+                                  @RequestParam(defaultValue = "150") int size,
                                   @RequestParam(required = false) String searchTerm) {
 
         model.addAttribute("activeTab", tab);
@@ -112,7 +112,16 @@ public class RapportController {
         LocalDate dateLimite = aujourdhui.plusDays(joursAvantPeremption);
         List<Produit> produitsPeremptionProche = produitRepository.findAllByDatePeremptionBetweenAndQuantiteEnStockGreaterThan(aujourdhui, dateLimite, BigDecimal.ZERO);
 
-        model.addAttribute("produitsPage", produitsPage);
+        // Force initialization to prevent LazyInitializationException in the template
+        List<Produit> initializedProduits = produitsPage.getContent();
+        // Simply accessing the list might be enough if the transaction is managed correctly up to the view layer,
+        // but creating a new Page object from a collected list is safer.
+        Page<Produit> initializedPage = new org.springframework.data.domain.PageImpl<>(
+                initializedProduits.stream().collect(Collectors.toList()),
+                pageable,
+                produitsPage.getTotalElements()
+        );
+        model.addAttribute("produitsPage", initializedPage);
         model.addAttribute("seuil", seuilStockBasInt);
         model.addAttribute("sort", sort);
         model.addAttribute("activeFilter", filter);
@@ -215,11 +224,14 @@ public class RapportController {
                                  @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate startDate,
                                  @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
-        LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : LocalDateTime.now().minusYears(1);
-        LocalDateTime endDateTime = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : LocalDateTime.now();
-
-        if (startDate == null) startDate = LocalDate.now().minusYears(1);
-        if (endDate == null) endDate = LocalDate.now();
+        if (startDate == null) {
+            startDate = LocalDate.now();
+        }
+        if (endDate == null) {
+            endDate = LocalDate.now();
+        }
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
 
         Sort sort = Sort.by(Sort.Direction.ASC, "dateVente");
         List<com.example.boutique.model.Vente> ventes = venteRepository.findAllWithDetailsByDateVenteBetween(startDateTime, endDateTime, sort).stream().filter(v -> v.getStatus() != com.example.boutique.enums.VenteStatus.CANCELLED).collect(Collectors.toList());
@@ -278,8 +290,14 @@ public class RapportController {
                                          @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate startDate,
                                          @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate endDate) {
         try {
-            LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : LocalDate.now().atStartOfDay();
-            LocalDateTime endDateTime = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : LocalDateTime.now();
+            if (startDate == null) {
+                startDate = LocalDate.now();
+            }
+            if (endDate == null) {
+                endDate = LocalDate.now();
+            }
+            LocalDateTime startDateTime = startDate.atStartOfDay();
+            LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
 
             Sort sort = Sort.by(Sort.Direction.ASC, "dateVente");
             List<com.example.boutique.model.Vente> ventes = venteRepository.findAllWithDetailsByDateVenteBetween(startDateTime, endDateTime, sort).stream().filter(v -> v.getStatus() != com.example.boutique.enums.VenteStatus.CANCELLED).collect(Collectors.toList());
@@ -319,11 +337,14 @@ public class RapportController {
     public ResponseEntity<byte[]> exportRapportVentesPdf(@RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate startDate,
                                                      @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate endDate) {
         try {
-            LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : LocalDate.now().atStartOfDay();
-            LocalDateTime endDateTime = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : LocalDateTime.now();
-
-            if (startDate == null) startDate = LocalDate.now().minusYears(1);
-            if (endDate == null) endDate = LocalDate.now();
+            if (startDate == null) {
+                startDate = LocalDate.now();
+            }
+            if (endDate == null) {
+                endDate = LocalDate.now();
+            }
+            LocalDateTime startDateTime = startDate.atStartOfDay();
+            LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
 
             Sort sort = Sort.by(Sort.Direction.ASC, "dateVente");
             List<com.example.boutique.model.Vente> ventes = venteRepository.findAllWithDetailsByDateVenteBetween(startDateTime, endDateTime, sort).stream().filter(v -> v.getStatus() != com.example.boutique.enums.VenteStatus.CANCELLED).collect(Collectors.toList());
@@ -464,15 +485,21 @@ public class RapportController {
             @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate endDate) {
         try {
-            LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : null;
-            LocalDateTime endDateTime = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : null;
+            if (startDate == null) {
+                startDate = LocalDate.now();
+            }
+            if (endDate == null) {
+                endDate = LocalDate.now();
+            }
+            LocalDateTime startDateTime = startDate.atStartOfDay();
+            LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
 
             List<com.example.boutique.dto.ProduitVenteStatsDto> stats = ligneVenteRepository.findProduitVenteStats(keyword, startDateTime, endDateTime);
 
             Map<String, Object> data = new HashMap<>();
             data.put("produitVenteStats", stats);
-            data.put("startDate", startDate != null ? startDate : LocalDate.now().minusYears(1));
-            data.put("endDate", endDate != null ? endDate : LocalDate.now());
+            data.put("startDate", startDate);
+            data.put("endDate", endDate);
             data.put("dateGeneration", LocalDateTime.now());
 
             byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("rapport-ventes-par-produit-print", data);

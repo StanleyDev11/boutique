@@ -285,7 +285,6 @@
 <script th:inline="javascript">
     /*<![CDATA[*/
 
-    // All functions are defined first
     function initializeCharts() {
         // Sales by day chart
         fetch('/rapports/sales-by-day')
@@ -336,49 +335,52 @@
             });
     }
 
-    function updateLinks() {
+    function handleExportClick(event, exportType) {
+        event.preventDefault();
+
         const activeTab = new URLSearchParams(window.location.search).get('tab') || 'historique';
-        
-        let nomProduit = '';
-        let startDate = '';
-        let endDate = '';
+        const form = document.querySelector('form[action="/rapports/ventes-historique"]');
+        if (!form) return;
 
-        if (activeTab === 'historique') {
-            nomProduit = document.getElementById('nomProduit').value;
-            startDate = document.querySelector('form[action="/rapports/ventes-historique"] input[name="startDate"]').value;
-            endDate = document.querySelector('form[action="/rapports/ventes-historique"] input[name="endDate"]').value;
-        } else if (activeTab === 'produits') {
-            const form = document.querySelector('form[action="/rapports/ventes-historique"][method="get"]');
-            if(form) {
-                 nomProduit = form.querySelector('input[name="nomProduit"]').value;
-                 startDate = form.querySelector('input[name="startDate"]').value;
-                 endDate = form.querySelector('input[name="endDate"]').value;
-            }
-        }
-        
+        const nomProduit = form.querySelector('input[name="nomProduit"]').value;
+        const startDate = form.querySelector('input[name="startDate"]').value;
+        const endDate = form.querySelector('input[name="endDate"]').value;
+
+        let baseUrl = '';
         const params = new URLSearchParams();
-        if (nomProduit) params.append('nomProduit', nomProduit);
-        if (startDate) params.append('startDate', startDate);
-        if (endDate) params.append('endDate', endDate);
-        
-        const queryString = params.toString();
-
-        const excelLink = document.getElementById('exportExcelLink');
-        const pdfLink = document.getElementById('exportPdfLink');
-        const printLink = document.getElementById('printLink');
 
         if (activeTab === 'produits') {
-            excelLink.href = `/rapports/produits/export/excel${queryString ? '?' + queryString : ''}`;
-            pdfLink.href = `/rapports/produits/export/pdf${queryString ? '?' + queryString : ''}`;
-            printLink.style.display = 'none';
+            switch(exportType) {
+                case 'pdf': baseUrl = '/rapports/produits/export/pdf'; break;
+                case 'excel': baseUrl = '/rapports/produits/export/excel'; break;
+                default: return;
+            }
+            if (nomProduit) params.append('keyword', nomProduit); // Use 'keyword' for products tab
+            if (startDate) params.append('startDate', startDate);
+            if (endDate) params.append('endDate', endDate);
+
+        } else { // 'historique' tab
+            switch(exportType) {
+                case 'pdf': baseUrl = '/rapports/ventes/export/pdf'; break;
+                case 'excel': baseUrl = '/rapports/ventes/export/excel'; break;
+                case 'print': baseUrl = '/rapports/ventes/imprimer'; break;
+                default: return;
+            }
+             // General sales reports do not filter by product name in their controller
+            if (startDate) params.append('startDate', startDate);
+            if (endDate) params.append('endDate', endDate);
+        }
+
+        const queryString = params.toString();
+        const finalUrl = `${baseUrl}${queryString ? '?' + queryString : ''}`;
+
+        if (exportType === 'print') {
+             window.open(finalUrl, '_blank');
         } else {
-            excelLink.href = `/rapports/ventes/export/excel${queryString ? '?' + queryString : ''}`;
-            pdfLink.href = `/rapports/ventes/export/pdf${queryString ? '?' + queryString : ''}`;
-            printLink.href = `/rapports/ventes/imprimer${queryString ? '?' + queryString : ''}`;
-            printLink.target = '_blank';
-            printLink.style.display = 'inline-flex';
+             window.location.href = finalUrl;
         }
     }
+
 
     // Main execution block
     document.addEventListener('DOMContentLoaded', function () {
@@ -388,11 +390,14 @@
             initializeCharts();
         }
 
-        // Setup for Export Button
+        // Setup for Export Button Dropdown
         const exportBtn = document.getElementById('exportBtn');
         const exportDropdown = document.getElementById('exportDropdown');
         if(exportBtn) {
             exportBtn.addEventListener('click', function() {
+                // Toggle display and also ensure the correct links are shown for the active tab
+                const isProduitsTab = (new URLSearchParams(window.location.search).get('tab') || 'historique') === 'produits';
+                document.getElementById('printLink').style.display = isProduitsTab ? 'none' : 'inline-flex';
                 exportDropdown.classList.toggle('show');
             });
         }
@@ -402,20 +407,21 @@
             }
         });
 
-        // Setup for other buttons and filters
-        const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
-        if(toggleFiltersBtn) {
-            //...
-        }
-        
-        // Update links on load
-        updateLinks();
-    });
-    
-    /*]]>*/
-</script>
-<script th:inline="javascript">
-    /*<![CDATA[*/
+                    // Attach event listeners to export links
+                    document.getElementById('exportPdfLink').addEventListener('click', (e) => handleExportClick(e, 'pdf'));
+                    document.getElementById('exportExcelLink').addEventListener('click', (e) => handleExportClick(e, 'excel'));
+                    document.getElementById('printLink').addEventListener('click', (e) => handleExportClick(e, 'print'));
+                    
+                    // Hide the print link permanently
+                    const printLink = document.getElementById('printLink');
+                    if (printLink) {
+                        printLink.style.display = 'none';
+                    }
+                });
+                
+                /*]]>*/
+            </script>
+            <script th:inline="javascript">    /*<![CDATA[*/
     document.addEventListener('DOMContentLoaded', function () {
         const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');

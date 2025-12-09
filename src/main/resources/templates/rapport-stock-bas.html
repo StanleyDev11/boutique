@@ -172,15 +172,16 @@
             </div>
             <div class="p-4">
                 <div th:if="${produitsPage.empty}" class="text-center text-gray-500 py-12">Aucun produit correspondant aux critères actuels.</div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                     <div th:each="produit : ${produitsPage.content}" th:class="'rounded-lg shadow-sm border ' + ${produit.quantiteEnStock == 0 ? 'border-red-300 bg-red-50' : 'border-orange-300 bg-orange-50'}">
                         <div class="p-4 flex flex-col items-center text-center">
                             <h4 class="font-semibold text-gray-800" th:text="${produit.nom}"></h4>
-                            <p class="text-5xl font-bold text-gray-900 my-2" th:text="${produit.quantiteEnStock}"></p>
+                            <p class="text-5xl font-bold text-gray-900 my-2" th:text="${#numbers.formatDecimal(produit.quantiteEnStock, 0, 'POINT', 0, 'COMMA')}"></p>
                             <p class="text-sm text-gray-600">en stock</p>
                             <span th:if="${produit.quantiteEnStock == 0}" class="mt-2 px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">En rupture</span>
+                            <p class="text-sm text-gray-600 mt-1" th:text="${produit.categorie != null ? 'Catégorie: ' + produit.categorie : ''}"></p>
+                            <p class="text-sm text-gray-600" th:text="${produit.datePeremption != null ? 'Péremption: ' + #temporals.format(produit.datePeremption, 'dd-MM-yyyy') : 'Date de péremption: N/A'}"></p>
                         </div>
-                        
                     </div>
                 </div>
             </div>
