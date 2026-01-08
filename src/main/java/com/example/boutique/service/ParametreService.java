@@ -23,9 +23,11 @@ public class ParametreService {
     public static final String BOUTIQUE_NOM_KEY = "boutique.nom";
     public static final String BOUTIQUE_ADRESSE_KEY = "boutique.adresse";
     public static final String BOUTIQUE_TELEPHONE_KEY = "boutique.telephone";
+    public static final String BOUTIQUE_LOGO_KEY = "boutique.logo";
     private static final String BOUTIQUE_NOM_DEFAULT = "SUPERMARCHE BELALUXE";
     private static final String BOUTIQUE_ADRESSE_DEFAULT = "Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo";
     private static final String BOUTIQUE_TELEPHONE_DEFAULT = "Tél: (+228) 96 00 01 89 / 90 12 34 30";
+    private static final String BOUTIQUE_LOGO_DEFAULT = "/lo.png";
 
 
     public ParametreService(ParametreRepository parametreRepository) {
@@ -62,6 +64,10 @@ public class ParametreService {
         return getStringParametre(BOUTIQUE_TELEPHONE_KEY, BOUTIQUE_TELEPHONE_DEFAULT);
     }
 
+    public String getBoutiqueLogo() {
+        return getStringParametre(BOUTIQUE_LOGO_KEY, BOUTIQUE_LOGO_DEFAULT);
+    }
+
     public int getSeuilStockBas() {
         return getIntParametre(SEUIL_STOCK_BAS_KEY, SEUIL_STOCK_BAS_DEFAULT);
     }
@@ -76,7 +82,8 @@ public class ParametreService {
             JOURS_AVANT_PEREMPTION_KEY,
             BOUTIQUE_NOM_KEY,
             BOUTIQUE_ADRESSE_KEY,
-            BOUTIQUE_TELEPHONE_KEY
+            BOUTIQUE_TELEPHONE_KEY,
+            BOUTIQUE_LOGO_KEY
         );
 
         for (String key : validKeys) {

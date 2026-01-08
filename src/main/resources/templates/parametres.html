@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paramètres</title>
+    <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -137,7 +138,7 @@
             <!-- Header -->
 
 
-            <form th:action="@{/parametres/sauvegarder}" method="post" class="p-8">
+            <form th:action="@{/parametres/sauvegarder}" method="post" enctype="multipart/form-data" class="p-8">
                 <div class="space-y-8">
                     <!-- Section Rapports et Alertes -->
                     <div class="settings-card p-6 rounded-2xl border-l-indigo-500">
@@ -240,6 +241,24 @@
                                 <label for="boutique.telephone" class="block text-sm font-semibold text-gray-800 mb-2">Téléphone</label>
                                 <input type="text" id="boutique.telephone" name="boutique.telephone" th:value="${parametres.get('boutique.telephone')}" class="input-field w-full pl-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
                             </div>
+
+                            <!-- Logo de la boutique -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-800 mb-2">Logo de la boutique</label>
+                                <div class="flex items-center space-x-6">
+                                    <img id="logo-preview" th:src="@{${parametres.get('boutique.logo')}}" alt="Logo Preview" class="h-16 w-16 rounded-lg object-cover bg-gray-100">
+                                    <div class="flex-1">
+                                        <input type="file" id="logoFile" name="logoFile" accept="image/*"
+                                               class="block w-full text-sm text-gray-500
+                                                      file:mr-4 file:py-2 file:px-4
+                                                      file:rounded-full file:border-0
+                                                      file:text-sm file:font-semibold
+                                                      file:bg-indigo-50 file:text-indigo-700
+                                                      hover:file:bg-indigo-100">
+                                        <p class="mt-1 text-xs text-gray-500">PNG, JPG, GIF jusqu'à 1MB. Laisser vide pour conserver le logo actuel.</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -267,6 +286,17 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.getElementById('logoFile').addEventListener('change', function(event) {
+        const [file] = event.target.files;
+        if (file) {
+            const preview = document.getElementById('logo-preview');
+            preview.src = URL.createObjectURL(file);
+            preview.onload = () => URL.revokeObjectURL(preview.src); // free memory
+        }
+    });
+</script>
 
 </body>
 </html>

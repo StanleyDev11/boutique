@@ -10,9 +10,15 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig {
+public class SecurityConfig implements WebMvcConfigurer {
 
     private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
 
@@ -20,12 +26,22 @@ public class SecurityConfig {
         this.customAuthenticationSuccessHandler = customAuthenticationSuccessHandler;
     }
 
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        String userHome = System.getProperty("user.home");
+        Path uploadDir = Paths.get(userHome, "boutique-uploads");
+        String uploadPath = uploadDir.toFile().getAbsolutePath();
+
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:/" + uploadPath + "/");
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/**").hasRole("ADMIN")
-                .requestMatchers("/login", "/css/**", "/js/**", "/loo.jpg", "/favicon.ico").permitAll() // Pages et ressources publiques
+                .requestMatchers("/login", "/css/**", "/js/**", "/loo.jpg", "/favicon.ico", "/uploads/**").permitAll() // Pages et ressources publiques
                 .requestMatchers("/api/**").authenticated() // Autoriser l'accès à l'API pour les utilisateurs connectés
                 .requestMatchers("/produits/delete/**").hasRole("ADMIN") // Seul l'admin peut supprimer
                 .requestMatchers("/produits/new", "/produits/edit/**", "/produits/save").hasAnyRole("ADMIN", "GESTIONNAIRE") // Qui peut modifier/créer

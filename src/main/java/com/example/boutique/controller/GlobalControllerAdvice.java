@@ -65,6 +65,11 @@ public class GlobalControllerAdvice {
         return parametreService.getBoutiqueTelephone();
     }
 
+    @ModelAttribute("boutiqueLogo")
+    public String getBoutiqueLogo() {
+        return parametreService.getBoutiqueLogo();
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ModelAndView handleAllExceptions(Exception ex) {
