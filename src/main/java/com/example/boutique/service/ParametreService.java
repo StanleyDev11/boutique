@@ -24,10 +24,14 @@ public class ParametreService {
     public static final String BOUTIQUE_ADRESSE_KEY = "boutique.adresse";
     public static final String BOUTIQUE_TELEPHONE_KEY = "boutique.telephone";
     public static final String BOUTIQUE_LOGO_KEY = "boutique.logo";
+    public static final String TAILWIND_HEADER_BACKGROUND_COLOR_KEY = "tailwind.header.background.color";
+    public static final String TAILWIND_HEADER_TEXT_COLOR_KEY = "tailwind.header.text.color";
     private static final String BOUTIQUE_NOM_DEFAULT = "SUPERMARCHE BELALUXE";
     private static final String BOUTIQUE_ADRESSE_DEFAULT = "Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo";
     private static final String BOUTIQUE_TELEPHONE_DEFAULT = "Tél: (+228) 96 00 01 89 / 90 12 34 30";
     private static final String BOUTIQUE_LOGO_DEFAULT = "/lo.png";
+    private static final String TAILWIND_HEADER_BACKGROUND_COLOR_DEFAULT = "#1F2937";
+    private static final String TAILWIND_HEADER_TEXT_COLOR_DEFAULT = "#D1D5DB";
 
 
     public ParametreService(ParametreRepository parametreRepository) {
@@ -68,6 +72,14 @@ public class ParametreService {
         return getStringParametre(BOUTIQUE_LOGO_KEY, BOUTIQUE_LOGO_DEFAULT);
     }
 
+    public String getTailwindHeaderBackgroundColor() {
+        return getStringParametre(TAILWIND_HEADER_BACKGROUND_COLOR_KEY, TAILWIND_HEADER_BACKGROUND_COLOR_DEFAULT);
+    }
+
+    public String getTailwindHeaderTextColor() {
+        return getStringParametre(TAILWIND_HEADER_TEXT_COLOR_KEY, TAILWIND_HEADER_TEXT_COLOR_DEFAULT);
+    }
+
     public int getSeuilStockBas() {
         return getIntParametre(SEUIL_STOCK_BAS_KEY, SEUIL_STOCK_BAS_DEFAULT);
     }
@@ -78,12 +90,14 @@ public class ParametreService {
 
     public void updateParametres(Map<String, String> parametres) {
         List<String> validKeys = List.of(
-            SEUIL_STOCK_BAS_KEY, 
+            SEUIL_STOCK_BAS_KEY,
             JOURS_AVANT_PEREMPTION_KEY,
             BOUTIQUE_NOM_KEY,
             BOUTIQUE_ADRESSE_KEY,
             BOUTIQUE_TELEPHONE_KEY,
-            BOUTIQUE_LOGO_KEY
+            BOUTIQUE_LOGO_KEY,
+            TAILWIND_HEADER_BACKGROUND_COLOR_KEY,
+            TAILWIND_HEADER_TEXT_COLOR_KEY
         );
 
         for (String key : validKeys) {

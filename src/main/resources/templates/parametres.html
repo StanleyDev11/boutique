@@ -262,9 +262,34 @@
                         </div>
                     </div>
 
+                    <!-- Section Personnalisation -->
+                    <div class="settings-card p-6 rounded-2xl border-l-pink-500">
+                        <div class="section-header">
+                            <div class="flex items-center space-x-4">
+                                <div class="setting-icon bg-pink-100 text-pink-600">
+                                    <i class="fas fa-paint-brush"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-semibold text-gray-800">Personnalisation</h3>
+                                    <p class="text-gray-600 mt-1">Changez l'apparence de l'application</p>
+                                </div>
+                            </div>
+                        </div>
 
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Couleur de fond du header -->
+                            <div>
+                                <label for="tailwind.header.background.color" class="block text-sm font-semibold text-gray-800 mb-2">Couleur de fond du header</label>
+                                <input type="color" id="tailwind.header.background.color" name="tailwind.header.background.color" th:value="${parametres.get('tailwind.header.background.color')}" class="input-field w-full h-10 px-1 py-1 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                            </div>
 
-
+                            <!-- Couleur du texte du header -->
+                            <div>
+                                <label for="tailwind.header.text.color" class="block text-sm font-semibold text-gray-800 mb-2">Couleur du texte du header</label>
+                                <input type="color" id="tailwind.header.text.color" name="tailwind.header.text.color" th:value="${parametres.get('tailwind.header.text.color')}" class="input-field w-full h-10 px-1 py-1 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Action Buttons -->

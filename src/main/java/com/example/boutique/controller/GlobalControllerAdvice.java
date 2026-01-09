@@ -70,6 +70,16 @@ public class GlobalControllerAdvice {
         return parametreService.getBoutiqueLogo();
     }
 
+    @ModelAttribute("tailwindHeaderBackgroundColor")
+    public String getTailwindHeaderBackgroundColor() {
+        return parametreService.getTailwindHeaderBackgroundColor();
+    }
+
+    @ModelAttribute("tailwindHeaderTextColor")
+    public String getTailwindHeaderTextColor() {
+        return parametreService.getTailwindHeaderTextColor();
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ModelAndView handleAllExceptions(Exception ex) {
