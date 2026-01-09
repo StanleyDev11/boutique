@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Accès non autorisé</title>
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="text-center p-8 bg-white rounded-lg shadow-2xl max-w-2xl">
+        <i class="fas fa-lock text-5xl text-yellow-500"></i>
+        <h1 class="text-4xl font-bold text-gray-800 mt-4">Accès non autorisé</h1>
+        <p class="text-lg mt-4 text-gray-600">Votre abonnement actuel ne vous donne pas accès à cette fonctionnalité.</p>
+        <p class="text-md text-gray-500 mt-2" th:text="${errorMessage}">Message d'erreur détaillé ici.</p>
+        <div class="mt-8">
+            <a th:href="@{/dashboard}" class="px-8 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition-colors duration-300">
+                Retour au tableau de bord
+            </a>
+            <a th:href="@{/tarifs}" class="ml-4 px-8 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition-colors duration-300">
+                Voir les abonnements
+            </a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,6 +1,8 @@
 package com.example.boutique.controller;
 
+import com.example.boutique.model.Organization;
 import com.example.boutique.model.Utilisateur;
+import com.example.boutique.repository.OrganizationRepository;
 import com.example.boutique.repository.UtilisateurRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -15,16 +17,19 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/utilisateurs")
 public class UtilisateurController {
 
     private final UtilisateurRepository utilisateurRepository;
+    private final OrganizationRepository organizationRepository; // Added
     private final PasswordEncoder passwordEncoder;
 
-    public UtilisateurController(UtilisateurRepository utilisateurRepository, PasswordEncoder passwordEncoder) {
+    public UtilisateurController(UtilisateurRepository utilisateurRepository, OrganizationRepository organizationRepository, PasswordEncoder passwordEncoder) {
         this.utilisateurRepository = utilisateurRepository;
+        this.organizationRepository = organizationRepository; // Added
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -54,7 +59,8 @@ public class UtilisateurController {
         model.addAttribute("utilisateur", utilisateur);
         model.addAttribute("pageTitle", pageTitle);
         model.addAttribute("view", "fragment"); // Pour le rendu conditionnel dans le template
-        model.addAttribute("allRoles", List.of("ROLE_ADMIN", "ROLE_GESTIONNAIRE", "ROLE_CAISSIER"));
+        model.addAttribute("allRoles", List.of("ROLE_ADMIN", "ROLE_GESTIONNAIRE", "ROLE_CAISSIER", "ROLE_SUPER_ADMIN")); // Added ROLE_SUPER_ADMIN
+        model.addAttribute("organizations", organizationRepository.findAll()); // Added
         return "utilisateur-form :: form-content";
     }
 
@@ -62,7 +68,8 @@ public class UtilisateurController {
     public String showCreateForm(Model model) {
         model.addAttribute("utilisateur", new Utilisateur());
         model.addAttribute("pageTitle", "Ajouter un utilisateur");
-        model.addAttribute("allRoles", List.of("ROLE_ADMIN", "ROLE_GESTIONNAIRE", "ROLE_CAISSIER"));
+        model.addAttribute("allRoles", List.of("ROLE_ADMIN", "ROLE_GESTIONNAIRE", "ROLE_CAISSIER", "ROLE_SUPER_ADMIN")); // Added ROLE_SUPER_ADMIN
+        model.addAttribute("organizations", organizationRepository.findAll()); // Added
         return "utilisateur-form";
     }
 
@@ -74,7 +81,8 @@ public class UtilisateurController {
             utilisateur.setPassword(""); // Ne jamais envoyer le hash au formulaire
             model.addAttribute("utilisateur", utilisateur);
             model.addAttribute("pageTitle", "Modifier l'utilisateur");
-            model.addAttribute("allRoles", List.of("ROLE_ADMIN", "ROLE_GESTIONNAIRE", "ROLE_CAISSIER"));
+            model.addAttribute("allRoles", List.of("ROLE_ADMIN", "ROLE_GESTIONNAIRE", "ROLE_CAISSIER", "ROLE_SUPER_ADMIN")); // Added ROLE_SUPER_ADMIN
+            model.addAttribute("organizations", organizationRepository.findAll()); // Added
             return "utilisateur-form";
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
@@ -84,7 +92,9 @@ public class UtilisateurController {
 
     @PostMapping("/save")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> saveUtilisateur(@ModelAttribute("utilisateur") Utilisateur utilisateur, @RequestParam(name = "roles", required = false) List<String> roles) {
+    public ResponseEntity<Map<String, Object>> saveUtilisateur(@ModelAttribute("utilisateur") Utilisateur utilisateur,
+                                                               @RequestParam(name = "roles", required = false) List<String> roles,
+                                                               @RequestParam(name = "organizationId", required = false) Long organizationId) { // Added organizationId
         // Vérifier l'unicité du nom d'utilisateur
         utilisateurRepository.findByUsername(utilisateur.getUsername()).ifPresent(existingUser -> {
             if (utilisateur.getId() == null || !existingUser.getId().equals(utilisateur.getId())) {
@@ -97,6 +107,15 @@ public class UtilisateurController {
             utilisateur.setRoles(String.join(",", roles));
         } else {
             utilisateur.setRoles(""); // ou une valeur par défaut si nécessaire
+        }
+
+        // Gestion de l'organisation
+        if (organizationId != null) {
+            Organization organization = organizationRepository.findById(organizationId)
+                    .orElseThrow(() -> new IllegalArgumentException("Organisation non trouvée pour l'ID: " + organizationId));
+            utilisateur.setOrganization(organization);
+        } else {
+            utilisateur.setOrganization(null); // Clear organization if none selected
         }
 
         // Gestion du code caissier

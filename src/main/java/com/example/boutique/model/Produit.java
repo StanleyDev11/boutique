@@ -4,6 +4,10 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -11,20 +15,23 @@ import java.time.LocalDate;
 @Data
 @Entity
 @Table(name = "produits")
+@FilterDef(name = "tenantFilter", parameters = @ParamDef(name = "clientId", type = String.class))
+@Filter(name = "tenantFilter", condition = "clientId = :clientId")
 public class Produit {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Le nom du produit ne peut pas être vide.")
-    @Size(max = 255, message = "Le nom du produit ne doit pas dépasser 255 caractères.")
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String nom;
 
     @Size(max = 100, message = "Le code-barres ne doit pas dépasser 100 caractères.")
     @Column(unique = true)
     private String codeBarres;
+
+    // Nouveau champ pour l'identifiant du client (tenant)
+    private String clientId;
 
     public void setCodeBarres(String codeBarres) {
         this.codeBarres = (codeBarres == null || codeBarres.trim().isEmpty()) ? null : codeBarres;

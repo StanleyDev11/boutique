@@ -1,0 +1,77 @@
+# Résumé des Travaux du 9 Janvier 2026
+
+Ce document récapitule les fonctionnalités implémentées et les modifications apportées au code source de l'application "Boutique" en date du 9 Janvier 2026.
+
+## 1. Personnalisation des Couleurs du Header (Tailwind CSS)
+
+**Objectif :** Permettre à l'administrateur de personnaliser la couleur de fond et la couleur du texte du header de l'application via une interface utilisateur.
+
+**Modifications apportées :**
+*   **`src/main/resources/templates/parametres.html` :** Ajout d'une nouvelle section "Personnalisation" avec des sélecteurs de couleurs (inputs de type `color`) pour le fond et le texte du header.
+*   **`src/main/java/com/example/boutique/service/ParametreService.java` :**
+    *   Ajout de constantes pour les clés des nouveaux paramètres : `TAILWIND_HEADER_BACKGROUND_COLOR_KEY` et `TAILWIND_HEADER_TEXT_COLOR_KEY`.
+    *   Mise à jour de la liste `validKeys` dans la méthode `updateParametres` pour inclure ces nouvelles clés, permettant leur sauvegarde en base de données.
+    *   Ajout de méthodes `getTailwindHeaderBackgroundColor()` et `getTailwindHeaderTextColor()` pour récupérer les valeurs.
+*   **`src/main/java/com/example/boutique/controller/GlobalControllerAdvice.java` :** Ajout de méthodes `@ModelAttribute` (`getTailwindHeaderBackgroundColor`, `getTailwindHeaderTextColor`) pour exposer les couleurs du header au modèle Thymeleaf, les rendant disponibles globalement.
+*   **`src/main/resources/templates/fragments/tailwind-header.html` :** Modification des classes Tailwind (`bg-gray-800`, `text-gray-300`, `text-white`) par des styles en ligne dynamiques (`th:style="'background-color:' + ${tailwindHeaderBackgroundColor}"`, `th:style="'color:' + ${tailwindHeaderTextColor}"`) pour appliquer les couleurs choisies par l'utilisateur. Correction d'un attribut `class_` erroné et suppression des classes `hover:text-white` pour éviter les conflits.
+*   **`src/main/java/com/example/boutique/config/DataInitializer.java` :** Ajout des valeurs par défaut pour les nouvelles couleurs du header. Suppression du *Byte Order Mark* (BOM) qui causait des erreurs de compilation (`illegal character: '\ufeff'`).
+
+## 2. Implémentation du Modèle d'Abonnement (Feature Gating)
+
+**Objectif :** Mettre en place un système de contrôle d'accès aux fonctionnalités basé sur des plans d'abonnement, tout en permettant une gestion complète via une interface Super Admin.
+
+**Modifications apportées :**
+
+### 2.1. Entités et Repositories du Modèle d'Abonnement
+*   **`src/main/java/com/example/boutique/model/Feature.java` :** Création d'une énumération listant les fonctionnalités.
+*   **`src/main/java/com/example/boutique/model/LicenceStatus.java` :** Création d'une énumération pour les statuts de licence (`ACTIVE`, `EXPIREE`, `ANNULEE`).
+*   **`src/main/java/com/example/boutique/model/Plan.java` :** Création de l'entité `Plan` (nom, prix, liste de `Features`).
+*   **`src/main/java/com/example/boutique/model/Licence.java` :** Création de l'entité `Licence` (utilisateur, plan, dates, statut).
+*   **`src/main/java/com/example/boutique/repository/PlanRepository.java` et `src/main/java/com/example/boutique/repository/LicenceRepository.java` :** Création des interfaces de dépôt correspondantes.
+
+### 2.2. Mécanisme de Feature Gating
+*   **`src/main/java/com/example/boutique/aspect/RequiresFeature.java` :** Création d'une annotation personnalisée pour marquer les méthodes nécessitant une fonctionnalité spécifique.
+*   **`src/main/java/com/example/boutique/exception/FeatureUnavailableException.java` :** Création d'une exception personnalisée levée en cas d'accès non autorisé à une fonctionnalité.
+*   **`src/main/java/com/example/boutique/aspect/FeatureAuthorizationAspect.java` :** Implémentation d'un aspect AOP qui intercepte les appels aux méthodes annotées `@RequiresFeature`, vérifie la licence de l'utilisateur et son plan, et autorise ou refuse l'accès.
+*   **`src/main/java/com/example/boutique/BoutiqueApplication.java` :** Activation de l'AOP avec `@EnableAspectJAutoProxy`.
+*   **`pom.xml` :** Ajout de la dépendance `spring-boot-starter-aop`.
+*   **`src/main/java/com/example/boutique/controller/ParametreController.java` :** Application de l'annotation `@RequiresFeature(Feature.PARAMETRES)` aux méthodes `showParametresPage` et `saveParametres` pour tester le mécanisme.
+*   **`src/main/java/com/example/boutique/controller/GlobalControllerAdvice.java` :** Ajout d'un gestionnaire d'exceptions pour `FeatureUnavailableException`, redirigeant vers une page d'erreur spécifique. Un import manquant a été ajouté.
+*   **`src/main/resources/templates/error-feature.html` :** Création d'une page HTML conviviale pour les accès aux fonctionnalités non autorisées. La taille du conteneur a été agrandie pour une meilleure lisibilité.
+*   **`src/main/controller/TarifsController.java` et `src/main/resources/templates/tarifs.html` :** Création d'un contrôleur et d'une vue pour afficher les différents plans d'abonnement.
+
+### 2.3. Interface Super Admin
+*   **`src/main/java/com/example/boutique/config/DataInitializer.java` :**
+    *   Création d'un utilisateur `superadmin` dédié (`superadmin`/`password`) avec le rôle `ROLE_SUPER_ADMIN`.
+    *   L'utilisateur `admin` par défaut ne possède plus le rôle `ROLE_SUPER_ADMIN`.
+    *   Centralisation et fiabilisation de l'initialisation des utilisateurs, plans et licences pour garantir leur création ou mise à jour à chaque démarrage.
+*   **`src/main/java/com/example/boutique/controller/SuperAdminController.java` et `src/main/resources/templates/superadmin/dashboard.html` :** Création d'un contrôleur et d'un tableau de bord pour la gestion des abonnements.
+*   **`src/main/java/com/example/boutique/config/SecurityConfig.java` :** Sécurisation de l'accès à `/superadmin/**` pour le `ROLE_SUPER_ADMIN`.
+*   **`src/main/java/com/example/boutique/controller/PlanController.java` et `src/main/resources/templates/superadmin/plans/list.html`, `form.html` :** Implémentation des fonctionnalités CRUD complètes pour la gestion des plans d'abonnement (créer, lister, modifier, supprimer).
+*   **`src/main/java/com/example/boutique/controller/LicenceController.java` et `src/main/resources/templates/superadmin/licences/list.html`, `form.html` :** Implémentation des fonctionnalités CRUD complètes pour la gestion des licences (assigner, lister, modifier, désactiver).
+*   **`src/main/java/com/example/boutique/config/CustomAuthenticationSuccessHandler.java` :** Modification pour rediriger le `superadmin` vers `/superadmin` après connexion.
+
+## 3. Implémentation de la Multi-tenancy (Isolation Applicative des Données)
+
+**Objectif :** Permettre à plusieurs clients d'utiliser la même instance de l'application tout en garantissant que chaque client ne puisse accéder qu'à ses propres données, selon le modèle de l'instance partagée avec isolation applicative des données.
+
+**Modifications apportées :**
+*   **`src/main/java/com/example/boutique/model/Organization.java` :** Création d'une entité `Organization` avec un `clientId` unique.
+*   **Champs `clientId` dans les entités :** Ajout d'un champ `String clientId` aux entités `Produit`, `Caisse`, `Vente`, `Client`, `Personnel` pour associer les données à une organisation spécifique.
+*   **Lien `Utilisateur` - `Organization` :** La classe `Utilisateur` a été modifiée pour inclure une relation `@ManyToOne` vers `Organization`.
+*   **`src/main/java/com/example/boutique/config/DataInitializer.java` :**
+    *   Modifié pour créer des organisations par défaut (`"default"`, `"premium"`).
+    *   Les utilisateurs et les données initiales (`Caisse`, `Produit`) sont désormais associés à un `clientId` lors de leur création, via de nouvelles méthodes d'aide (`initializeOrganization`, `initializeUser`, `initializeCaisse`, `initializeProduit`).
+*   **`src/main/java/com/example/boutique/multitenancy/TenantContext.java` :** Création d'une classe `ThreadLocal` pour stocker le `clientId` du locataire courant.
+*   **`src/main/java/com/example/boutique/multitenancy/TenantFilter.java` :**
+    *   Création d'un filtre Spring pour intercepter les requêtes.
+    *   Ce filtre récupère le `clientId` de l'utilisateur authentifié (via son `Organization`) et le définit dans `TenantContext`.
+    *   Il active et configure dynamiquement le filtre Hibernate (`tenantFilter`) sur la session JPA en cours avec le `clientId` approprié.
+*   **`src/main/java/com/example/boutique/config/SecurityConfig.java` :** Enregistrement du `TenantFilter` dans la chaîne de filtres de sécurité, avec injection d' `EntityManagerFactory`.
+*   **Annotations `@FilterDef` et `@Filter` :** Ajoutées aux entités `Produit`, `Caisse`, `Vente`, `Client`, `Personnel` pour définir et activer le filtre Hibernate `tenantFilter` basé sur le `clientId`.
+*   **`src/main/java/com/example/boutique/multitenancy/TenantAwareEventListener.java` :** Implémentation d'un écouteur d'événements Hibernate (`PreInsertEventListener`, `PreUpdateEventListener`) pour définir automatiquement le `clientId` sur les nouvelles entités avant leur persistance ou mise à jour.
+*   **`src/main/java/com/example/boutique/config/HibernateConfiguration.java` :** Configuration pour enregistrer le `TenantAwareEventListener` auprès de Hibernate. Correction d'un bug de syntaxe dans l'enregistrement de l'écouteur.
+*   **`src/main/java/com/example/boutique/repository/CaisseRepository.java` et `src/main/java/com/example/boutique/repository/ProduitRepository.java` :** Ajout de méthodes `findByNomAndClientId` pour permettre la vérification d'existence et éviter les doublons lors de l'initialisation des données par `DataInitializer`.
+*   **`src/main/java/com/example/boutique/controller/UtilisateurController.java` et `src/main/resources/templates/utilisateur-form.html` :** Mise à jour pour permettre l'assignation d'une `Organization` à un utilisateur via l'interface d'administration.
+
+Ce document sera sauvegardé dans `DAILY_SUMMARY_2026-01-09.md`.

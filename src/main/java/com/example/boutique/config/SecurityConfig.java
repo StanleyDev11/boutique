@@ -1,5 +1,8 @@
 package com.example.boutique.config;
 
+import com.example.boutique.multitenancy.TenantFilter;
+import com.example.boutique.repository.UtilisateurRepository;
+import jakarta.persistence.EntityManagerFactory; // Added
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -7,6 +10,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 
@@ -21,9 +25,13 @@ import java.nio.file.Paths;
 public class SecurityConfig implements WebMvcConfigurer {
 
     private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
+    private final UtilisateurRepository utilisateurRepository;
+    private final EntityManagerFactory entityManagerFactory; // Added
 
-    public SecurityConfig(CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler) {
+    public SecurityConfig(CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler, UtilisateurRepository utilisateurRepository, EntityManagerFactory entityManagerFactory) {
         this.customAuthenticationSuccessHandler = customAuthenticationSuccessHandler;
+        this.utilisateurRepository = utilisateurRepository;
+        this.entityManagerFactory = entityManagerFactory; // Added
     }
 
     @Override
@@ -39,7 +47,9 @@ public class SecurityConfig implements WebMvcConfigurer {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .addFilterBefore(new TenantFilter(utilisateurRepository, entityManagerFactory), UsernamePasswordAuthenticationFilter.class) // Modified
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/superadmin/**").hasRole("SUPER_ADMIN")
                 .requestMatchers("/actuator/**").hasRole("ADMIN")
                 .requestMatchers("/login", "/css/**", "/js/**", "/loo.jpg", "/favicon.ico", "/uploads/**").permitAll() // Pages et ressources publiques
                 .requestMatchers("/api/**").authenticated() // Autoriser l'accès à l'API pour les utilisateurs connectés

@@ -55,6 +55,7 @@ public interface ProduitRepository extends JpaRepository<Produit, Long> {
     List<String> findDistinctCategories();
 
     Optional<Produit> findByCodeBarres(String codeBarres);
+    Optional<Produit> findByNomAndClientId(String nom, String clientId); // Added
 
     @Query("SELECT DISTINCT p.numeroFacture FROM Produit p WHERE p.numeroFacture IS NOT NULL AND p.numeroFacture != ''")
     List<String> findDistinctNumeroFacture();

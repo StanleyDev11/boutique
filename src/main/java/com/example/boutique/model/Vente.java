@@ -5,6 +5,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,11 +19,16 @@ import java.util.Objects;
 @ToString
 @Entity
 @Table(name = "ventes")
+@FilterDef(name = "tenantFilter", parameters = @ParamDef(name = "clientId", type = String.class))
+@Filter(name = "tenantFilter", condition = "clientId = :clientId")
 public class Vente {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    // Nouveau champ pour l'identifiant du client (tenant)
+    private String clientId;
 
     @ManyToOne
     @JoinColumn(name = "client_id")

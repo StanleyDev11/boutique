@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
 
 import java.time.LocalDate;
 
@@ -12,6 +15,8 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Entity
 @Table(name = "clients")
+@FilterDef(name = "tenantFilter", parameters = @ParamDef(name = "clientId", type = String.class))
+@Filter(name = "tenantFilter", condition = "clientId = :clientId")
 public class Client {
 
     @Id
@@ -20,6 +25,9 @@ public class Client {
 
     @Column(nullable = false, unique = true)
     private String nom;
+
+    // Nouveau champ pour l'identifiant du client (tenant)
+    private String clientId;
 
     @Column(unique = true)
     private String telephone;

@@ -1,0 +1,12 @@
+package com.example.boutique.model;
+
+public enum Feature {
+    GESTION_PRODUITS,
+    GESTION_PERSONNEL,
+    GESTION_UTILISATEURS,
+    GESTION_CAISSES,
+    RAPPORTS_STOCK,
+    RAPPORTS_VENTES,
+    PARAMETRES,
+    VENTE_CAISSIER
+}

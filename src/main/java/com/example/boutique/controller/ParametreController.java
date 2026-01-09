@@ -1,5 +1,7 @@
 package com.example.boutique.controller;
 
+import com.example.boutique.aspect.RequiresFeature;
+import com.example.boutique.model.Feature;
 import com.example.boutique.service.FileStorageService;
 import com.example.boutique.service.ParametreService;
 import org.springframework.stereotype.Controller;
@@ -31,6 +33,7 @@ public class ParametreController {
     }
 
     @GetMapping
+    @RequiresFeature(Feature.PARAMETRES)
     public String showParametresPage(Model model) {
         Map<String, String> parametres = parametreService.getAllParametres();
         // Ensure default values are present if not in the database
@@ -42,6 +45,7 @@ public class ParametreController {
     }
 
     @PostMapping("/sauvegarder")
+    @RequiresFeature(Feature.PARAMETRES)
     public String saveParametres(@RequestParam Map<String, String> parametres,
                                  @RequestParam(value = "logoFile", required = false) MultipartFile logoFile,
                                  RedirectAttributes redirectAttributes) {

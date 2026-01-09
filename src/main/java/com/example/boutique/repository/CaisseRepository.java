@@ -13,4 +13,5 @@ import java.util.Optional;
 public interface CaisseRepository extends JpaRepository<Caisse, Long> {
     List<Caisse> findByNomContainingIgnoreCase(String nom);
     Optional<Caisse> findFirstByActive(boolean active);
+    Optional<Caisse> findByNomAndClientId(String nom, String clientId);
 }

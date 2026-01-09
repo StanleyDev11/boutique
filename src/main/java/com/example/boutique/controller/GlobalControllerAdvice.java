@@ -1,5 +1,6 @@
 package com.example.boutique.controller;
 
+import com.example.boutique.exception.FeatureUnavailableException;
 import com.example.boutique.model.SessionCaisse;
 import com.example.boutique.model.Utilisateur;
 import com.example.boutique.repository.SessionCaisseRepository;
@@ -78,6 +79,15 @@ public class GlobalControllerAdvice {
     @ModelAttribute("tailwindHeaderTextColor")
     public String getTailwindHeaderTextColor() {
         return parametreService.getTailwindHeaderTextColor();
+    }
+
+    @ExceptionHandler(FeatureUnavailableException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ModelAndView handleFeatureUnavailableException(FeatureUnavailableException ex) {
+        logger.warn("Accès à une fonctionnalité non autorisée : {}", ex.getMessage());
+        ModelAndView modelAndView = new ModelAndView("error-feature");
+        modelAndView.addObject("errorMessage", ex.getMessage());
+        return modelAndView;
     }
 
     @ExceptionHandler(Exception.class)

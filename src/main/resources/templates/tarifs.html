@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nos Abonnements</title>
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+
+<div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Abonnements')}"></div>
+
+<div class="container mx-auto px-4 py-12">
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-800">Nos Abonnements</h1>
+        <p class="text-lg text-gray-600 mt-2">Choisissez le plan qui vous convient.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Plan Card -->
+        <div th:each="plan : ${plans}" class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
+            <div class="p-8">
+                <h2 class="text-2xl font-bold text-gray-800" th:text="${plan.nom}">Nom du Plan</h2>
+                <div class="mt-4">
+                    <span class="text-4xl font-extrabold text-gray-900" th:text="${plan.prix}">$0</span>
+                    <span class="text-base font-medium text-gray-500" th:if="${plan.nom != 'LICENCE_UNIQUE'}">/mois</span>
+                </div>
+            </div>
+            <div class="bg-gray-50 p-8 flex-grow">
+                <ul class="space-y-4">
+                    <li th:each="feature : ${plan.features}" class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-check-circle text-green-500"></i>
+                        </div>
+                        <p class="ml-3 text-base font-medium text-gray-700" th:text="${feature}">Fonctionnalité</p>
+                    </li>
+                </ul>
+            </div>
+            <div class="p-8 bg-gray-100">
+                <a href="#" class="block w-full bg-indigo-600 hover:bg-indigo-700 text-white text-center font-semibold py-3 rounded-lg transition-colors duration-300">
+                    Choisir ce plan
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

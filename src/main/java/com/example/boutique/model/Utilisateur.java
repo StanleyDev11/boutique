@@ -23,4 +23,8 @@ public class Utilisateur {
 
     @Column(nullable = false)
     private String roles; // Ex: "ROLE_ADMIN,ROLE_GESTIONNAIRE"
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "organization_id")
+    private Organization organization;
 }
