@@ -2,12 +2,12 @@ spring:
   application:
     name: boutique
   
-  # --- Configuration de la base de données (MySQL Active) ---
+  # --- Configuration de la base de données (PostgreSQL Active) ---
   datasource:
-    url: jdbc:mysql://localhost/:3306/popo?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
-    username: root
+    url: jdbc:postgresql://localhost:5432/boutiquedb
+    username: postgres
     password: ''
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
 
@@ -16,16 +16,16 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
-    database-platform: org.hibernate.dialect.MySQLDialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
-# --- Configuration pour PostgreSQL (Inactive) ---
+# --- Configuration pour MySQL (Inactive) ---
 #  datasource:
-#    url: jdbc:postgresql://localhost:5432/boutiquedb
-#    username: postgres
+#    url: jdbc:mysql://localhost/:3306/popo?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+#    username: root
 #    password: ''
-#    driver-class-name: org.postgresql.Driver
+#    driver-class-name: com.mysql.cj.jdbc.Driver
 #  jpa:
-#    database-platform: org.hibernate.dialect.PostgreSQLDialect
+#    database-platform: org.hibernate.dialect.MySQLDialect
 
 server:
   port: 8085
