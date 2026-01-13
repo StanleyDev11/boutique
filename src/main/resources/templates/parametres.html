@@ -96,6 +96,15 @@
             justify-content: center;
             font-size: 1.25rem;
         }
+
+        /* Toggle Switch CSS */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #4f46e5;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #4f46e5;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -140,6 +149,49 @@
 
             <form th:action="@{/parametres/sauvegarder}" method="post" enctype="multipart/form-data" class="p-8">
                 <div class="space-y-8">
+
+                    <!-- Section Gestion des Produits -->
+                    <div class="settings-card p-6 rounded-2xl border-l-green-500">
+                        <div class="section-header">
+                            <div class="flex items-center space-x-4">
+                                <div class="setting-icon bg-green-100 text-green-600">
+                                    <i class="fas fa-boxes"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-semibold text-gray-800">Gestion des Produits</h3>
+                                    <p class="text-gray-600 mt-1">Configurez les options relatives aux produits</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Activer l'upload d'images -->
+                            <div class="space-y-4">
+                                <div class="flex items-start space-x-3">
+                                    <div class="bg-blue-100 p-2 rounded-lg mt-1">
+                                        <i class="fas fa-image text-blue-600"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <label class="block text-sm font-semibold text-gray-800 mb-2">
+                                            Activer l'upload d'images pour les produits
+                                        </label>
+                                        <div class="relative inline-block w-14 mr-2 align-middle select-none transition duration-200 ease-in">
+                                            <input type="checkbox" name="produit.image.upload.active" id="produit.image.upload.active"
+                                                   th:checked="${#strings.equals(parametres.get('produit.image.upload.active'), 'true')}"
+                                                   value="true"
+                                                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                                            <label for="produit.image.upload.active" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                                        </div>
+                                        <p class="mt-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                                            <i class="fas fa-info-circle mr-2 text-blue-500"></i>
+                                            Permet d'ajouter une image lors de la création ou de la modification d'un produit.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Section Rapports et Alertes -->
                     <div class="settings-card p-6 rounded-2xl border-l-indigo-500">
                         <div class="section-header">

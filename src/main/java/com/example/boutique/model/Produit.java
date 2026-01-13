@@ -57,6 +57,13 @@ public class Produit {
     @Size(max = 100, message = "Le numéro de facture ne doit pas dépasser 100 caractères.")
     private String numeroFacture;
 
+    private String imageUrl;
+
+    @Transient
+    public String getDisplayImageUrl() {
+        return (imageUrl != null && !imageUrl.isBlank()) ? imageUrl : "/z.ico";
+    }
+
     public BigDecimal getMarge() {
         if (prixAchat == null || prixVenteUnitaire == null || prixVenteUnitaire.compareTo(BigDecimal.ZERO) == 0) {
             return BigDecimal.ZERO;

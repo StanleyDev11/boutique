@@ -46,9 +46,16 @@ public class ParametreController {
                                  @RequestParam(value = "logoFile", required = false) MultipartFile logoFile,
                                  RedirectAttributes redirectAttributes) {
         try {
+            // Create a mutable copy to handle checkbox logic
+            Map<String, String> mutableParams = new java.util.HashMap<>(parametres);
+
+            // Handle checkbox for PRODUIT_IMAGE_UPLOAD_ACTIVE_KEY
+            // If the key is not present, it means the checkbox was unchecked, so we set it to "false"
+            mutableParams.putIfAbsent(ParametreService.PRODUIT_IMAGE_UPLOAD_ACTIVE_KEY, "false");
+
             // Validate numeric fields
-            Integer.parseInt(parametres.get("seuil_stock_bas"));
-            Integer.parseInt(parametres.get("jours_avant_peremption"));
+            Integer.parseInt(mutableParams.get("seuil_stock_bas"));
+            Integer.parseInt(mutableParams.get("jours_avant_peremption"));
 
             if (logoFile != null && !logoFile.isEmpty()) {
                 // Delete old logo before storing new one
@@ -56,10 +63,10 @@ public class ParametreController {
                 fileStorageService.deleteFile(oldLogoPath);
 
                 String logoPath = fileStorageService.storeFile(logoFile);
-                parametres.put(ParametreService.BOUTIQUE_LOGO_KEY, logoPath);
+                mutableParams.put(ParametreService.BOUTIQUE_LOGO_KEY, logoPath);
             }
 
-            parametreService.updateParametres(parametres);
+            parametreService.updateParametres(mutableParams);
             redirectAttributes.addFlashAttribute("successMessage", "Paramètres sauvegardés avec succès !");
         } catch (NumberFormatException e) {
             logger.warn("Tentative de sauvegarde de paramètres avec une valeur non numérique.", e);

@@ -15,10 +15,11 @@ import java.util.UUID;
 public class FileStorageService {
 
     private final Path fileStorageLocation;
+    private static final String UPLOADS_DIR = "boutique-uploads";
 
     public FileStorageService() {
         String userHome = System.getProperty("user.home");
-        this.fileStorageLocation = Paths.get(userHome, "boutique-uploads").toAbsolutePath().normalize();
+        this.fileStorageLocation = Paths.get(userHome, UPLOADS_DIR).toAbsolutePath().normalize();
         try {
             Files.createDirectories(this.fileStorageLocation);
         } catch (Exception ex) {
@@ -27,6 +28,14 @@ public class FileStorageService {
     }
 
     public String storeFile(MultipartFile file) {
+        return store(file, null);
+    }
+
+    public String storeProductImage(MultipartFile file) {
+        return store(file, "products");
+    }
+
+    private String store(MultipartFile file, String subfolder) {
         // Normalize file name
         String originalFileName = file.getOriginalFilename();
         if (originalFileName == null) {
@@ -40,13 +49,26 @@ public class FileStorageService {
                 throw new RuntimeException("Sorry! Filename contains invalid path sequence " + fileName);
             }
 
-            // Copy file to the target location (Replacing existing file with the same name)
-            Path targetLocation = this.fileStorageLocation.resolve(fileName);
+            Path targetDir = this.fileStorageLocation;
+            if (subfolder != null && !subfolder.isBlank()) {
+                targetDir = this.fileStorageLocation.resolve(subfolder);
+                Files.createDirectories(targetDir);
+            }
+
+            // Copy file to the target location
+            Path targetLocation = targetDir.resolve(fileName);
             try (InputStream inputStream = file.getInputStream()) {
                 Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
             }
 
-            return "/uploads/" + fileName;
+            String storedPath = "/uploads/";
+            if (subfolder != null && !subfolder.isBlank()) {
+                storedPath += subfolder + "/";
+            }
+            storedPath += fileName;
+
+            return storedPath;
+
         } catch (IOException ex) {
             throw new RuntimeException("Could not store file " + fileName + ". Please try again!", ex);
         }
@@ -63,7 +85,7 @@ public class FileStorageService {
 
             if (Files.exists(targetLocation)) {
                 Files.delete(targetLocation);
-                System.out.println("Deleted old logo file: " + targetLocation);
+                System.out.println("Deleted old file: " + targetLocation);
             }
         } catch (IOException ex) {
             System.err.println("Could not delete file: " + filePath + ". " + ex.getMessage());

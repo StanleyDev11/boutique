@@ -4,6 +4,8 @@ import com.example.boutique.dto.ProductBatchDto;
 import com.example.boutique.dto.ProduitDto;
 import com.example.boutique.model.MouvementStock;
 import com.example.boutique.model.Produit;
+import com.example.boutique.repository.FactureRepository;
+import com.example.boutique.repository.MouvementStockRepository;
 import com.example.boutique.repository.ProduitRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,10 +13,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +33,18 @@ class ProduitServiceTest {
 
     @Mock
     private StockService stockService;
+
+    @Mock
+    private MouvementStockRepository mouvementStockRepository;
+
+    @Mock
+    private FactureRepository factureRepository;
+
+    @Mock
+    private FileStorageService fileStorageService;
+
+    @Mock
+    private ParametreService parametreService;
 
     @InjectMocks
     private ProduitService produitService;
@@ -59,6 +73,30 @@ class ProduitServiceTest {
         verify(produitRepository, times(1)).findByCodeBarres("12345");
         verify(produitRepository, times(1)).save(newProduit);
     }
+
+    @Test
+    void saveProduit_withImage_shouldStoreImageAndSaveProduct() {
+        // Given
+        Produit newProduit = new Produit();
+        newProduit.setNom("Test Produit with Image");
+        MockMultipartFile mockFile = new MockMultipartFile("imageFile", "hello.txt", "text/plain", "Hello, World!".getBytes());
+        String expectedImageUrl = "/uploads/products/some-uuid-hello.txt";
+
+        when(parametreService.isProduitImageUploadActive()).thenReturn(true);
+        when(fileStorageService.storeProductImage(mockFile)).thenReturn(expectedImageUrl);
+        when(produitRepository.save(any(Produit.class))).thenReturn(newProduit);
+
+        // When
+        Produit savedProduit = produitService.saveProduit(newProduit, mockFile);
+
+        // Then
+        assertNotNull(savedProduit);
+        assertEquals(expectedImageUrl, savedProduit.getImageUrl());
+        verify(parametreService, times(1)).isProduitImageUploadActive();
+        verify(fileStorageService, times(1)).storeProductImage(mockFile);
+        verify(produitRepository, times(1)).save(newProduit);
+    }
+
 
     @Test
     void saveProduit_shouldUpdateExistingProductSuccessfully() {
@@ -169,6 +207,7 @@ class ProduitServiceTest {
         when(produitRepository.findByCodeBarres("BP2")).thenReturn(Optional.empty());
         when(produitRepository.saveAll(anyList())).thenReturn(List.of(savedProduit1, savedProduit2));
         doNothing().when(stockService).enregistrerMouvement(any(MouvementStock.class), anyString(), anyString());
+        when(parametreService.isProduitImageUploadActive()).thenReturn(false); // Assuming disabled for this test
 
         // When
         produitService.saveNewProductBatch(batchDto);

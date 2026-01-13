@@ -26,6 +26,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
@@ -69,6 +70,7 @@ public class ProduitController {
                                @RequestHeader(value = "X-Requested-With", required = false) String requestedWith) {
 
         model.addAttribute("activeTab", tab);
+        model.addAttribute("produitImageUploadActive", parametreService.isProduitImageUploadActive());
         int seuilStockBas = parametreService.getSeuilStockBas();
         model.addAttribute("seuilStockBas", seuilStockBas);
 
@@ -157,6 +159,7 @@ public class ProduitController {
                                   Model model) {
         List<String> categories = produitRepository.findDistinctCategories();
         model.addAttribute("categories", categories);
+        model.addAttribute("produitImageUploadActive", parametreService.isProduitImageUploadActive());
 
         if (batch) {
             model.addAttribute("productBatchDto", new ProductBatchDto());
@@ -324,7 +327,9 @@ public class ProduitController {
 
     @PostMapping("/save")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> saveProduit(@Valid @ModelAttribute("produit") Produit produit, org.springframework.validation.BindingResult bindingResult) {
+    public ResponseEntity<Map<String, Object>> saveProduit(@Valid @ModelAttribute("produit") Produit produit,
+                                                         @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+                                                         org.springframework.validation.BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             List<String> errors = bindingResult.getAllErrors().stream()
                     .map(org.springframework.validation.ObjectError::getDefaultMessage)
@@ -332,7 +337,7 @@ public class ProduitController {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreurs de validation.", "errors", errors));
         }
         try {
-            produitService.saveProduit(produit);
+            produitService.saveProduit(produit, imageFile);
             return ResponseEntity.ok(Map.of("success", true, "message", "Le produit a été sauvegardé avec succès !"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
@@ -410,6 +415,7 @@ public class ProduitController {
     public String showCreateForm(Model model) {
         model.addAttribute("produit", new Produit());
         model.addAttribute("pageTitle", "Ajouter un nouveau produit");
+        model.addAttribute("produitImageUploadActive", parametreService.isProduitImageUploadActive());
         return "produit-form";
     }
 
@@ -420,6 +426,7 @@ public class ProduitController {
                     .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé pour l'ID: " + id));
             model.addAttribute("produit", produit);
             model.addAttribute("pageTitle", "Modifier le produit");
+            model.addAttribute("produitImageUploadActive", parametreService.isProduitImageUploadActive());
             return "produit-form";
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());

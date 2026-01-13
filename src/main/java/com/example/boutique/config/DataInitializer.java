@@ -39,6 +39,7 @@ public class DataInitializer implements CommandLineRunner {
         initializeDefaultParameter(ParametreService.BOUTIQUE_TELEPHONE_KEY, "Tél: (+228) 96 00 01 89 / 90 12 34 30");
         initializeDefaultParameter("seuil_stock_bas", "10");
         initializeDefaultParameter("jours_avant_peremption", "30");
+        initializeDefaultParameter(ParametreService.PRODUIT_IMAGE_UPLOAD_ACTIVE_KEY, "true");
         initializeDefaultParameter(ParametreService.TAILWIND_HEADER_BACKGROUND_COLOR_KEY, "#1F2937");
         initializeDefaultParameter(ParametreService.TAILWIND_HEADER_TEXT_COLOR_KEY, "#D1D5DB");
     }

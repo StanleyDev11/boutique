@@ -24,12 +24,14 @@ public class ParametreService {
     public static final String BOUTIQUE_ADRESSE_KEY = "boutique.adresse";
     public static final String BOUTIQUE_TELEPHONE_KEY = "boutique.telephone";
     public static final String BOUTIQUE_LOGO_KEY = "boutique.logo";
+    public static final String PRODUIT_IMAGE_UPLOAD_ACTIVE_KEY = "produit.image.upload.active";
     public static final String TAILWIND_HEADER_BACKGROUND_COLOR_KEY = "tailwind.header.background.color";
     public static final String TAILWIND_HEADER_TEXT_COLOR_KEY = "tailwind.header.text.color";
     private static final String BOUTIQUE_NOM_DEFAULT = "SUPERMARCHE BELALUXE";
     private static final String BOUTIQUE_ADRESSE_DEFAULT = "Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo";
     private static final String BOUTIQUE_TELEPHONE_DEFAULT = "Tél: (+228) 96 00 01 89 / 90 12 34 30";
     private static final String BOUTIQUE_LOGO_DEFAULT = "/lo.png";
+    private static final String PRODUIT_IMAGE_UPLOAD_ACTIVE_DEFAULT = "true";
     private static final String TAILWIND_HEADER_BACKGROUND_COLOR_DEFAULT = "#1F2937";
     private static final String TAILWIND_HEADER_TEXT_COLOR_DEFAULT = "#D1D5DB";
 
@@ -41,6 +43,12 @@ public class ParametreService {
     private String getStringParametre(String key, String defaultValue) {
         return parametreRepository.findByCle(key)
                 .map(Parametre::getValeur)
+                .orElse(defaultValue);
+    }
+
+    private boolean getBooleanParametre(String key, boolean defaultValue) {
+        return parametreRepository.findByCle(key)
+                .map(p -> "true".equalsIgnoreCase(p.getValeur()))
                 .orElse(defaultValue);
     }
 
@@ -66,6 +74,10 @@ public class ParametreService {
 
     public String getBoutiqueTelephone() {
         return getStringParametre(BOUTIQUE_TELEPHONE_KEY, BOUTIQUE_TELEPHONE_DEFAULT);
+    }
+
+    public boolean isProduitImageUploadActive() {
+        return getBooleanParametre(PRODUIT_IMAGE_UPLOAD_ACTIVE_KEY, "true".equalsIgnoreCase(PRODUIT_IMAGE_UPLOAD_ACTIVE_DEFAULT));
     }
 
     public String getBoutiqueLogo() {
@@ -96,6 +108,7 @@ public class ParametreService {
             BOUTIQUE_ADRESSE_KEY,
             BOUTIQUE_TELEPHONE_KEY,
             BOUTIQUE_LOGO_KEY,
+            PRODUIT_IMAGE_UPLOAD_ACTIVE_KEY,
             TAILWIND_HEADER_BACKGROUND_COLOR_KEY,
             TAILWIND_HEADER_TEXT_COLOR_KEY
         );

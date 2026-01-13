@@ -14,6 +14,9 @@ import com.example.boutique.repository.MouvementStockRepository;
 import com.example.boutique.repository.ProduitRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -24,17 +27,23 @@ import java.util.Optional;
 @Service
 public class ProduitService {
 
+    private static final Logger logger = LoggerFactory.getLogger(ProduitService.class);
+
     private final ProduitRepository produitRepository;
     private final StockService stockService;
     private final MouvementStockRepository mouvementStockRepository;
     private final FactureRepository factureRepository;
+    private final FileStorageService fileStorageService;
+    private final ParametreService parametreService;
 
 
-    public ProduitService(ProduitRepository produitRepository, StockService stockService, MouvementStockRepository mouvementStockRepository, FactureRepository factureRepository) {
+    public ProduitService(ProduitRepository produitRepository, StockService stockService, MouvementStockRepository mouvementStockRepository, FactureRepository factureRepository, FileStorageService fileStorageService, ParametreService parametreService) {
         this.produitRepository = produitRepository;
         this.stockService = stockService;
         this.mouvementStockRepository = mouvementStockRepository;
         this.factureRepository = factureRepository;
+        this.fileStorageService = fileStorageService;
+        this.parametreService = parametreService;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -65,6 +74,17 @@ public class ProduitService {
             produit.setDatePeremption(dto.getDatePeremption());
             produit.setNomFournisseur(productBatchDto.getNomFournisseur());
             produit.setNumeroFacture(productBatchDto.getNumeroFacture());
+
+            // Add image handling logic here for batch
+            if (parametreService.isProduitImageUploadActive() && dto.getImageFile() != null && !dto.getImageFile().isEmpty()) {
+                try {
+                    String imageUrl = fileStorageService.storeProductImage(dto.getImageFile());
+                    produit.setImageUrl(imageUrl);
+                } catch (Exception e) {
+                    // Log the error, but don't prevent the product from being saved without an image
+                    logger.error("Erreur lors de l'enregistrement de l'image pour le produit {}: {}", dto.getNom(), e.getMessage());
+                }
+            }
             produitsToSave.add(produit);
         }
 
@@ -85,7 +105,30 @@ public class ProduitService {
             }
         }
     }
+    @Transactional(rollbackFor = Exception.class)
+    public Produit saveProduit(Produit produit, MultipartFile imageFile) {
+        // Gérer l'upload de l'image si la fonctionnalité est active
+        if (parametreService.isProduitImageUploadActive() && imageFile != null && !imageFile.isEmpty()) {
+            String oldImageUrl = null;
 
+            // Si c'est une mise à jour, on récupère l'ancienne URL pour la supprimer après
+            if (produit.getId() != null) {
+                oldImageUrl = produitRepository.findById(produit.getId()).map(Produit::getImageUrl).orElse(null);
+            }
+
+            // Enregistrer la nouvelle image
+            String newImageUrl = fileStorageService.storeProductImage(imageFile);
+            produit.setImageUrl(newImageUrl);
+
+            // Supprimer l'ancienne image si elle existait
+            if (oldImageUrl != null && !oldImageUrl.equals(newImageUrl)) {
+                fileStorageService.deleteFile(oldImageUrl);
+            }
+        }
+
+        // Appeler la méthode de sauvegarde existante qui contient la logique de validation
+        return saveProduit(produit);
+    }
     @Transactional(rollbackFor = Exception.class)
     public Produit saveProduit(Produit produit) {
         if (produit.getCodeBarres() != null && !produit.getCodeBarres().isEmpty()) {

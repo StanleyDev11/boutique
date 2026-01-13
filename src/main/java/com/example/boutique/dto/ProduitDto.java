@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -36,6 +38,8 @@ public class ProduitDto {
     private String uniteDeVente;
 
     private LocalDate datePeremption;
+
+    private MultipartFile imageFile;
 
     // These are inherited from the batch, so they are not part of the individual product DTO validation
     private String nomFournisseur;
