@@ -61,7 +61,7 @@ public class Produit {
 
     @Transient
     public String getDisplayImageUrl() {
-        return (imageUrl != null && !imageUrl.isBlank()) ? imageUrl : "/z.ico";
+        return (imageUrl != null && !imageUrl.isBlank()) ? imageUrl : "/DF.webp";
     }
 
     public BigDecimal getMarge() {
