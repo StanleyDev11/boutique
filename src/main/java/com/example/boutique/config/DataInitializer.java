@@ -42,6 +42,8 @@ public class DataInitializer implements CommandLineRunner {
         initializeDefaultParameter(ParametreService.PRODUIT_IMAGE_UPLOAD_ACTIVE_KEY, "true");
         initializeDefaultParameter(ParametreService.TAILWIND_HEADER_BACKGROUND_COLOR_KEY, "#1F2937");
         initializeDefaultParameter(ParametreService.TAILWIND_HEADER_TEXT_COLOR_KEY, "#D1D5DB");
+        initializeDefaultParameter("product.form.facture.enabled", "false");
+        initializeDefaultParameter("product.form.fournisseur.enabled", "false");
     }
 
     private void initializeDefaultParameter(String key, String defaultValue) {

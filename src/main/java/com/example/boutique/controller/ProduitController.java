@@ -160,6 +160,8 @@ public class ProduitController {
         List<String> categories = produitRepository.findDistinctCategories();
         model.addAttribute("categories", categories);
         model.addAttribute("produitImageUploadActive", parametreService.isProduitImageUploadActive());
+        model.addAttribute("factureFieldEnabled", parametreService.isFactureFieldEnabled());
+        model.addAttribute("fournisseurFieldEnabled", parametreService.isFournisseurFieldEnabled());
 
         if (batch) {
             model.addAttribute("productBatchDto", new ProductBatchDto());
@@ -410,12 +412,23 @@ public class ProduitController {
         return "produits-print";
     }
 
+    @GetMapping("/details/{id}")
+    public String getProduitDetailsFragment(@PathVariable Long id, Model model) {
+        Produit produit = produitRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé pour l'ID: " + id));
+        model.addAttribute("produit", produit);
+        model.addAttribute("produitImageUploadActive", parametreService.isProduitImageUploadActive());
+        return "fragments/product-detail-fragment :: details";
+    }
+
     // --- Anciennes méthodes (peuvent être gardées pour la navigation sans JS) ---
     @GetMapping("/new")
     public String showCreateForm(Model model) {
         model.addAttribute("produit", new Produit());
         model.addAttribute("pageTitle", "Ajouter un nouveau produit");
         model.addAttribute("produitImageUploadActive", parametreService.isProduitImageUploadActive());
+        model.addAttribute("factureFieldEnabled", parametreService.isFactureFieldEnabled());
+        model.addAttribute("fournisseurFieldEnabled", parametreService.isFournisseurFieldEnabled());
         return "produit-form";
     }
 
@@ -427,6 +440,8 @@ public class ProduitController {
             model.addAttribute("produit", produit);
             model.addAttribute("pageTitle", "Modifier le produit");
             model.addAttribute("produitImageUploadActive", parametreService.isProduitImageUploadActive());
+            model.addAttribute("factureFieldEnabled", parametreService.isFactureFieldEnabled());
+            model.addAttribute("fournisseurFieldEnabled", parametreService.isFournisseurFieldEnabled());
             return "produit-form";
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());

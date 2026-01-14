@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="details(produit, produitImageUploadActive)" class="w-full">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Colonne Image -->
+        <div class="md:col-span-1" th:if="${produitImageUploadActive}">
+            <img th:src="@{${produit.getDisplayImageUrl()}}" alt="Image du produit" class="w-full h-auto max-h-80 rounded-lg object-cover bg-gray-200 shadow-md border">
+        </div>
+
+        <!-- Colonne Détails -->
+        <div th:classappend="${produitImageUploadActive} ? 'md:col-span-2' : 'md:col-span-3'">
+            <div class="space-y-4 text-gray-700">
+                <p><strong><i class="fas fa-tag w-5 text-gray-500"></i> Catégorie:</strong> <span class="font-medium text-gray-900" th:text="${produit.categorie ?: 'N/A'}">Catégorie</span></p>
+                <p><strong><i class="fas fa-barcode w-5 text-gray-500"></i> Code-barres:</strong> <span class="font-mono text-gray-900" th:text="${produit.codeBarres ?: 'N/A'}">123456789</span></p>
+                <p><strong><i class="fas fa-file-invoice w-5 text-gray-500"></i> N° Facture:</strong> <span class="font-medium text-gray-900" th:text="${produit.numeroFacture ?: 'N/A'}">FAC-001</span></p>
+                <p><strong><i class="fas fa-truck w-5 text-gray-500"></i> Fournisseur:</strong> <span class="font-medium text-gray-900" th:text="${produit.nomFournisseur ?: 'N/A'}">Fournisseur ABC</span></p>
+
+                <hr class="my-4">
+
+                <div class="grid grid-cols-2 gap-4">
+                    <p><strong><i class="fas fa-dollar-sign w-5 text-gray-500"></i> P. Achat:</strong> <span class="font-semibold text-gray-900" th:text="${produit.prixAchat != null ? #numbers.formatDecimal(produit.prixAchat, 0, 'COMMA', 0, 'POINT') + ' FCFA' : 'N/A'}">1000 FCFA</span></p>
+                    <p><strong><i class="fas fa-money-bill-wave w-5 text-gray-500"></i> P. Vente:</strong> <span class="font-semibold text-green-600" th:text="${produit.prixVenteUnitaire != null ? #numbers.formatDecimal(produit.prixVenteUnitaire, 0, 'COMMA', 0, 'POINT') + ' FCFA' : 'N/A'}">1500 FCFA</span></p>
+                    <p><strong><i class="fas fa-tags w-5 text-gray-500"></i> P. Promo:</strong>
+                        <span th:if="${produit.promotionActive}" class="font-semibold text-blue-600" th:text="${produit.prixPromotionnel != null ? #numbers.formatDecimal(produit.prixPromotionnel, 0, 'COMMA', 0, 'POINT') + ' FCFA' : 'N/A'}">1200 FCFA</span>
+                        <span th:unless="${produit.promotionActive}" class="font-medium text-gray-500">Inactive</span>
+                    </p>
+                    <p><strong><i class="fas fa-calendar-times w-5 text-gray-500"></i> Péremption:</strong> <span class="font-medium text-red-600" th:text="${produit.datePeremption != null ? #temporals.format(produit.datePeremption, 'dd/MM/yyyy') : 'N/A'}">01/01/2025</span></p>
+                </div>
+
+                <hr class="my-4">
+
+                <p class="text-lg"><strong><i class="fas fa-boxes w-5 text-gray-500"></i> Stock Actuel:</strong>
+                    <span class="font-bold text-2xl text-gray-900" th:text="${produit.quantiteEnStock != null ? produit.quantiteEnStock : '0'}">50</span>
+                    <span th:text="${produit.uniteDeVente ?: 'Pièce(s)'}">Pièces</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

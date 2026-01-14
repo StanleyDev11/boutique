@@ -14,9 +14,11 @@ public class MvcConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         String userHome = System.getProperty("user.home");
         Path uploadDir = Paths.get(userHome, "boutique-uploads");
-        String uploadPath = uploadDir.toFile().getAbsolutePath();
+
+        // Utiliser toUri() pour une compatibilité multi-plateforme (gère les / et \ correctement)
+        String uploadPath = uploadDir.toUri().toString();
 
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:/" + uploadPath + "/");
+                .addResourceLocations(uploadPath);
     }
 }

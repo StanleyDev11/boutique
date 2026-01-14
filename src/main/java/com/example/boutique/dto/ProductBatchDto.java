@@ -10,11 +10,9 @@ import java.util.List;
 @Data
 public class ProductBatchDto {
 
-    @NotBlank(message = "Le nom du fournisseur ne peut pas être vide.")
     @Size(max = 255, message = "Le nom du fournisseur ne doit pas dépasser 255 caractères.")
     private String nomFournisseur;
 
-    @NotBlank(message = "Le numéro de facture ne peut pas être vide.")
     @Size(max = 100, message = "Le numéro de facture ne doit pas dépasser 100 caractères.")
     private String numeroFacture;
 

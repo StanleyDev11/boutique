@@ -52,6 +52,8 @@ public class ParametreController {
             // Handle checkbox for PRODUIT_IMAGE_UPLOAD_ACTIVE_KEY
             // If the key is not present, it means the checkbox was unchecked, so we set it to "false"
             mutableParams.putIfAbsent(ParametreService.PRODUIT_IMAGE_UPLOAD_ACTIVE_KEY, "false");
+            mutableParams.putIfAbsent(ParametreService.PRODUCT_FORM_FACTURE_ENABLED_KEY, "false");
+            mutableParams.putIfAbsent(ParametreService.PRODUCT_FORM_FOURNISSEUR_ENABLED_KEY, "false");
 
             // Validate numeric fields
             Integer.parseInt(mutableParams.get("seuil_stock_bas"));

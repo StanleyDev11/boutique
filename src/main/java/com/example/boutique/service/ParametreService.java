@@ -25,6 +25,8 @@ public class ParametreService {
     public static final String BOUTIQUE_TELEPHONE_KEY = "boutique.telephone";
     public static final String BOUTIQUE_LOGO_KEY = "boutique.logo";
     public static final String PRODUIT_IMAGE_UPLOAD_ACTIVE_KEY = "produit.image.upload.active";
+    public static final String PRODUCT_FORM_FACTURE_ENABLED_KEY = "product.form.facture.enabled";
+    public static final String PRODUCT_FORM_FOURNISSEUR_ENABLED_KEY = "product.form.fournisseur.enabled";
     public static final String TAILWIND_HEADER_BACKGROUND_COLOR_KEY = "tailwind.header.background.color";
     public static final String TAILWIND_HEADER_TEXT_COLOR_KEY = "tailwind.header.text.color";
     private static final String BOUTIQUE_NOM_DEFAULT = "SUPERMARCHE BELALUXE";
@@ -92,6 +94,14 @@ public class ParametreService {
         return getStringParametre(TAILWIND_HEADER_TEXT_COLOR_KEY, TAILWIND_HEADER_TEXT_COLOR_DEFAULT);
     }
 
+    public boolean isFactureFieldEnabled() {
+        return getBooleanParametre(PRODUCT_FORM_FACTURE_ENABLED_KEY, false); // false par défaut
+    }
+
+    public boolean isFournisseurFieldEnabled() {
+        return getBooleanParametre(PRODUCT_FORM_FOURNISSEUR_ENABLED_KEY, false); // false par défaut
+    }
+
     public int getSeuilStockBas() {
         return getIntParametre(SEUIL_STOCK_BAS_KEY, SEUIL_STOCK_BAS_DEFAULT);
     }
@@ -110,7 +120,9 @@ public class ParametreService {
             BOUTIQUE_LOGO_KEY,
             PRODUIT_IMAGE_UPLOAD_ACTIVE_KEY,
             TAILWIND_HEADER_BACKGROUND_COLOR_KEY,
-            TAILWIND_HEADER_TEXT_COLOR_KEY
+            TAILWIND_HEADER_TEXT_COLOR_KEY,
+            PRODUCT_FORM_FACTURE_ENABLED_KEY,
+            PRODUCT_FORM_FOURNISSEUR_ENABLED_KEY
         );
 
         for (String key : validKeys) {
