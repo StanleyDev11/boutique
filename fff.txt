@@ -1,36 +1,382 @@
-[root@srv1287017 boutique]# docker compose up --build -d
+[root@srv1287017 boutique]# docker compose logs boutique-app
 WARN[0000] /root/boutique/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
-[+] Building 0.6s (16/16) FINISHED
- => [internal] load local bake definitions                                                                         0.0s
- => => reading from stdin 506B                                                                                     0.0s
- => [internal] load build definition from Dockerfile                                                               0.0s
- => => transferring dockerfile: 393B                                                                               0.0s
- => [internal] load metadata for docker.io/library/maven:3.9-eclipse-temurin-21                                    0.3s
- => [internal] load metadata for docker.io/library/eclipse-temurin:21-jre-jammy                                    0.3s
- => [internal] load .dockerignore                                                                                  0.0s
- => => transferring context: 134B                                                                                  0.0s
- => [build 1/5] FROM docker.io/library/maven:3.9-eclipse-temurin-21@sha256:67dd489908ce4a87c1bea43c589b00c1121a64  0.0s
- => => resolve docker.io/library/maven:3.9-eclipse-temurin-21@sha256:67dd489908ce4a87c1bea43c589b00c1121a64c1b0ca  0.0s
- => [stage-1 1/3] FROM docker.io/library/eclipse-temurin:21-jre-jammy@sha256:763795421d2991e4c5b7f06a0776a3a89c9e  0.0s
- => => resolve docker.io/library/eclipse-temurin:21-jre-jammy@sha256:763795421d2991e4c5b7f06a0776a3a89c9eb1688074  0.0s
- => [internal] load build context                                                                                  0.0s
- => => transferring context: 11.64kB                                                                               0.0s
- => CACHED [stage-1 2/3] WORKDIR /app                                                                              0.0s
- => CACHED [build 2/5] WORKDIR /app                                                                                0.0s
- => CACHED [build 3/5] COPY pom.xml .                                                                              0.0s
- => CACHED [build 4/5] COPY src ./src                                                                              0.0s
- => CACHED [build 5/5] RUN mvn clean package -DskipTests                                                           0.0s
- => CACHED [stage-1 3/3] COPY --from=build /app/target/boutique-1.0.0-SNAPSHOT.jar ./app.jar                       0.0s
- => exporting to image                                                                                             0.1s
- => => exporting layers                                                                                            0.0s
- => => exporting manifest sha256:6968f082599bc13e9a9db582e63ee9bd002f0405949e8c193642e7e981dad5ed                  0.0s
- => => exporting config sha256:58e34a09e9f46e3014b7da90edf33346db4c06f46c5deb53ac2f524743f96808                    0.0s
- => => exporting attestation manifest sha256:1f38c440c3cf842eaa39616cf3bf4b1a73915757f1f423f3ff74b123e906d09a      0.0s
- => => exporting manifest list sha256:68fd840000cd6de1d486512d0ad98afe25c000524abc3d95db6fc40044732b2f             0.0s
- => => naming to docker.io/library/boutique-boutique-app:latest                                                    0.0s
- => => unpacking to docker.io/library/boutique-boutique-app:latest                                                 0.0s
- => resolving provenance for metadata file                                                                         0.0s
-[+] up 2/2
- ✔ Image b... Built                                                                                                 0.9s ✘ Contain... Error response from daemon: Conflict. The container name "/mysql-db" is already in use by container "c4cbb534bdd81b998b6081af9ded4171f974e1d717924b03bcac89cdfc239764". You have to remove (or rename) that container to be able to reuse that name. 0.0s
-Error response from daemon: Conflict. The container name "/mysql-db" is already in use by container "c4cbb534bdd81b998b6081af9ded4171f974e1d717924b03bcac89cdfc239764". You have to remove (or rename) that container to be able to reuse that name.
+boutique-app  |
+boutique-app  |   .   ____          _            __ _ _
+boutique-app  |  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+boutique-app  | ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+boutique-app  |  \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+boutique-app  |   '  |____| .__|_| |_|_| |_\__, | / / / /
+boutique-app  |  =========|_|==============|___/=/_/_/_/
+boutique-app  |  :: Spring Boot ::                (v3.2.2)
+boutique-app  |
+boutique-app  | 2026-02-17T13:13:01.885Z  INFO 1 --- [boutique] [           main] c.example.boutique.BoutiqueApplication   : Starting BoutiqueApplication v1.0.0-SNAPSHOT using Java 21.0.10 with PID 1 (/app/app.jar started by root in /app)
+boutique-app  | 2026-02-17T13:13:01.892Z  INFO 1 --- [boutique] [           main] c.example.boutique.BoutiqueApplication   : No active profile set, falling back to 1 default profile: "default"
+boutique-app  | 2026-02-17T13:13:04.954Z  INFO 1 --- [boutique] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+boutique-app  | 2026-02-17T13:13:05.062Z  INFO 1 --- [boutique] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 100 ms. Found 13 JPA repository interfaces.
+boutique-app  | 2026-02-17T13:13:06.641Z  INFO 1 --- [boutique] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8085 (http)
+boutique-app  | 2026-02-17T13:13:06.657Z  INFO 1 --- [boutique] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+boutique-app  | 2026-02-17T13:13:06.658Z  INFO 1 --- [boutique] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.18]
+boutique-app  | 2026-02-17T13:13:06.780Z  INFO 1 --- [boutique] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+boutique-app  | 2026-02-17T13:13:06.787Z  INFO 1 --- [boutique] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4784 ms
+boutique-app  | 2026-02-17T13:13:07.867Z  INFO 1 --- [boutique] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+boutique-app  | 2026-02-17T13:13:07.979Z  INFO 1 --- [boutique] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.1.Final
+boutique-app  | 2026-02-17T13:13:08.145Z  INFO 1 --- [boutique] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+boutique-app  | 2026-02-17T13:13:08.853Z  INFO 1 --- [boutique] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+boutique-app  | 2026-02-17T13:13:08.906Z  INFO 1 --- [boutique] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+boutique-app  | 2026-02-17T13:13:10.399Z ERROR 1 --- [boutique] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Exception during pool initialization.
+boutique-app  |
+boutique-app  | com.mysql.cj.jdbc.exceptions.CommunicationsException: Communications link failure
+boutique-app  |
+boutique-app  | The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+boutique-app  |         at com.mysql.cj.jdbc.exceptions.SQLError.createCommunicationsException(SQLError.java:174) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:64) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:815) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.jdbc.ConnectionImpl.<init>(ConnectionImpl.java:438) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.jdbc.ConnectionImpl.getInstance(ConnectionImpl.java:241) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.jdbc.NonRegisteringDriver.connect(NonRegisteringDriver.java:189) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:138) ~[HikariCP-5.0.1.jar!/:na]
+boutique-app  |         at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:359) ~[HikariCP-5.0.1.jar!/:na]
+boutique-app  |         at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:201) ~[HikariCP-5.0.1.jar!/:na]
+boutique-app  |         at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:470) ~[HikariCP-5.0.1.jar!/:na]
+boutique-app  |         at com.zaxxer.hikari.pool.HikariPool.checkFailFast(HikariPool.java:561) ~[HikariCP-5.0.1.jar!/:na]
+boutique-app  |         at com.zaxxer.hikari.pool.HikariPool.<init>(HikariPool.java:100) ~[HikariCP-5.0.1.jar!/:na]
+boutique-app  |         at com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:112) ~[HikariCP-5.0.1.jar!/:na]
+boutique-app  |         at org.hibernate.engine.jdbc.connections.internal.DatasourceConnectionProviderImpl.getConnection(DatasourceConnectionProviderImpl.java:122) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator$ConnectionProviderJdbcConnectionAccess.obtainConnection(JdbcEnvironmentInitiator.java:428) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcIsolationDelegate.delegateWork(JdbcIsolationDelegate.java:61) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentUsingJdbcMetadata(JdbcEnvironmentInitiator.java:276) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:107) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:68) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.boot.registry.internal.StandardServiceRegistryImpl.initiateService(StandardServiceRegistryImpl.java:129) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:263) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.service.internal.AbstractServiceRegistryImpl.initializeService(AbstractServiceRegistryImpl.java:238) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.service.internal.AbstractServiceRegistryImpl.getService(AbstractServiceRegistryImpl.java:215) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.boot.model.relational.Database.<init>(Database.java:45) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.getDatabase(InFlightMetadataCollectorImpl.java:223) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.<init>(InFlightMetadataCollectorImpl.java:191) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.boot.model.process.spi.MetadataBuildingProcess.complete(MetadataBuildingProcess.java:170) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.metadata(EntityManagerFactoryBuilderImpl.java:1432) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.build(EntityManagerFactoryBuilderImpl.java:1503) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.springframework.orm.jpa.vendor.SpringHibernateJpaPersistenceProvider.createContainerEntityManagerFactory(SpringHibernateJpaPersistenceProvider.java:75) ~[spring-orm-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.createNativeEntityManagerFactory(LocalContainerEntityManagerFactoryBean.java:376) ~[spring-orm-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.buildNativeEntityManagerFactory(AbstractEntityManagerFactoryBean.java:409) ~[spring-orm-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.afterPropertiesSet(AbstractEntityManagerFactoryBean.java:396) ~[spring-orm-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.afterPropertiesSet(LocalContainerEntityManagerFactoryBean.java:352) ~[spring-orm-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1820) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1769) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:599) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:521) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:325) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:323) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:199) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:1231) ~[spring-context-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:949) ~[spring-context-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:624) ~[spring-context-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at org.springframework.boot.SpringApplication.run(SpringApplication.java:334) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at org.springframework.boot.SpringApplication.run(SpringApplication.java:1343) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at com.example.boutique.BoutiqueApplication.main(BoutiqueApplication.java:23) ~[!/:1.0.0-SNAPSHOT]
+boutique-app  |         at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/java.lang.reflect.Method.invoke(Unknown Source) ~[na:na]
+boutique-app  |         at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:91) ~[app.jar:1.0.0-SNAPSHOT]
+boutique-app  |         at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:53) ~[app.jar:1.0.0-SNAPSHOT]
+boutique-app  |         at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:58) ~[app.jar:1.0.0-SNAPSHOT]
+boutique-app  | Caused by: com.mysql.cj.exceptions.CJCommunicationsException: Communications link failure
+boutique-app  |
+boutique-app  | The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+boutique-app  |         at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/java.lang.reflect.Constructor.newInstance(Unknown Source) ~[na:na]
+boutique-app  |         at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:61) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:104) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:149) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.exceptions.ExceptionFactory.createCommunicationsException(ExceptionFactory.java:165) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:88) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.NativeSession.connect(NativeSession.java:120) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.jdbc.ConnectionImpl.connectOneTryOnly(ConnectionImpl.java:935) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:805) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         ... 54 common frames omitted
+boutique-app  | Caused by: java.net.ConnectException: Connection refused
+boutique-app  |         at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[na:na]
+boutique-app  |         at java.base/sun.nio.ch.Net.pollConnectNow(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/sun.nio.ch.NioSocketImpl.connect(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/java.net.SocksSocketImpl.connect(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/java.net.Socket.connect(Unknown Source) ~[na:na]
+boutique-app  |         at com.mysql.cj.protocol.StandardSocketFactory.connect(StandardSocketFactory.java:153) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:62) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         ... 57 common frames omitted
+boutique-app  |
+boutique-app  | 2026-02-17T13:13:10.405Z  WARN 1 --- [boutique] [           main] o.h.e.j.e.i.JdbcEnvironmentInitiator     : HHH000342: Could not obtain connection to query metadata
+boutique-app  |
+boutique-app  | java.lang.NullPointerException: Cannot invoke "org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(java.sql.SQLException, String)" because the return value of "org.hibernate.resource.transaction.backend.jdbc.internal.JdbcIsolationDelegate.sqlExceptionHelper()" is null
+boutique-app  |         at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcIsolationDelegate.delegateWork(JdbcIsolationDelegate.java:116) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentUsingJdbcMetadata(JdbcEnvironmentInitiator.java:276) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:107) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:68) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.boot.registry.internal.StandardServiceRegistryImpl.initiateService(StandardServiceRegistryImpl.java:129) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:263) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.service.internal.AbstractServiceRegistryImpl.initializeService(AbstractServiceRegistryImpl.java:238) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.service.internal.AbstractServiceRegistryImpl.getService(AbstractServiceRegistryImpl.java:215) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.boot.model.relational.Database.<init>(Database.java:45) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.getDatabase(InFlightMetadataCollectorImpl.java:223) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.<init>(InFlightMetadataCollectorImpl.java:191) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.boot.model.process.spi.MetadataBuildingProcess.complete(MetadataBuildingProcess.java:170) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.metadata(EntityManagerFactoryBuilderImpl.java:1432) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.build(EntityManagerFactoryBuilderImpl.java:1503) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.springframework.orm.jpa.vendor.SpringHibernateJpaPersistenceProvider.createContainerEntityManagerFactory(SpringHibernateJpaPersistenceProvider.java:75) ~[spring-orm-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.createNativeEntityManagerFactory(LocalContainerEntityManagerFactoryBean.java:376) ~[spring-orm-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.buildNativeEntityManagerFactory(AbstractEntityManagerFactoryBean.java:409) ~[spring-orm-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.afterPropertiesSet(AbstractEntityManagerFactoryBean.java:396) ~[spring-orm-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.afterPropertiesSet(LocalContainerEntityManagerFactoryBean.java:352) ~[spring-orm-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1820) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1769) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:599) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:521) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:325) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:323) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:199) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:1231) ~[spring-context-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:949) ~[spring-context-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:624) ~[spring-context-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at org.springframework.boot.SpringApplication.run(SpringApplication.java:334) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at org.springframework.boot.SpringApplication.run(SpringApplication.java:1343) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at com.example.boutique.BoutiqueApplication.main(BoutiqueApplication.java:23) ~[!/:1.0.0-SNAPSHOT]
+boutique-app  |         at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/java.lang.reflect.Method.invoke(Unknown Source) ~[na:na]
+boutique-app  |         at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:91) ~[app.jar:1.0.0-SNAPSHOT]
+boutique-app  |         at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:53) ~[app.jar:1.0.0-SNAPSHOT]
+boutique-app  |         at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:58) ~[app.jar:1.0.0-SNAPSHOT]
+boutique-app  |
+boutique-app  | 2026-02-17T13:13:10.432Z  WARN 1 --- [boutique] [           main] org.hibernate.orm.deprecation            : HHH90000025: MySQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+boutique-app  | 2026-02-17T13:13:11.651Z  INFO 1 --- [boutique] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+boutique-app  | 2026-02-17T13:13:11.670Z  INFO 1 --- [boutique] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+boutique-app  | 2026-02-17T13:13:12.829Z ERROR 1 --- [boutique] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Exception during pool initialization.
+boutique-app  |
+boutique-app  | com.mysql.cj.jdbc.exceptions.CommunicationsException: Communications link failure
+boutique-app  |
+boutique-app  | The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+boutique-app  |         at com.mysql.cj.jdbc.exceptions.SQLError.createCommunicationsException(SQLError.java:174) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:64) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:815) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.jdbc.ConnectionImpl.<init>(ConnectionImpl.java:438) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.jdbc.ConnectionImpl.getInstance(ConnectionImpl.java:241) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.jdbc.NonRegisteringDriver.connect(NonRegisteringDriver.java:189) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:138) ~[HikariCP-5.0.1.jar!/:na]
+boutique-app  |         at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:359) ~[HikariCP-5.0.1.jar!/:na]
+boutique-app  |         at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:201) ~[HikariCP-5.0.1.jar!/:na]
+boutique-app  |         at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:470) ~[HikariCP-5.0.1.jar!/:na]
+boutique-app  |         at com.zaxxer.hikari.pool.HikariPool.checkFailFast(HikariPool.java:561) ~[HikariCP-5.0.1.jar!/:na]
+boutique-app  |         at com.zaxxer.hikari.pool.HikariPool.<init>(HikariPool.java:100) ~[HikariCP-5.0.1.jar!/:na]
+boutique-app  |         at com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:112) ~[HikariCP-5.0.1.jar!/:na]
+boutique-app  |         at org.hibernate.engine.jdbc.connections.internal.DatasourceConnectionProviderImpl.getConnection(DatasourceConnectionProviderImpl.java:122) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator$ConnectionProviderJdbcConnectionAccess.obtainConnection(JdbcEnvironmentInitiator.java:428) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.resource.transaction.backend.jdbc.internal.DdlTransactionIsolatorNonJtaImpl.getIsolatedConnection(DdlTransactionIsolatorNonJtaImpl.java:46) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.resource.transaction.backend.jdbc.internal.DdlTransactionIsolatorNonJtaImpl.getIsolatedConnection(DdlTransactionIsolatorNonJtaImpl.java:39) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.tool.schema.internal.exec.ImprovedExtractionContextImpl.getJdbcConnection(ImprovedExtractionContextImpl.java:63) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.tool.schema.internal.exec.ImprovedExtractionContextImpl.getJdbcDatabaseMetaData(ImprovedExtractionContextImpl.java:70) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.tool.schema.extract.internal.InformationExtractorJdbcDatabaseMetaDataImpl.processTableResultSet(InformationExtractorJdbcDatabaseMetaDataImpl.java:64) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.tool.schema.extract.internal.AbstractInformationExtractorImpl.getTables(AbstractInformationExtractorImpl.java:570) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.tool.schema.extract.internal.DatabaseInformationImpl.getTablesInformation(DatabaseInformationImpl.java:122) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.tool.schema.internal.GroupedSchemaMigratorImpl.performTablesMigration(GroupedSchemaMigratorImpl.java:72) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.tool.schema.internal.AbstractSchemaMigrator.performMigration(AbstractSchemaMigrator.java:232) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.tool.schema.internal.AbstractSchemaMigrator.doMigration(AbstractSchemaMigrator.java:117) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.tool.schema.spi.SchemaManagementToolCoordinator.performDatabaseAction(SchemaManagementToolCoordinator.java:286) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.tool.schema.spi.SchemaManagementToolCoordinator.lambda$process$5(SchemaManagementToolCoordinator.java:145) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at java.base/java.util.HashMap.forEach(Unknown Source) ~[na:na]
+boutique-app  |         at org.hibernate.tool.schema.spi.SchemaManagementToolCoordinator.process(SchemaManagementToolCoordinator.java:142) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.boot.internal.SessionFactoryObserverForSchemaExport.sessionFactoryCreated(SessionFactoryObserverForSchemaExport.java:37) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.internal.SessionFactoryObserverChain.sessionFactoryCreated(SessionFactoryObserverChain.java:35) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.internal.SessionFactoryImpl.<init>(SessionFactoryImpl.java:315) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.boot.internal.SessionFactoryBuilderImpl.build(SessionFactoryBuilderImpl.java:450) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.build(EntityManagerFactoryBuilderImpl.java:1507) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.springframework.orm.jpa.vendor.SpringHibernateJpaPersistenceProvider.createContainerEntityManagerFactory(SpringHibernateJpaPersistenceProvider.java:75) ~[spring-orm-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.createNativeEntityManagerFactory(LocalContainerEntityManagerFactoryBean.java:376) ~[spring-orm-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.buildNativeEntityManagerFactory(AbstractEntityManagerFactoryBean.java:409) ~[spring-orm-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.afterPropertiesSet(AbstractEntityManagerFactoryBean.java:396) ~[spring-orm-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.afterPropertiesSet(LocalContainerEntityManagerFactoryBean.java:352) ~[spring-orm-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1820) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1769) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:599) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:521) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:325) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:323) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:199) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:1231) ~[spring-context-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:949) ~[spring-context-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:624) ~[spring-context-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at org.springframework.boot.SpringApplication.run(SpringApplication.java:334) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at org.springframework.boot.SpringApplication.run(SpringApplication.java:1343) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at com.example.boutique.BoutiqueApplication.main(BoutiqueApplication.java:23) ~[!/:1.0.0-SNAPSHOT]
+boutique-app  |         at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/java.lang.reflect.Method.invoke(Unknown Source) ~[na:na]
+boutique-app  |         at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:91) ~[app.jar:1.0.0-SNAPSHOT]
+boutique-app  |         at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:53) ~[app.jar:1.0.0-SNAPSHOT]
+boutique-app  |         at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:58) ~[app.jar:1.0.0-SNAPSHOT]
+boutique-app  | Caused by: com.mysql.cj.exceptions.CJCommunicationsException: Communications link failure
+boutique-app  |
+boutique-app  | The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+boutique-app  |         at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/java.lang.reflect.Constructor.newInstance(Unknown Source) ~[na:na]
+boutique-app  |         at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:61) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:104) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:149) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.exceptions.ExceptionFactory.createCommunicationsException(ExceptionFactory.java:165) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:88) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.NativeSession.connect(NativeSession.java:120) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.jdbc.ConnectionImpl.connectOneTryOnly(ConnectionImpl.java:935) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:805) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         ... 59 common frames omitted
+boutique-app  | Caused by: java.net.ConnectException: Connection refused
+boutique-app  |         at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[na:na]
+boutique-app  |         at java.base/sun.nio.ch.Net.pollConnectNow(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/sun.nio.ch.NioSocketImpl.connect(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/java.net.SocksSocketImpl.connect(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/java.net.Socket.connect(Unknown Source) ~[na:na]
+boutique-app  |         at com.mysql.cj.protocol.StandardSocketFactory.connect(StandardSocketFactory.java:153) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:62) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         ... 62 common frames omitted
+boutique-app  |
+boutique-app  | 2026-02-17T13:13:12.836Z  WARN 1 --- [boutique] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Error: 0, SQLState: 08S01
+boutique-app  | 2026-02-17T13:13:12.836Z ERROR 1 --- [boutique] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : Communications link failure
+boutique-app  |
+boutique-app  | The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+boutique-app  | 2026-02-17T13:13:12.842Z ERROR 1 --- [boutique] [           main] j.LocalContainerEntityManagerFactoryBean : Failed to initialize JPA EntityManagerFactory: [PersistenceUnit: default] Unable to build Hibernate SessionFactory; nested exception is org.hibernate.exception.JDBCConnectionException: Unable to open JDBC Connection for DDL execution [Communications link failure
+boutique-app  |
+boutique-app  | The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.] [n/a]
+boutique-app  | 2026-02-17T13:13:12.843Z  WARN 1 --- [boutique] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: [PersistenceUnit: default] Unable to build Hibernate SessionFactory; nested exception is org.hibernate.exception.JDBCConnectionException: Unable to open JDBC Connection for DDL execution [Communications link failure
+boutique-app  |
+boutique-app  | The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.] [n/a]
+boutique-app  | 2026-02-17T13:13:12.846Z  INFO 1 --- [boutique] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+boutique-app  | 2026-02-17T13:13:12.878Z  INFO 1 --- [boutique] [           main] .s.b.a.l.ConditionEvaluationReportLogger :
+boutique-app  |
+boutique-app  | Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+boutique-app  | 2026-02-17T13:13:13.265Z ERROR 1 --- [boutique] [           main] o.s.boot.SpringApplication               : Application run failed
+boutique-app  |
+boutique-app  | org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: [PersistenceUnit: default] Unable to build Hibernate SessionFactory; nested exception is org.hibernate.exception.JDBCConnectionException: Unable to open JDBC Connection for DDL execution [Communications link failure
+boutique-app  |
+boutique-app  | The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.] [n/a]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1773) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:599) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:521) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:325) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:323) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:199) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:1231) ~[spring-context-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:949) ~[spring-context-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:624) ~[spring-context-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at org.springframework.boot.SpringApplication.run(SpringApplication.java:334) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at org.springframework.boot.SpringApplication.run(SpringApplication.java:1343) ~[spring-boot-3.2.2.jar!/:3.2.2]
+boutique-app  |         at com.example.boutique.BoutiqueApplication.main(BoutiqueApplication.java:23) ~[!/:1.0.0-SNAPSHOT]
+boutique-app  |         at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/java.lang.reflect.Method.invoke(Unknown Source) ~[na:na]
+boutique-app  |         at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:91) ~[app.jar:1.0.0-SNAPSHOT]
+boutique-app  |         at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:53) ~[app.jar:1.0.0-SNAPSHOT]
+boutique-app  |         at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:58) ~[app.jar:1.0.0-SNAPSHOT]
+boutique-app  | Caused by: jakarta.persistence.PersistenceException: [PersistenceUnit: default] Unable to build Hibernate SessionFactory; nested exception is org.hibernate.exception.JDBCConnectionException: Unable to open JDBC Connection for DDL execution [Communications link failure
+boutique-app  |
+boutique-app  | The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.] [n/a]
+boutique-app  |         at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.buildNativeEntityManagerFactory(AbstractEntityManagerFactoryBean.java:421) ~[spring-orm-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.afterPropertiesSet(AbstractEntityManagerFactoryBean.java:396) ~[spring-orm-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.afterPropertiesSet(LocalContainerEntityManagerFactoryBean.java:352) ~[spring-orm-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1820) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1769) ~[spring-beans-6.1.3.jar!/:6.1.3]
+boutique-app  |         ... 21 common frames omitted
+boutique-app  | Caused by: org.hibernate.exception.JDBCConnectionException: Unable to open JDBC Connection for DDL execution [Communications link failure
+boutique-app  |
+boutique-app  | The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.] [n/a]
+boutique-app  |         at org.hibernate.exception.internal.SQLStateConversionDelegate.convert(SQLStateConversionDelegate.java:100) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:58) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:108) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:94) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.resource.transaction.backend.jdbc.internal.DdlTransactionIsolatorNonJtaImpl.getIsolatedConnection(DdlTransactionIsolatorNonJtaImpl.java:74) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.resource.transaction.backend.jdbc.internal.DdlTransactionIsolatorNonJtaImpl.getIsolatedConnection(DdlTransactionIsolatorNonJtaImpl.java:39) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.tool.schema.internal.exec.ImprovedExtractionContextImpl.getJdbcConnection(ImprovedExtractionContextImpl.java:63) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.tool.schema.internal.exec.ImprovedExtractionContextImpl.getJdbcDatabaseMetaData(ImprovedExtractionContextImpl.java:70) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.tool.schema.extract.internal.InformationExtractorJdbcDatabaseMetaDataImpl.processTableResultSet(InformationExtractorJdbcDatabaseMetaDataImpl.java:64) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.tool.schema.extract.internal.AbstractInformationExtractorImpl.getTables(AbstractInformationExtractorImpl.java:570) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.tool.schema.extract.internal.DatabaseInformationImpl.getTablesInformation(DatabaseInformationImpl.java:122) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.tool.schema.internal.GroupedSchemaMigratorImpl.performTablesMigration(GroupedSchemaMigratorImpl.java:72) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.tool.schema.internal.AbstractSchemaMigrator.performMigration(AbstractSchemaMigrator.java:232) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.tool.schema.internal.AbstractSchemaMigrator.doMigration(AbstractSchemaMigrator.java:117) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.tool.schema.spi.SchemaManagementToolCoordinator.performDatabaseAction(SchemaManagementToolCoordinator.java:286) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.tool.schema.spi.SchemaManagementToolCoordinator.lambda$process$5(SchemaManagementToolCoordinator.java:145) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at java.base/java.util.HashMap.forEach(Unknown Source) ~[na:na]
+boutique-app  |         at org.hibernate.tool.schema.spi.SchemaManagementToolCoordinator.process(SchemaManagementToolCoordinator.java:142) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.boot.internal.SessionFactoryObserverForSchemaExport.sessionFactoryCreated(SessionFactoryObserverForSchemaExport.java:37) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.internal.SessionFactoryObserverChain.sessionFactoryCreated(SessionFactoryObserverChain.java:35) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.internal.SessionFactoryImpl.<init>(SessionFactoryImpl.java:315) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.boot.internal.SessionFactoryBuilderImpl.build(SessionFactoryBuilderImpl.java:450) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.build(EntityManagerFactoryBuilderImpl.java:1507) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.springframework.orm.jpa.vendor.SpringHibernateJpaPersistenceProvider.createContainerEntityManagerFactory(SpringHibernateJpaPersistenceProvider.java:75) ~[spring-orm-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.createNativeEntityManagerFactory(LocalContainerEntityManagerFactoryBean.java:376) ~[spring-orm-6.1.3.jar!/:6.1.3]
+boutique-app  |         at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.buildNativeEntityManagerFactory(AbstractEntityManagerFactoryBean.java:409) ~[spring-orm-6.1.3.jar!/:6.1.3]
+boutique-app  |         ... 25 common frames omitted
+boutique-app  | Caused by: com.mysql.cj.jdbc.exceptions.CommunicationsException: Communications link failure
+boutique-app  |
+boutique-app  | The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+boutique-app  |         at com.mysql.cj.jdbc.exceptions.SQLError.createCommunicationsException(SQLError.java:174) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:64) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:815) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.jdbc.ConnectionImpl.<init>(ConnectionImpl.java:438) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.jdbc.ConnectionImpl.getInstance(ConnectionImpl.java:241) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.jdbc.NonRegisteringDriver.connect(NonRegisteringDriver.java:189) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:138) ~[HikariCP-5.0.1.jar!/:na]
+boutique-app  |         at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:359) ~[HikariCP-5.0.1.jar!/:na]
+boutique-app  |         at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:201) ~[HikariCP-5.0.1.jar!/:na]
+boutique-app  |         at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:470) ~[HikariCP-5.0.1.jar!/:na]
+boutique-app  |         at com.zaxxer.hikari.pool.HikariPool.checkFailFast(HikariPool.java:561) ~[HikariCP-5.0.1.jar!/:na]
+boutique-app  |         at com.zaxxer.hikari.pool.HikariPool.<init>(HikariPool.java:100) ~[HikariCP-5.0.1.jar!/:na]
+boutique-app  |         at com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:112) ~[HikariCP-5.0.1.jar!/:na]
+boutique-app  |         at org.hibernate.engine.jdbc.connections.internal.DatasourceConnectionProviderImpl.getConnection(DatasourceConnectionProviderImpl.java:122) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator$ConnectionProviderJdbcConnectionAccess.obtainConnection(JdbcEnvironmentInitiator.java:428) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         at org.hibernate.resource.transaction.backend.jdbc.internal.DdlTransactionIsolatorNonJtaImpl.getIsolatedConnection(DdlTransactionIsolatorNonJtaImpl.java:46) ~[hibernate-core-6.4.1.Final.jar!/:6.4.1.Final]
+boutique-app  |         ... 46 common frames omitted
+boutique-app  | Caused by: com.mysql.cj.exceptions.CJCommunicationsException: Communications link failure
+boutique-app  |
+boutique-app  | The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+boutique-app  |         at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/java.lang.reflect.Constructor.newInstance(Unknown Source) ~[na:na]
+boutique-app  |         at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:61) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:104) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:149) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.exceptions.ExceptionFactory.createCommunicationsException(ExceptionFactory.java:165) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:88) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.NativeSession.connect(NativeSession.java:120) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.jdbc.ConnectionImpl.connectOneTryOnly(ConnectionImpl.java:935) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:805) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         ... 59 common frames omitted
+boutique-app  | Caused by: java.net.ConnectException: Connection refused
+boutique-app  |         at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[na:na]
+boutique-app  |         at java.base/sun.nio.ch.Net.pollConnectNow(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/sun.nio.ch.NioSocketImpl.connect(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/java.net.SocksSocketImpl.connect(Unknown Source) ~[na:na]
+boutique-app  |         at java.base/java.net.Socket.connect(Unknown Source) ~[na:na]
+boutique-app  |         at com.mysql.cj.protocol.StandardSocketFactory.connect(StandardSocketFactory.java:153) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         at com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:62) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+boutique-app  |         ... 62 common frames omitted
+boutique-app  |
 [root@srv1287017 boutique]#
