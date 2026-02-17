@@ -83,14 +83,14 @@ Grâce à `docker-compose`, une seule commande suffit pour construire l'image de
 
 ```bash
 # Construire les images et démarrer les conteneurs en arrière-plan (-d)
-docker-compose up --build -d
+docker compose up --build -d
 ```
 
 ---
 
 ### Étape 6 : Configurer le Pare-feu
 
-Ouvrez le port `8080` pour que votre application soit accessible depuis internet.
+Ouvrez le port 8081 pour que votre application soit accessible depuis internet.
 
 ```bash
 # Installer et activer le pare-feu (si nécessaire)
@@ -112,13 +112,13 @@ Votre application devrait maintenant être en ligne !
 
 1.  **Vérifiez que les conteneurs sont en cours d'exécution :**
     ```bash
-    docker-compose ps
+    docker compose ps
     ```
-    Vous devriez voir `boutique-app` et `mysql-db` avec le statut `running`.
+    Vous devriez voir `boutique-app` et `boutique-db` avec le statut `running`.
 
 2.  **Consultez les logs de votre application pour vérifier qu'elle a démarré sans erreur :**
     ```bash
-    docker-compose logs -f boutique-app
+    docker compose logs -f boutique-app
     ```
     *(Appuyez sur `Ctrl+C` pour quitter les logs.)*
 
@@ -126,4 +126,4 @@ Votre application devrait maintenant être en ligne !
     Ouvrez `http://109.176.197.158:8081`
 
 ---
-Votre application est maintenant déployée ! Pour mettre à jour l'application, il vous suffira de récupérer les dernières modifications avec `git pull` sur votre serveur, puis de relancer la commande `docker-compose up --build -d`.
+Votre application est maintenant déployée ! Pour mettre à jour l'application, il vous suffira de récupérer les dernières modifications avec `git pull` sur votre serveur, puis de relancer la commande `docker compose up --build -d`.
