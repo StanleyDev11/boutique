@@ -1,0 +1,92 @@
+Aperçu général
+- VPS
+- Aperçu - srv1287017.hstgr.cloud
+
+Terminal
+CentOS 10 Stream
+CentOS 10 Stream
+
+KVM 2
+en cours d'exécution
+Accès root
+
+ssh root@109.176.197.158
+
+Mot de passe root
+
+Modifier
+
+Redémarrer le VPS
+
+
+Utilisation du CPU
+3%
+
+Utilisation de la mémoire
+35%
+
+Utilisation du disque
+19 GB / 100 GB
+
+Trafic entrant
+0.8 MB
+
+Trafic sortant
+0.9 MB
+
+Bande passante
+0.004 TB / 8 TB
+
+Clé SSH
+
+0
+
+Règles de pare-feu
+
+0
+
+Snapshot et sauvegardes
+
+2
+
+Scanner de logiciels malveillants
+
+Actif
+
+Passez aux sauvegardes quotidiennes automatiques
+Données protégées chaque jour
+Sauvegardes exécutées automatiquement
+Restauration de données facile
+5,99 €
+/mois
+
+Améliorer mon plan
+Informations du VPS
+Emplacement du serveur
+France - Paris
+Système d'exploitation
+CentOS 10 Stream
+Nom d'hôte
+srv1287017.hstgr.cloud
+Disponibilité du VPS
+21 jours 20 heures
+Nom d'utilisateur SSH
+root
+IPv4
+109.176.197.158
+Informations du plan
+Plan actuel
+KVM 2
+Améliorer
+Date d'expiration
+2026-02-21
+Renouveler
+Renouvellement automatique
+Activé
+Cœur de CPU
+2
+Mémoire
+8 GB
+Espace disque
+100 GB
+Articles associés
