@@ -48,15 +48,35 @@ public class ProduitController {
     private final ParametreService parametreService;
     private final FactureRepository factureRepository;
     private final LigneFactureRepository ligneFactureRepository;
+    private final com.example.boutique.service.AuditService auditService;
 
 
-    public ProduitController(ProduitRepository produitRepository, ProduitService produitService, com.example.boutique.repository.MouvementStockRepository mouvementStockRepository, ParametreService parametreService, FactureRepository factureRepository, LigneFactureRepository ligneFactureRepository) {
+    public ProduitController(ProduitRepository produitRepository, ProduitService produitService, com.example.boutique.repository.MouvementStockRepository mouvementStockRepository, ParametreService parametreService, FactureRepository factureRepository, LigneFactureRepository ligneFactureRepository, com.example.boutique.service.AuditService auditService) {
         this.produitRepository = produitRepository;
         this.produitService = produitService;
         this.mouvementStockRepository = mouvementStockRepository;
         this.parametreService = parametreService;
         this.factureRepository = factureRepository;
         this.ligneFactureRepository = ligneFactureRepository;
+        this.auditService = auditService;
+    }
+
+    @PostMapping("/importer-sql")
+    @PreAuthorize("hasAnyRole('ADMIN', 'GESTIONNAIRE')")
+    public String importerSql(@RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes) {
+        try {
+            produitService.importFromSql(file);
+            redirectAttributes.addFlashAttribute("success", "L'importation SQL a été effectuée avec succès.");
+            
+            // Log l'action dans l'audit
+            try {
+                auditService.logInfo("IMPORT_SQL", "Importation de produits via fichier SQL: " + file.getOriginalFilename());
+            } catch (Exception e) {}
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Erreur lors de l'importation : " + e.getMessage());
+        }
+        return "redirect:/produits";
     }
 
     @GetMapping

@@ -145,6 +145,10 @@
                     <i class="fas fa-plus-circle mr-3 text-lg"></i>
                     Nouveau Produit
                 </button>
+                <button onclick="openImportSqlModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl flex items-center justify-center font-semibold shadow-lg transition duration-200">
+                    <i class="fas fa-file-import mr-3 text-lg"></i>
+                    Importer SQL
+                </button>
                 <a th:href="@{/stock/new}" class="btn-secondary text-white px-6 py-3 rounded-xl flex items-center justify-center font-semibold shadow-lg">
                     <i class="fas fa-warehouse mr-3 text-lg"></i>
                     Mouvement Stock
@@ -610,6 +614,55 @@
 
     const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
     const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+    async function openImportSqlModal() {
+        Swal.fire({
+            title: 'Importer des produits (SQL)',
+            html: `
+                <div class="text-left">
+                    <p class="mb-4 text-sm text-gray-600">Sélectionnez un fichier .sql contenant des instructions <code>INSERT INTO produits ...</code></p>
+                    <form id="import-sql-form" enctype="multipart/form-data">
+                        <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-indigo-500 transition-colors cursor-pointer" onclick="document.getElementById('sql-file-input').click()">
+                            <i class="fas fa-file-code text-4xl text-gray-400 mb-3"></i>
+                            <p class="text-sm font-medium text-gray-700" id="file-name-display">Cliquez pour choisir un fichier</p>
+                            <input type="file" id="sql-file-input" name="file" accept=".sql" class="hidden" onchange="document.getElementById('file-name-display').textContent = this.files[0].name">
+                        </div>
+                    </form>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: '<i class="fas fa-upload mr-2"></i>Importer',
+            cancelButtonText: 'Annuler',
+            confirmButtonColor: '#4f46e5',
+            showLoaderOnConfirm: true,
+            preConfirm: () => {
+                const fileInput = document.getElementById('sql-file-input');
+                if (!fileInput.files.length) {
+                    Swal.showValidationMessage('Veuillez sélectionner un fichier.');
+                    return false;
+                }
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+
+                return fetch('/produits/importer-sql', {
+                    method: 'POST',
+                    headers: { [csrfHeader]: csrfToken },
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Erreur lors de l\'importation.');
+                    return response;
+                })
+                .catch(error => {
+                    Swal.showValidationMessage(error.message);
+                });
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire('Succès', 'Les produits ont été importés.', 'success').then(() => location.reload());
+            }
+        });
+    }
+
     async function openProductModal(productId, batch = false) {
         let url;
         if (batch) {

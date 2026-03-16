@@ -35,15 +35,42 @@ public class ProduitService {
     private final FactureRepository factureRepository;
     private final FileStorageService fileStorageService;
     private final ParametreService parametreService;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
 
-    public ProduitService(ProduitRepository produitRepository, StockService stockService, MouvementStockRepository mouvementStockRepository, FactureRepository factureRepository, FileStorageService fileStorageService, ParametreService parametreService) {
+    public ProduitService(ProduitRepository produitRepository, StockService stockService, MouvementStockRepository mouvementStockRepository, FactureRepository factureRepository, FileStorageService fileStorageService, ParametreService parametreService, org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {
         this.produitRepository = produitRepository;
         this.stockService = stockService;
         this.mouvementStockRepository = mouvementStockRepository;
         this.factureRepository = factureRepository;
         this.fileStorageService = fileStorageService;
         this.parametreService = parametreService;
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void importFromSql(MultipartFile file) throws Exception {
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("Le fichier est vide.");
+        }
+
+        String content = new String(file.getBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        String[] queries = content.split(";");
+
+        int count = 0;
+        for (String query : queries) {
+            String trimmedQuery = query.trim();
+            if (trimmedQuery.isEmpty()) continue;
+
+            // Sécurité : on n'autorise que les INSERT INTO sur la table produits
+            if (trimmedQuery.toUpperCase().startsWith("INSERT INTO PRODUITS")) {
+                jdbcTemplate.execute(trimmedQuery);
+                count++;
+            } else {
+                logger.warn("Requête SQL ignorée pour des raisons de sécurité : {}", trimmedQuery);
+            }
+        }
+        logger.info("{} produits importés via SQL.", count);
     }
 
     @Transactional(rollbackFor = Exception.class)
