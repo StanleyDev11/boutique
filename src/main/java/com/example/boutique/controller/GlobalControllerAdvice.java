@@ -34,6 +34,9 @@ public class GlobalControllerAdvice {
     @Autowired
     private ParametreService parametreService;
 
+    @Autowired
+    private com.example.boutique.service.AuditService auditService;
+
     @ModelAttribute("isSessionActive")
     public boolean isSessionActive() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -86,8 +89,15 @@ public class GlobalControllerAdvice {
         // Log the exception for debugging purposes
         logger.error("Une erreur inattendue est survenue: ", ex);
 
+        // Enregistrer dans l'audit
+        try {
+            auditService.logError("ERREUR_SYSTEME", "Erreur inattendue : " + ex.getMessage());
+        } catch (Exception e) {
+            logger.error("Impossible d'enregistrer l'erreur dans l'audit", e);
+        }
+
         // Return a user-friendly error page
-        ModelAndView modelAndView = new ModelAndView("error"); // 'error' is the name of the view
+        ModelAndView modelAndView = new ModelAndView("error"); 
         modelAndView.addObject("errorMessage", "Une erreur inattendue est survenue. Veuillez réessayer plus tard.");
         return modelAndView;
     }

@@ -26,9 +26,19 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
     @Autowired
     private SessionCaisseRepository sessionCaisseRepository;
 
+    @Autowired
+    private com.example.boutique.service.AuditService auditService;
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         Set<String> roles = AuthorityUtils.authorityListToSet(authentication.getAuthorities());
+        
+        // Log the login action
+        try {
+            auditService.logInfo("CONNEXION", "Utilisateur connecté avec les rôles: " + roles);
+        } catch (Exception e) {
+            // Silently fail if audit logging fails to avoid blocking login
+        }
 
         if (roles.contains("ROLE_ADMIN")) {
             response.sendRedirect("/dashboard");
