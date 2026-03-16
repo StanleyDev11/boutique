@@ -1,0 +1,200 @@
+<th:block th:fragment="tailwind-header(pageTitle)">
+    <!-- Header Fragment -->
+    <header class="shadow-md sticky top-0 z-50" th:style="'background-color:' + ${tailwindHeaderBackgroundColor}">
+        <div class="w-full mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo and Page Title -->
+                <div class="flex items-center">
+                    <a sec:authorize="hasRole('ADMIN')" th:href="@{/dashboard}" class="flex-shrink-0">
+                        <img th:src="@{${boutiqueLogo}}" alt="Logo" class="h-12 sm:h-16 w-auto transition-transform hover:scale-105 duration-200">
+                    </a>
+                    <a sec:authorize="!hasRole('ADMIN') and hasRole('GESTIONNAIRE')" th:href="@{/produits}" class="flex-shrink-0">
+                        <img th:src="@{${boutiqueLogo}}" alt="Logo" class="h-12 sm:h-16 w-auto transition-transform hover:scale-105 duration-200">
+                    </a>
+                    <a sec:authorize="!hasAnyRole('ADMIN', 'GESTIONNAIRE') and hasRole('CAISSIER')" th:href="@{/caissier}" class="flex-shrink-0">
+                        <img th:src="@{${boutiqueLogo}}" alt="Logo" class="h-12 sm:h-16 w-auto transition-transform hover:scale-105 duration-200">
+                    </a>
+                    <div class="flex flex-col ml-3 sm:ml-4">
+                        <h1 class="text-lg sm:text-2xl font-bold italic leading-tight" th:style="'color:' + ${tailwindHeaderTextColor}" th:text="${boutiqueNom}">BelaLuxe</h1>
+                        <span class="text-xs sm:text-sm font-medium opacity-80 hidden xs:block" th:if="${pageTitle != null}" th:style="'color:' + ${tailwindHeaderTextColor}" th:text="${pageTitle}"></span>
+                    </div>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex md:items-center md:flex-1 md:justify-end">
+                    <nav class="flex items-center space-x-1 lg:space-x-3 xl:space-x-4 mr-4">
+                        <a th:href="@{/dashboard}" class="text-[13px] lg:text-sm font-medium transition duration-200 hover:opacity-75 flex items-center whitespace-nowrap" sec:authorize="hasRole('ADMIN')" th:style="'color:' + ${tailwindHeaderTextColor}"><i class="fas fa-tachometer-alt mr-1.5"></i>Tableau de Bord</a>
+                        <a th:href="@{/produits}" class="text-[13px] lg:text-sm font-medium transition duration-200 hover:opacity-75 flex items-center whitespace-nowrap" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')" th:style="'color:' + ${tailwindHeaderTextColor}"><i class="fas fa-boxes mr-1.5"></i>Produits</a>
+                        <a th:href="@{/clients}" class="text-[13px] lg:text-sm font-medium transition duration-200 hover:opacity-75 flex items-center whitespace-nowrap" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')" th:style="'color:' + ${tailwindHeaderTextColor}"><i class="fas fa-users mr-1.5"></i>Clients</a>
+                        <a th:href="@{/caissier}" class="text-[13px] lg:text-sm font-medium transition duration-200 hover:opacity-75 flex items-center whitespace-nowrap" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')" th:style="'color:' + ${tailwindHeaderTextColor}"><i class="fas fa-cash-register mr-1.5"></i>Caisse</a>
+                        <a th:href="@{/caissier}" class="text-[13px] lg:text-sm font-medium transition duration-200 hover:opacity-75 flex items-center whitespace-nowrap" sec:authorize="hasRole('CAISSIER')" th:if="${isSessionActive}" th:style="'color:' + ${tailwindHeaderTextColor}"><i class="fas fa-cash-register mr-1.5"></i>Caisse</a>
+                        <a th:href="@{/utilisateurs}" class="text-[13px] lg:text-sm font-medium transition duration-200 hover:opacity-75 flex items-center whitespace-nowrap" sec:authorize="hasRole('ADMIN')" th:style="'color:' + ${tailwindHeaderTextColor}"><i class="fas fa-user-shield mr-1.5"></i>Utilisateurs</a>
+                        <a th:href="@{/gestion-caisses}" class="text-[13px] lg:text-sm font-medium transition duration-200 hover:opacity-75 flex items-center whitespace-nowrap" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')" th:style="'color:' + ${tailwindHeaderTextColor}"><i class="fas fa-tasks mr-1.5"></i>Caisses</a>
+                        <a th:href="@{/rapports/stock-bas}" class="text-[13px] lg:text-sm font-medium transition duration-200 hover:opacity-75 flex items-center whitespace-nowrap" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')" th:style="'color:' + ${tailwindHeaderTextColor}"><i class="fas fa-chart-bar mr-1.5"></i>Rapports</a>
+                        <a th:href="@{/rapports/ventes-historique}" class="text-[13px] lg:text-sm font-medium transition duration-200 hover:opacity-75 flex items-center whitespace-nowrap" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')" th:style="'color:' + ${tailwindHeaderTextColor}"><i class="fas fa-history mr-1.5"></i>Historique</a>
+                        <a th:href="@{/admin/audit}" class="text-[13px] lg:text-sm font-medium transition duration-200 hover:opacity-75 flex items-center whitespace-nowrap" sec:authorize="hasRole('ADMIN')" th:style="'color:' + ${tailwindHeaderTextColor}"><i class="fas fa-clipboard-list mr-1.5"></i>Logs</a>
+                        <a th:href="@{/admin/system/status}" class="text-[13px] lg:text-sm font-medium transition duration-200 hover:opacity-75 flex items-center whitespace-nowrap" sec:authorize="hasRole('ADMIN')" th:style="'color:' + ${tailwindHeaderTextColor}"><i class="fas fa-heartbeat mr-1.5"></i>Santé</a>
+                        <a th:href="@{/parametres}" class="text-[13px] lg:text-sm font-medium transition duration-200 hover:opacity-75 flex items-center whitespace-nowrap" sec:authorize="hasRole('ADMIN')" th:style="'color:' + ${tailwindHeaderTextColor}"><i class="fas fa-cog mr-1.5"></i>Paramètres</a>
+                    </nav>
+
+                    <!-- Connection Status and User Info -->
+                    <div class="flex items-center space-x-2 lg:space-x-4 border-l border-white/20 pl-4">
+                        <div id="connection-status" class="hidden xl:flex items-center space-x-1.5">
+                            <span class="h-2 w-2 bg-green-500 rounded-full animate-pulse"></span>
+                            <span class="text-[11px] font-bold uppercase tracking-wider opacity-80" th:style="'color:' + ${tailwindHeaderTextColor}">En ligne</span>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <i class="fas fa-user-circle mr-2 text-lg lg:text-xl" th:style="'color:' + ${tailwindHeaderTextColor}"></i>
+                            <span class="text-sm font-bold truncate max-w-[100px] lg:max-w-[150px]" sec:authentication="name" th:style="'color:' + ${tailwindHeaderTextColor}"></span>
+                        </div>
+
+                        <div class="flex items-center space-x-2">
+                            <a th:href="@{/caisse/fermer}" sec:authorize="hasRole('CAISSIER')" class="bg-yellow-500 hover:bg-yellow-600 text-white p-2 rounded-lg transition duration-200 flex items-center justify-center shadow-sm" title="Fermer Caisse">
+                                <i class="fas fa-power-off"></i>
+                            </a>
+                            <form id="logoutForm" th:action="@{/logout}" method="post">
+                                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition duration-200 flex items-center justify-center shadow-sm" title="Déconnexion">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="-mr-2 flex md:hidden">
+                    <button id="menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu" class="inline-flex items-center justify-center p-2 rounded-md hover:bg-black/10 focus:outline-none transition duration-200" th:style="'color:' + ${tailwindHeaderTextColor}">
+                        <span class="sr-only">Ouvrir le menu</span>
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div class="md:hidden hidden absolute top-20 left-0 right-0 shadow-2xl z-40 transition-all duration-300 ease-in-out max-h-[calc(100vh-5rem)] overflow-y-auto" id="mobile-menu" th:style="'background-color:' + ${tailwindHeaderBackgroundColor}">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-b border-gray-700/50">
+                <a th:href="@{/dashboard}" class="hover:bg-black/10 block px-3 py-2 rounded-md text-base font-medium transition duration-200" sec:authorize="hasRole('ADMIN')" th:style="'color:' + ${tailwindHeaderTextColor}">
+                    <i class="fas fa-tachometer-alt mr-2"></i>Tableau de Bord
+                </a>
+                <a th:href="@{/produits}" class="hover:bg-black/10 block px-3 py-2 rounded-md text-base font-medium transition duration-200" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')" th:style="'color:' + ${tailwindHeaderTextColor}">
+                    <i class="fas fa-boxes mr-2"></i>Produits
+                </a>
+                <a th:href="@{/clients}" class="hover:bg-black/10 block px-3 py-2 rounded-md text-base font-medium transition duration-200" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')" th:style="'color:' + ${tailwindHeaderTextColor}">
+                    <i class="fas fa-users mr-2"></i>Clients
+                </a>
+                <a th:href="@{/caissier}" class="hover:bg-black/10 block px-3 py-2 rounded-md text-base font-medium transition duration-200" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')" th:style="'color:' + ${tailwindHeaderTextColor}">
+                    <i class="fas fa-cash-register mr-2"></i>Caissier
+                </a>
+                <a th:href="@{/caissier}" class="hover:bg-black/10 block px-3 py-2 rounded-md text-base font-medium transition duration-200" sec:authorize="hasRole('CAISSIER')" th:if="${isSessionActive}" th:style="'color:' + ${tailwindHeaderTextColor}">
+                    <i class="fas fa-cash-register mr-2"></i>Caissier
+                </a>
+                <a th:href="@{/utilisateurs}" class="hover:bg-black/10 block px-3 py-2 rounded-md text-base font-medium transition duration-200" sec:authorize="hasRole('ADMIN')" th:style="'color:' + ${tailwindHeaderTextColor}">
+                    <i class="fas fa-user-shield mr-2"></i>Utilisateurs
+                </a>
+                <a th:href="@{/gestion-caisses}" class="hover:bg-black/10 block px-3 py-2 rounded-md text-base font-medium transition duration-200" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')" th:style="'color:' + ${tailwindHeaderTextColor}">
+                    <i class="fas fa-cash-register mr-2"></i>Gestion Caisses
+                </a>
+                <a th:href="@{/rapports/stock-bas}" class="hover:bg-black/10 block px-3 py-2 rounded-md text-base font-medium transition duration-200" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')" th:style="'color:' + ${tailwindHeaderTextColor}">
+                    <i class="fas fa-chart-bar mr-2"></i>Rapports
+                </a>
+                <a th:href="@{/rapports/ventes-historique}" class="hover:bg-black/10 block px-3 py-2 rounded-md text-base font-medium transition duration-200" sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')" th:style="'color:' + ${tailwindHeaderTextColor}">
+                    <i class="fas fa-history mr-2"></i>Historique
+                </a>
+                <a th:href="@{/admin/audit}" class="hover:bg-black/10 block px-3 py-2 rounded-md text-base font-medium transition duration-200" sec:authorize="hasRole('ADMIN')" th:style="'color:' + ${tailwindHeaderTextColor}">
+                    <i class="fas fa-clipboard-list mr-2"></i>Logs
+                </a>
+                <a th:href="@{/admin/system/status}" class="hover:bg-black/10 block px-3 py-2 rounded-md text-base font-medium transition duration-200" sec:authorize="hasRole('ADMIN')" th:style="'color:' + ${tailwindHeaderTextColor}">
+                    <i class="fas fa-heartbeat mr-2"></i>Santé
+                </a>
+                <a th:href="@{/parametres}" class="hover:bg-black/10 block px-3 py-2 rounded-md text-base font-medium transition duration-200" sec:authorize="hasRole('ADMIN')" th:style="'color:' + ${tailwindHeaderTextColor}">
+                    <i class="fas fa-cog mr-2"></i>Paramètres
+                </a>
+
+                <a th:href="@{/caisse/historique}" class="hover:bg-black/10 block px-3 py-2 rounded-md text-base font-medium transition duration-200" sec:authorize="hasRole('CAISSIER')" th:if="${isSessionActive}" th:style="'color:' + ${tailwindHeaderTextColor}">
+                    <i class="fas fa-clipboard-list mr-2"></i>Session
+                </a>
+            </div>
+            <div class="pt-4 pb-3 border-t border-gray-700/30">
+                <div class="flex items-center px-5 mb-3">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-user-circle text-3xl" th:style="'color:' + ${tailwindHeaderTextColor}"></i>
+                    </div>
+                    <div class="ml-3">
+                        <div class="text-base font-medium leading-none" sec:authentication="name" th:style="'color:' + ${tailwindHeaderTextColor}"></div>
+                        <div id="connection-status-mobile" class="flex items-center space-x-2 mt-1">
+                            <span class="h-2 w-2 bg-green-500 rounded-full animate-pulse"></span>
+                            <span class="text-xs font-medium" th:style="'color:' + ${tailwindHeaderTextColor}">En ligne</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-5 pb-4 space-y-2">
+                    <a th:href="@{/caisse/fermer}" sec:authorize="hasRole('CAISSIER')" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-lg text-sm font-semibold transition duration-200 flex items-center justify-center">
+                        <i class="fas fa-door-closed mr-2"></i>Fermer Caisse
+                    </a>
+                    <form th:action="@{/logout}" method="post" class="w-full">
+                        <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-semibold transition duration-200 flex items-center justify-center">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuButton = document.getElementById('menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuIcon = menuButton.querySelector('i');
+
+            menuButton.addEventListener('click', function() {
+                const isHidden = mobileMenu.classList.contains('hidden');
+                
+                if (isHidden) {
+                    mobileMenu.classList.remove('hidden');
+                    menuIcon.classList.remove('fa-bars');
+                    menuIcon.classList.add('fa-times');
+                } else {
+                    mobileMenu.classList.add('hidden');
+                    menuIcon.classList.remove('fa-times');
+                    menuIcon.classList.add('fa-bars');
+                }
+            });
+
+            // Fermer le menu si on clique en dehors
+            document.addEventListener('click', function(event) {
+                if (!menuButton.contains(event.target) && !mobileMenu.contains(event.target)) {
+                    if (!mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                        menuIcon.classList.remove('fa-times');
+                        menuIcon.classList.add('fa-bars');
+                    }
+                }
+            });
+
+            // Mise à jour de l'heure si l'élément existe
+            const dateTimeDisplay = document.getElementById('current-datetime');
+            if (dateTimeDisplay) {
+                function updateDateTime() {
+                    const now = new Date();
+                    const options = { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    };
+                    dateTimeDisplay.textContent = now.toLocaleDateString('fr-FR', options);
+                }
+                updateDateTime();
+                setInterval(updateDateTime, 60000);
+            }
+        });
+    </script>
+
+
+</th:block>
+

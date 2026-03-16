@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caissier Pro - Interface Caissier</title>
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    
+
+    .product-card {
+      transition: all 0.3s ease;
+      border-left: 4px solid transparent;
+    }
+
+    .product-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+      border-left-color: #4f46e5;
+    }
+
+    .cart-item {
+      transition: all 0.2s ease;
+    }
+
+    .cart-item:hover {
+      background-color: #f8fafc;
+    }
+
+    .tab-active {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      color: white;
+      box-shadow: 0 4px 6px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .pulse-online {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
+    .floating-action {
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+      100% { transform: translateY(0px); }
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      border-left: 4px solid #4f46e5;
+    }
+
+    .sale-badge {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+
+    .stock-low {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: white;
+    }
+
+    .stock-out {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+    }
+
+    #cart-items {
+      max-height: 40vh; /* Hauteur maximale pour le panier */
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+<div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Caisse')}"></div>
+
+<div class="flex flex-col md:flex-row h-[calc(100vh-5rem)]">
+      <!-- Left Sidebar - Product Navigation -->
+      <aside class="w-full md:w-[42rem] bg-white shadow-lg p-6 overflow-y-auto">
+        <div class="mb-8">
+          <h2 class="text-xl font-bold mb-4 text-gray-800 flex items-center">
+            <i class="fas fa-filter mr-3 text-indigo-500"></i> Filtres de recherche
+          </h2>
+      <div class="space-y-4">
+        <div class="relative">
+          <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+          <input type="text" id="search-input" placeholder="Rechercher un produit par nom ou code-barres..."
+                 class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 glass-card">
+        </div>
+        <select id="category-filter" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 glass-card">
+          <option value="">Toutes les catégories</option>
+          <option th:each="category : ${categories}" th:value="${category}" th:text="${category}"></option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mb-2 flex justify-between items-center">
+      <h2 class="text-xl font-bold text-gray-800 flex items-center">
+        <i class="fas fa-tags mr-3 text-indigo-500"></i> Produits disponibles
+      </h2>
+      <span class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full" id="product-count">
+        <span th:text="${produits.size}"></span> produits
+      </span>
+    </div>
+
+    <div id="product-list" class="space-y-3">
+      <div th:each="produit : ${produits}"
+           class="product-card p-4 rounded-xl glass-card cursor-pointer"
+           th:data-id="${produit.id}" th:data-nom="${produit.nom}"
+           th:data-prix="${(produit.promotionActive and produit.prixPromotionnel != null) ? produit.prixPromotionnel : produit.prixVenteUnitaire}"
+           th:data-categorie="${produit.categorie}"
+           th:data-codebarres="${produit.codeBarres}"
+           th:data-stock="${produit.quantiteEnStock}"
+           th:data-unite="${produit.uniteDeVente}">
+        <div class="flex justify-between items-start">
+          <div class="flex-1">
+            <h3 class="font-semibold text-gray-800" th:text="${produit.nom}"></h3>
+            <div class="flex items-center mt-1 text-sm text-gray-500">
+              <span class="mr-3" th:text="${produit.categorie}"></span>
+              <span th:if="${produit.codeBarres}" class="flex items-center">
+                <i class="fas fa-barcode mr-1"></i>
+                <span th:text="${produit.codeBarres}"></span>
+              </span>
+            </div>
+          </div>
+          <span class="text-xs font-semibold px-2 py-1 rounded-full"
+                th:classappend="${produit.quantiteEnStock <= 0 ? 'stock-out' :
+                                (produit.quantiteEnStock <= 5 ? 'stock-low' : 'sale-badge')}">
+            <span th:text="${produit.quantiteEnStock}"></span> en stock
+          </span>
+        </div>
+        <div class="flex justify-between items-center mt-3">
+          <div class="flex items-center">
+            <p class="text-lg font-bold text-indigo-600" th:text="${#numbers.formatInteger((produit.promotionActive and produit.prixPromotionnel != null) ? produit.prixPromotionnel : produit.prixVenteUnitaire, 0, 'POINT')} + ' FCFA'"></p>
+            <span th:if="${produit.promotionActive and produit.prixPromotionnel != null}" class="ml-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md">PROMO</span>
+          </div>
+          <button class="text-indigo-500 hover:text-indigo-700 transition-colors">
+            <i class="fas fa-plus-circle text-xl"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 flex flex-col overflow-hidden min-h-0 h-full">
+    <!-- Tabs Navigation -->
+    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-3 flex items-center overflow-x-auto border-b flex-shrink-0">
+      <div id="tabs-container" class="flex space-x-2"></div>
+      <button id="new-tab-btn" class="ml-2 p-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition-all duration-300 hover:scale-105 floating-action">
+        <i class="fas fa-plus"></i>
+      </button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 overflow-hidden">
+      <!-- Product Details Panel -->
+      <div id="sale-details" class="bg-white rounded-2xl shadow-lg p-6 hidden glass-card">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-bold text-gray-800">Détails du Produit</h3>
+          <button id="close-details" class="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-lg">
+            <i class="fas fa-times text-lg"></i>
+          </button>
+        </div>
+        <div id="product-details-content" class="space-y-6"></div>
+      </div>
+
+      <!-- Cart Panel -->
+      <div class="bg-white rounded-2xl shadow-lg p-6 grid grid-rows-[auto_1fr_auto] gap-6 h-full glass-card">
+        <!-- Header and Client Section -->
+        <div>
+            <div class="flex justify-between items-center">
+              <h3 class="text-xl font-bold text-gray-800">
+                <i class="fas fa-shopping-cart mr-3 text-indigo-500"></i> Panier d'achat
+              </h3>
+              <div class="flex space-x-2">
+                <button id="clear-cart-button" class="text-red-500 hover:text-red-700 transition-colors p-2 hover:bg-red-50 rounded-lg">
+                  <i class="fas fa-trash mr-1"></i> Vider
+                </button>
+                <button id="discount-btn" class="text-indigo-600 hover:text-indigo-800 transition-colors p-2 hover:bg-indigo-50 rounded-lg">
+                  <i class="fas fa-percentage mr-1"></i> Remise
+                </button>
+              </div>
+            </div>
+
+            <!-- Client Info -->
+            <div id="selected-client-display" class="hidden bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-xl mt-6 border border-indigo-100">
+              <div class="flex justify-between items-center">
+                <div>
+                  <p class="text-xs text-indigo-500 font-medium">Client sélectionné</p>
+                  <p class="font-bold text-gray-800" id="selected-client-name"></p>
+                </div>
+                <button id="remove-client-btn" class="text-red-500 hover:text-red-700 transition-colors p-1 hover:bg-red-50 rounded-lg">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+
+            <div id="client-search-section" class="mt-6">
+              <div class="relative">
+                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                <input type="text" id="client-search-input" placeholder="Rechercher un client..."
+                       class="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 glass-card">
+                <button id="add-client-btn" class="absolute right-2 top-2 bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                  <i class="fas fa-user-plus text-sm"></i>
+                </button>
+              </div>
+              <div id="client-search-results" class="mt-2 border border-gray-100 rounded-xl max-h-40 overflow-y-auto hidden glass-card"></div>
+            </div>
+        </div>
+
+        <!-- Cart Items -->
+        <div id="cart-items" class="overflow-y-auto space-y-4 pr-2 min-h-0">
+          <!-- Cart items will be dynamically inserted here -->
+        </div>
+
+        <!-- Totals and Payment Button -->
+        <div>
+            <div id="total-section" class="border-t pt-6 space-y-3">
+              <div class="flex justify-between text-gray-600">
+                <span>Sous-total:</span>
+                <span id="subtotal-amount">0.00 FCFA</span>
+              </div>
+              <div class="flex justify-between text-gray-600">
+                <span>Remise:</span>
+                <span id="discount-amount" class="text-red-500">-0.00 FCFA</span>
+              </div>
+              <div class="flex justify-between text-xl font-bold pt-3 border-t border-gray-200">
+                <span class="text-gray-800">Total:</span>
+                <span id="final-total" class="text-indigo-600">0.00 FCFA</span>
+              </div>
+            </div>
+
+            <button id="pay-button" class="w-full btn-primary text-white py-4 rounded-xl font-bold mt-6 shadow-lg transition-all duration-300 hover:shadow-xl flex items-center justify-center">
+              <i class="fas fa-credit-card mr-3 text-lg"></i>
+              <span class="text-lg">Procéder au Paiement</span>
+            </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Quick Stats Bar -->
+<div class="bg-white border-t py-3 px-6 flex justify-between items-center text-sm text-gray-600">
+  <div class="flex space-x-6">
+    <div class="flex items-center">
+      <i class="fas fa-boxes mr-2 text-indigo-500"></i>
+      <span>Produits: <span class="font-semibold" th:text="${produits.size}"></span></span>
+    </div>
+    <div class="flex items-center">
+      <i class="fas fa-layer-group mr-2 text-indigo-500"></i>
+      <span>Catégories: <span class="font-semibold" th:text="${categories.size}"></span></span>
+    </div>
+    <div class="flex items-center">
+      <i class="fas fa-users mr-2 text-indigo-500"></i>
+      <span>Clients: <span class="font-semibold" th:text="${clients.size}"></span></span>
+    </div>
+  </div>
+  <div class="text-xs text-gray-500">
+    BELALUXE Supermarché &copy; 2025
+  </div>
+</div>
+</div>
+
+<!-- Scripts -->
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+  const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+  const initialClients = /*[[${clients}]]*/ [];
+  const boutiqueNom = /*[[${boutiqueNom}]]*/ 'SUPERMARCHE BELALUXE';
+  const boutiqueAdresse = /*[[${boutiqueAdresse}]]*/ 'Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo';
+  const boutiqueTelephone = /*[[${boutiqueTelephone}]]*/ 'Tél: (+228) 96 00 01 89 / 90 12 34 30';
+
+  // --- Global State ---
+  let tabs = [];
+  let activeTabIndex = 0;
+  let nextTabId = 1;
+
+  document.addEventListener('DOMContentLoaded', function() {
+      // --- DOM Elements ---
+      const searchInput = document.getElementById('search-input');
+      const categoryFilter = document.getElementById('category-filter');
+      const productList = document.getElementById('product-list');
+      const saleDetails = document.getElementById('sale-details');
+      const productDetailsContent = document.getElementById('product-details-content');
+      const closeDetailsBtn = document.getElementById('close-details');
+      const cartItemsContainer = document.getElementById('cart-items');
+      const subtotalAmount = document.getElementById('subtotal-amount');
+      const discountAmount = document.getElementById('discount-amount');
+      const finalTotal = document.getElementById('final-total');
+      const payButton = document.getElementById('pay-button');
+      const clearCartButton = document.getElementById('clear-cart-button');
+      const discountBtn = document.getElementById('discount-btn');
+      const tabsContainer = document.getElementById('tabs-container');
+      const newTabBtn = document.getElementById('new-tab-btn');
+      const clientSearchInput = document.getElementById('client-search-input');
+      const clientSearchResults = document.getElementById('client-search-results');
+      const addClientBtn = document.getElementById('add-client-btn');
+      const selectedClientDisplay = document.getElementById('selected-client-display');
+      const selectedClientName = document.getElementById('selected-client-name');
+      const removeClientBtn = document.getElementById('remove-client-btn');
+      const clientSearchSection = document.getElementById('client-search-section');
+
+      // --- Barcode Scanner Logic ---
+      let barcodeBuffer = '';
+      let barcodeTimer = null;
+
+      document.addEventListener('keydown', function(e) {
+          // Ignore input if user is typing in a text field
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+              return;
+          }
+
+          if (e.key === 'Enter') {
+              if (barcodeBuffer.length > 2) { // Basic validation for barcode length
+                  handleScan(barcodeBuffer);
+              }
+              barcodeBuffer = '';
+              e.preventDefault();
+          } else if (e.key.length === 1) { // Append character keys
+              barcodeBuffer += e.key;
+          }
+
+          // Clear buffer after a short delay to distinguish from manual typing
+          clearTimeout(barcodeTimer);
+          barcodeTimer = setTimeout(() => {
+              barcodeBuffer = '';
+          }, 100); // 100ms delay
+      });
+
+      function handleScan(barcode) {
+          const productCard = document.querySelector(`.product-card[data-codebarres="${barcode}"]`);
+          if (productCard) {
+              const { id, nom, prix, stock } = productCard.dataset;
+              addToCart(id, nom, parseFloat(prix), 1, parseInt(stock));
+          } else {
+              Toast.fire({ icon: 'error', title: 'Produit non trouvé', text: `Aucun produit avec le code-barres ${barcode}` });
+          }
+      }
+
+      // --- Initialization ---
+      async function loadTabsFromDB() {
+          try {
+              const response = await fetch('/api/paniers');
+              if (!response.ok) throw new Error('Could not fetch tabs.');
+              const savedTabs = await response.json();
+
+              if (savedTabs && savedTabs.length > 0) {
+                  // Correction: Assurer que l'ID de l'onglet est bien le tabId de la DB
+                  tabs = savedTabs.map(t => {
+                      const cartData = JSON.parse(t.cartData);
+                      cartData.id = t.tabId; // L'ID principal de l'onglet est le tabId
+                      cartData.dbId = t.id; // Stocker l'ID de la DB (PK) séparément
+                      return cartData;
+                  });
+                  // Correction: Utiliser tabId (maintenant 't.id') pour trouver le max
+                  const maxId = Math.max(0, ...tabs.map(t => t.id));
+                  nextTabId = maxId + 1;
+              } else {
+                  // Create a default tab if none exist
+                  tabs = [{ id: 1, cart: [], selectedClient: null, discountAmount: 0, discountPercentage: 0 }];
+                  nextTabId = 2;
+                  // Save this new default tab to the backend
+                  await saveActiveTabToDB();
+              }
+              activeTabIndex = 0;
+              switchTab(activeTabIndex);
+          } catch (error) {
+              console.error("Error loading tabs:", error);
+              Swal.fire('Erreur de chargement', 'Impossible de charger les paniers existants.', 'error');
+              // Fallback to a single default tab
+              tabs = [{ id: 1, cart: [], selectedClient: null, discountAmount: 0, discountPercentage: 0 }];
+              activeTabIndex = 0;
+              nextTabId = 2;
+              switchTab(activeTabIndex);
+          }
+      }
+
+      loadTabsFromDB();
+      searchInput.focus();
+      // switchTab is now called inside loadTabsFromDB
+      // switchTab(activeTabIndex);
+
+      const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true });
+
+      // --- Tab Management ---
+      async function saveActiveTabToDB() {
+          const activeTab = tabs[activeTabIndex];
+          if (!activeTab) return;
+
+          const payload = {
+              tabId: activeTab.id,
+              cartData: JSON.stringify(activeTab) // sérialise tout l'objet tab
+          };
+
+          try {
+              const response = await fetch('/api/paniers', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
+                  body: JSON.stringify(payload)
+              });
+              if (!response.ok) throw new Error('Failed to save tab.');
+              const savedTab = await response.json();
+              // Mettre à jour l'ID de la base de données sur l'onglet si ce n'était pas déjà fait
+              activeTab.dbId = savedTab.id;
+          } catch (error) {
+              console.error('Error saving tab:', error);
+              Toast.fire({ icon: 'error', title: 'Erreur de sauvegarde', text: 'Le panier n\'a pas pu être sauvegardé.' });
+          }
+      }
+
+      function renderTabs() {
+          tabsContainer.innerHTML = '';
+          tabs.forEach((tab, index) => {
+              const tabButton = document.createElement('button');
+              tabButton.className = `px-4 py-2 rounded-lg text-sm font-medium flex items-center transition-all duration-300 relative ` +
+                  (index === activeTabIndex ? 'tab-active shadow' : 'bg-white text-gray-600 hover:bg-indigo-50 shadow-sm');
+              let content = `Caisse ${tab.id}`;
+              if (tab.cart.length > 0) {
+                  content += ` <span class="ml-2 bg-white text-indigo-600 text-xs rounded-full px-2 py-1 font-bold">${tab.cart.length}</span>`;
+              }
+              if (tab.selectedClient) {
+                  content += ` <i class="fas fa-user ml-2 text-xs"></i>`;
+              }
+              // Le bouton de fermeture a été supprimé comme demandé.
+
+              tabButton.innerHTML = content;
+              tabButton.addEventListener('click', (e) => {
+                  switchTab(index);
+              });
+
+              tabsContainer.appendChild(tabButton);
+          });
+      }
+
+      async function deleteTabFromDatabase(tabId) {
+          try {
+              const response = await fetch(`/api/paniers/${tabId}`, {
+                  method: 'DELETE',
+                  headers: { [csrfHeader]: csrfToken }
+              });
+              if (!response.ok) throw new Error('Failed to delete tab.');
+          } catch (error) {
+              console.error('Error deleting tab:', error);
+              Toast.fire({ icon: 'error', title: 'Erreur de suppression', text: 'Le panier n\'a pas pu être supprimé.' });
+          }
+      }
+
+      async function addNewTab() {
+          const newTabObject = { id: nextTabId++, cart: [], selectedClient: null, discountAmount: 0, discountPercentage: 0 };
+          tabs.push(newTabObject);
+          activeTabIndex = tabs.length - 1;
+          await saveActiveTabToDB(); // Sauvegarde le nouvel onglet
+          switchTab(tabs.length - 1);
+      }
+
+      function switchTab(index) {
+          activeTabIndex = index;
+          renderTabs();
+          renderActiveTabContent();
+      }
+
+      function filterProducts() {
+          const searchTerm = searchInput.value.toLowerCase();
+          const selectedCategory = categoryFilter.value;
+          document.querySelectorAll('.product-card').forEach(card => {
+              const isVisible = (card.dataset.nom.toLowerCase().includes(searchTerm) || (card.dataset.codebarres || '').toLowerCase().includes(searchTerm)) &&
+                                (!selectedCategory || card.dataset.categorie === selectedCategory);
+              card.style.display = isVisible ? 'block' : 'none';
+          });
+      }
+
+      // --- Product & Cart Logic ---
+      productList.addEventListener('click', function(e) {
+          const card = e.target.closest('.product-card');
+          if (!card) return;
+          const productId = card.dataset.id;
+          const stock = parseInt(card.dataset.stock);
+          const itemInCart = tabs[activeTabIndex].cart.find(item => item.id === productId);
+          const qtyInCart = itemInCart ? itemInCart.quantity : 0;
+          if (stock - qtyInCart <= 0) {
+              Swal.fire('Stock épuisé', `Il ne reste plus de ${card.dataset.nom} en stock.`, 'warning');
+              return;
+          }
+          displaySaleDetails(card.dataset);
+      });
+
+      function displaySaleDetails(productData) {
+          const { id, nom, prix, stock, unite } = productData;
+          const itemInCart = tabs[activeTabIndex].cart.find(item => item.id === id);
+          const qtyInCart = itemInCart ? itemInCart.quantity : 0;
+          const availableStock = parseFloat(stock) - qtyInCart;
+          
+          const isDecimal = unite && unite !== 'PIECE';
+          const step = isDecimal ? '0.01' : '1';
+          const initialValue = isDecimal ? '0.0' : '1';
+
+
+          productDetailsContent.innerHTML = `
+              <div class="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-xl mb-4">
+                  <h3 class="font-bold text-lg text-gray-800">${nom}</h3>
+                  <div class="flex justify-between items-center mt-2">
+                      <p class="text-indigo-600 font-semibold">${Math.trunc(parseFloat(prix))} FCFA / ${unite || 'Pièce'}</p>
+                      <span class="text-sm ${availableStock <= 5 ? 'text-amber-600' : 'text-green-600'} font-medium">
+                          Stock: ${availableStock} ${unite || ''}
+                      </span>
+                  </div>
+              </div>
+              <div class="mt-4">
+                  <label for="quantity" class="block text-sm font-medium text-gray-700 mb-2">Quantité à ajouter</label>
+                  <input type="number" id="quantity" value="${initialValue}" min="${step}" step="${step}" max="${availableStock}"
+                         class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+              </div>
+              <div class="mt-4 bg-gray-50 p-4 rounded-xl">
+                  <p class="font-bold text-gray-800">Total: <span id="total-price" class="text-indigo-600">${Math.trunc(parseFloat(prix))}</span> FCFA</p>
+              </div>
+              <button id="add-to-cart" class="w-full btn-primary text-white px-4 py-3 rounded-xl font-bold mt-4 flex items-center justify-center">
+                  <i class="fas fa-cart-plus mr-2"></i> Ajouter au panier
+              </button>
+          `;
+          saleDetails.classList.remove('hidden');
+          const qtyInput = document.getElementById('quantity');
+          qtyInput.addEventListener('input', () => {
+              document.getElementById('total-price').textContent = Math.trunc(qtyInput.value * parseFloat(prix));
+          });
+          document.getElementById('add-to-cart').addEventListener('click', () => {
+              addToCart(id, nom, parseFloat(prix), parseFloat(qtyInput.value), parseFloat(stock));
+              saleDetails.classList.add('hidden');
+          });
+      }
+
+      closeDetailsBtn.addEventListener('click', () => {
+          saleDetails.classList.add('hidden');
+      });
+
+      function addToCart(productId, name, price, quantity, stock) {
+          quantity = parseFloat(quantity);
+          stock = parseFloat(stock);
+          if (quantity <= 0) return;
+          const tab = tabs[activeTabIndex];
+          const itemInCart = tab.cart.find(item => item.id === productId);
+          const qtyInCart = itemInCart ? itemInCart.quantity : 0;
+          if (qtyInCart + quantity > stock) {
+              Swal.fire('Quantité insuffisante', `Seulement ${stock - qtyInCart} restant(s) en stock.`, 'error');
+              return;
+          }
+          if (itemInCart) {
+              itemInCart.quantity += quantity;
+          } else {
+              tab.cart.push({ id: productId, name: name, price: price, quantity: quantity });
+          }
+          renderActiveTabContent();
+          renderTabs();
+          saveActiveTabToDB(); // Sauvegarder
+          Toast.fire({ icon: 'success', title: `${name} ajouté` });
+          searchInput.focus();
+      }
+
+      function updateCartItemQuantity(productId, change) {
+          const tab = tabs[activeTabIndex];
+          const item = tab.cart.find(i => i.id === productId);
+          if (!item) return;
+          const productCard = document.querySelector(`.product-card[data-id='${productId}']`);
+          const stock = parseFloat(productCard.dataset.stock);
+          if (item.quantity + change > stock) {
+              Toast.fire({ icon: 'error', title: 'Stock insuffisant' });
+              return;
+          }
+          item.quantity += change;
+          if (item.quantity <= 0) {
+              tab.cart = tab.cart.filter(i => i.id !== productId);
+          }
+          renderActiveTabContent();
+          renderTabs();
+          saveActiveTabToDB(); // Sauvegarder
+      }
+
+      function clearCart() {
+          const tab = tabs[activeTabIndex];
+          if (tab.cart.length === 0) return;
+          Swal.fire({
+              title: 'Vider le panier?',
+              text: "Cette action est irréversible.",
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#d33',
+              confirmButtonText: 'Oui, vider!',
+              cancelButtonText: 'Annuler'
+          }).then(result => {
+              if (result.isConfirmed) {
+                  tab.cart = [];
+                  tab.discountAmount = 0;
+                  tab.selectedClient = null;
+                  renderActiveTabContent();
+                  renderTabs();
+                  saveActiveTabToDB(); // Sauvegarder
+                  Toast.fire({ icon: 'success', title: 'Panier vidé' });
+              }
+          });
+      }
+
+      // --- Client Management ---
+      function renderClientSection() {
+          const client = tabs[activeTabIndex].selectedClient;
+          if (client) {
+              selectedClientName.textContent = client.nom;
+              selectedClientDisplay.classList.remove('hidden');
+              clientSearchSection.classList.add('hidden');
+          } else {
+              selectedClientDisplay.classList.add('hidden');
+              clientSearchSection.classList.remove('hidden');
+              clientSearchInput.value = '';
+          }
+      }
+
+      function selectClient(client) {
+          tabs[activeTabIndex].selectedClient = client;
+          clientSearchResults.innerHTML = '';
+          clientSearchInput.value = '';
+          clientSearchResults.classList.add('hidden');
+          renderClientSection();
+          renderTabs();
+          saveActiveTabToDB(); // Sauvegarder
+      }
+
+      async function openAddClientModal() {
+          const { value: formValues } = await Swal.fire({
+              title: 'Ajouter un nouveau client',
+              html: `
+                  <input id="swal-input-name" class="swal2-input" placeholder="Nom du client">
+                  <input id="swal-input-phone" class="swal2-input" placeholder="Téléphone (optionnel)">
+                  <input id="swal-input-address" class="swal2-input" placeholder="Adresse (optionnel)">
+              `,
+              focusConfirm: false,
+              showCancelButton: true,
+              confirmButtonText: 'Ajouter',
+              preConfirm: () => {
+                  const nom = document.getElementById('swal-input-name').value;
+                  const telephone = document.getElementById('swal-input-phone').value;
+                  if (!nom) {
+                      Swal.showValidationMessage('Le nom est obligatoire');
+                      return false;
+                  }
+                  if (telephone && telephone.length < 8) {
+                      Swal.showValidationMessage('Le numéro de téléphone doit contenir au moins 8 chiffres.');
+                      return false;
+                  }
+                  return {
+                      nom: nom,
+                      telephone: telephone,
+                      adresse: document.getElementById('swal-input-address').value
+                  }
+              }
+          });
+          if (formValues) {
+              try {
+                  const response = await fetch('/api/clients', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
+                      body: JSON.stringify(formValues)
+                  });
+                  if (response.ok) {
+                      const newClient = await response.json();
+                      initialClients.push(newClient);
+                      selectClient(newClient);
+                      Toast.fire({ icon: 'success', title: 'Client ajouté!' });
+                  } else {
+                      Swal.fire('Erreur', 'Ce client existe peut-être déjà.', 'error');
+                  }
+              } catch (error) {
+                  console.error("Add client error:", error);
+                  Swal.fire('Erreur', 'Impossible de contacter le serveur.', 'error');
+              }
+          }
+      }
+
+      // --- Discount Management ---
+      async function openDiscountModal() {
+          const tab = tabs[activeTabIndex];
+          const subTotal = tab.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+          const { value: percentage } = await Swal.fire({
+              title: 'Appliquer une remise',
+              input: 'text',
+              inputLabel: 'Pourcentage de la remise (%)',
+              inputValue: tab.discountPercentage || 0,
+              inputPlaceholder: 'Ex: 5 pour 5%',
+              showCancelButton: true,
+              confirmButtonText: 'Appliquer',
+              cancelButtonText: 'Annuler',
+              inputValidator: (value) => {
+                  const percent = parseFloat(value);
+                  if (isNaN(percent) || percent < 0 || percent > 100) {
+                      return 'Veuillez entrer un pourcentage valide entre 0 et 100'
+                  }
+              }
+          });
+
+          if (percentage) {
+              const percentValue = parseFloat(percentage);
+              tab.discountPercentage = percentValue;
+              tab.discountAmount = (subTotal * percentValue) / 100;
+              renderActiveTabContent();
+              saveActiveTabToDB(); // Sauvegarder
+          }
+      }
+
+      // --- Main Rendering & Payment ---
+      function renderActiveTabContent() {
+          const tab = tabs[activeTabIndex];
+          cartItemsContainer.innerHTML = '';
+          let subTotal = 0;
+          if (tab && tab.cart) {
+              tab.cart.forEach(item => {
+                  const itemTotal = item.price * item.quantity;
+                  subTotal += itemTotal;
+                  const cartItemEl = document.createElement('div');
+                  cartItemEl.className = 'cart-item flex justify-between items-center p-4 rounded-xl bg-gray-50 border border-gray-100';
+                  cartItemEl.dataset.productId = item.id;
+                  cartItemEl.innerHTML = `
+                      <div class="flex-grow">
+                          <p class="font-semibold text-gray-800">${item.name}</p>
+                          <p class="text-sm text-gray-500 mt-1">${Math.trunc(item.price)} FCFA × ${Number(item.quantity).toLocaleString('fr-FR')}</p>
+                      </div>
+                      <div class="flex items-center space-x-3">
+                          <div class="flex items-center space-x-2 bg-white rounded-lg p-1">
+                              <button data-action="decrease" class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
+                                  <i class="fas fa-minus text-gray-600 text-xs"></i>
+                              </button>
+                              <span class="font-medium w-8 text-center">${Number(item.quantity).toLocaleString('fr-FR')}</span>
+                              <button data-action="increase" class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
+                                  <i class="fas fa-plus text-gray-600 text-xs"></i>
+                              </button>
+                          </div>
+                          <div class="text-right">
+                              <p class="font-bold text-gray-800">${Math.trunc(itemTotal)} FCFA</p>
+                              <button data-action="remove" class="text-red-400 hover:text-red-600 text-xs transition-colors mt-1">
+                                  <i class="fas fa-trash mr-1"></i> Retirer
+                              </button>
+                          </div>
+                      </div>
+                  `;
+                  cartItemsContainer.appendChild(cartItemEl);
+              });
+          }
+          const discount = (tab && tab.discountAmount) || 0;
+          const finalTotalValue = subTotal - discount > 0 ? subTotal - discount : 0;
+          subtotalAmount.textContent = `${Math.trunc(subTotal)} FCFA`;
+          discountAmount.textContent = `-${Math.trunc(discount)} FCFA`;
+          finalTotal.textContent = `${Math.trunc(finalTotalValue)} FCFA`;
+          renderClientSection();
+      }
+
+      async function openPaymentModal() {
+          const tab = tabs[activeTabIndex];
+          if (tab.cart.length === 0) {
+              Swal.fire({ icon: 'error', title: 'Panier vide', text: 'Veuillez ajouter des produits au panier avant de procéder au paiement.' });
+              return;
+          }
+          const subTotal = tab.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+          const finalTotalValue = subTotal - (tab.discountAmount || 0) > 0 ? subTotal - (tab.discountAmount || 0) : 0;
+
+          const { value: formValues } = await Swal.fire({
+              title: 'Finaliser la vente',
+              html: `
+                  <div class="text-left">
+                      <div class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white p-4 rounded-xl mb-4 text-center">
+                          <p class="text-sm">Total à payer</p>
+                          <p class="text-3xl font-bold">${Math.trunc(finalTotalValue)} FCFA</p>
+                      </div>
+                      <hr class="my-4">
+                      <div class="mb-4">
+                          <label for="swal-input-code" class="block font-bold mb-2 text-gray-700 text-center">Votre Code Caissier</label>
+                          <input id="swal-input-code" class="swal2-input text-center font-bold text-lg" type="password" placeholder="••••••" style="width: 12em; margin: auto;">
+                      </div>
+                      <hr class="my-4">
+                      <div class="mb-4">
+                          <strong class="block mb-2 text-gray-700">Type de vente:</strong>
+                          <div class="flex space-x-4">
+                              <label class="flex items-center">
+                                  <input type="radio" id="sale-direct" name="saleType" value="direct" checked class="mr-2">
+                                  <span>Payé</span>
+                              </label>
+                              <label class="flex items-center">
+                                  <input type="radio" id="sale-credit" name="saleType" value="credit" class="mr-2">
+                                  <span>À crédit</span>
+                              </label>
+                              <label class="flex items-center">
+                                  <input type="radio" id="sale-draft" name="saleType" value="draft" class="mr-2">
+                                  <span>Draft</span>
+                              </label>
+                          </div>
+                      </div>
+                      <div id="payment-method-section" class="mb-4">
+                          <strong class="block mb-2 text-gray-700">Moyen de paiement:</strong>
+                          <div class="flex space-x-4">
+                              <label class="flex items-center">
+                                  <input type="radio" id="pay-cash" name="paymentMethod" value="especes" checked class="mr-2">
+                                  <span>Espèces</span>
+                              </label>
+                              <label class="flex items-center">
+                                  <input type="radio" id="pay-card" name="paymentMethod" value="carte" class="mr-2">
+                                  <span>Carte</span>
+                              </label>
+                          </div>
+                      </div>
+                      <div id="tendered-amount-section" class="mb-4 text-center">
+                          <label for="swal-input-tendered" class="block font-bold mb-2 text-gray-700">Montant reçu:</label>
+                          <input id="swal-input-tendered" class="swal2-input text-center font-bold text-lg" type="number" placeholder="0.00" style="width: 12em;">
+                      </div>
+                      <div id="change-section" class="text-center bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200">
+                          <strong class="block text-gray-700">Reliquat:</strong>
+                          <span id="swal-change-display" class="text-2xl font-bold text-green-600">0.00 FCFA</span>
+                      </div>
+                  </div>
+              `,
+              focusConfirm: false,
+              showCancelButton: true,
+              confirmButtonText: 'Valider le paiement',
+              cancelButtonText: 'Annuler',
+              confirmButtonColor: '#4f46e5',
+              width: 600,
+              didOpen: () => {
+                  const tenderedInput = document.getElementById('swal-input-tendered');
+                  const changeDisplay = document.getElementById('swal-change-display');
+                  const cashRadio = document.getElementById('pay-cash');
+                  const cardRadio = document.getElementById('pay-card');
+                  const creditRadio = document.getElementById('sale-credit');
+                  const directRadio = document.getElementById('sale-direct');
+                  const draftRadio = document.getElementById('sale-draft');
+                  
+                  const paymentMethodSection = document.getElementById('payment-method-section');
+                  const tenderedSection = document.getElementById('tendered-amount-section');
+                  const changeSection = document.getElementById('change-section');
+                  const confirmButton = Swal.getConfirmButton();
+
+                  const updateTotal = () => {
+                      const isCredit = creditRadio.checked;
+                      const isDraft = draftRadio.checked;
+                      const isCash = cashRadio.checked;
+
+                      paymentMethodSection.style.display = isCredit || isDraft ? 'none' : 'block';
+                      tenderedSection.style.display = isCredit || isDraft || !isCash ? 'none' : 'block';
+                      changeSection.style.display = isCredit || isDraft || !isCash ? 'none' : 'block';
+
+                      if (isDraft) {
+                          confirmButton.textContent = 'Voir le ticket Draft';
+                      } else {
+                          confirmButton.textContent = 'Valider le paiement';
+                      }
+
+                      const tendered = parseFloat(tenderedInput.value) || 0;
+                      const change = tendered - finalTotalValue;
+                      changeDisplay.textContent = Math.trunc(change > 0 ? change : 0) + ' FCFA';
+                  };
+
+                  tenderedInput.addEventListener('input', updateTotal);
+                  cashRadio.addEventListener('change', updateTotal);
+                  cardRadio.addEventListener('change', updateTotal);
+                  creditRadio.addEventListener('change', updateTotal);
+                  directRadio.addEventListener('change', updateTotal);
+                  draftRadio.addEventListener('change', updateTotal);
+                  updateTotal();
+              },
+              preConfirm: () => {
+                  const codeCaissier = document.getElementById('swal-input-code').value;
+                  if (!codeCaissier) {
+                      Swal.showValidationMessage('Votre code personnel est requis pour valider la vente.');
+                      return false;
+                  }
+
+                  const saleType = document.querySelector('input[name="saleType"]:checked').value;
+                  if (saleType === 'draft') {
+                      return { saleType: 'draft', codeCaissier: codeCaissier };
+                  }
+                  if (saleType === 'credit' && !tab.selectedClient) {
+                      Swal.showValidationMessage('Veuillez sélectionner un client pour une vente à crédit.');
+                      return false;
+                  }
+                  const paymentMethod = saleType === 'credit' ? 'credit' : document.querySelector('input[name="paymentMethod"]:checked').value;
+                  const tenderedAmount = parseFloat(document.getElementById('swal-input-tendered').value) || 0;
+                  if (saleType === 'direct' && paymentMethod === 'cash' && tenderedAmount < finalTotalValue) {
+                      Swal.showValidationMessage('Le montant reçu est inférieur au total.');
+                      return false;
+                  }
+                  return { saleType, paymentMethod, tenderedAmount, codeCaissier };
+              }
+          });
+
+          if (formValues) {
+              if (formValues.saleType === 'draft') {
+                  printReceipt(tab, formValues, finalTotalValue, true);
+                  return;
+              }
+
+              fetch('/caissier/vendre', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
+                                        body: JSON.stringify({
+                                            cart: tab.cart.map(item => ({ id: item.id, quantity: item.quantity })),
+                                            saleType: formValues.saleType,
+                                            paymentMethod: formValues.paymentMethod,
+                                            clientId: tab.selectedClient ? tab.selectedClient.id : null,
+                                            discountAmount: tab.discountAmount,
+                                            codeCaissier: formValues.codeCaissier,
+                                            montantPaye: formValues.tenderedAmount,
+                                            tabId: tab.id // Ajouter l'ID de l'onglet
+                                        })              })
+              .then(res => res.json())
+              .then(data => {
+                  if (data.success) {
+                      const completedTab = JSON.parse(JSON.stringify(tab));
+                      // Vider le panier actif, mais conserver son ID et son dbId
+                      tabs[activeTabIndex].cart = [];
+                      tabs[activeTabIndex].selectedClient = null;
+                      tabs[activeTabIndex].discountAmount = 0;
+                      tabs[activeTabIndex].discountPercentage = 0; // Réinitialiser le pourcentage de remise aussi
+
+                      Swal.fire({
+                          title: 'Vente enregistrée!',
+                          text: data.message,
+                          icon: 'success',
+                          showCancelButton: true,
+                          confirmButtonText: 'Imprimer le reçu',
+                          cancelButtonText: 'Fermer',
+                          confirmButtonColor: '#4f46e5'
+                      }).then((result) => {
+                          if (result.isConfirmed) {
+                              printReceipt(completedTab, formValues, finalTotalValue, false);
+                          }
+                          // Après avoir vidé le panier, rafraîchir l'affichage et sauvegarder en DB
+                          renderActiveTabContent();
+                          renderTabs(); // Pour mettre à jour l'icône de client ou le nombre d'articles si nécessaire
+                          saveActiveTabToDB();
+                          // location.reload(); // Reste commenté
+                      });
+                  } else {
+                      Swal.fire('Erreur!', data.message, 'error');
+                  }
+              })
+              .catch(err => {
+                  console.error('Sale error:', err);
+                  Swal.fire('Erreur Connexion', 'La communication avec le serveur a échoué.', 'error');
+              });
+          }
+      }
+
+      function printReceipt(tab, saleData, finalTotal, isDraft = false) {
+          const now = new Date();
+          const cashierName = /*[[${user.username}]]*/ 'N/A';
+          const receiptWindow = window.open('', 'PRINT', 'height=600,width=400');
+          const clientName = tab.selectedClient ? tab.selectedClient.nom : 'Client de passage';
+          
+          let receiptContent = `
+              <html>
+              <head>
+                  <title>Reçu</title>
+                  <style>
+                      body { font-family: 'Arial', sans-serif; font-size: 10pt; color: #000; }
+                      .container { width: 95%; margin: auto; }
+                      .center { text-align: center; }
+                      .header h1 { font-size: 14pt; margin: 5px 0; }
+                      .header p { margin: 2px 0; font-size: 8pt; }
+                      hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
+                      .info p { display: flex; justify-content: space-between; margin: 3px 0; font-size: 9pt; }
+                      table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+                      th, td { padding: 4px 2px; }
+                      th { text-align: left; border-bottom: 1px solid #000; }
+                      .qty { text-align: center; }
+                      .price { text-align: right; }
+                      .totals { margin-top: 10px; font-size: 10pt; }
+                      .totals p { display: flex; justify-content: space-between; margin: 4px 0; }
+                      .totals .grand-total { font-weight: bold; font-size: 12pt; border-top: 1px solid #000; padding-top: 5px; }
+                      .footer { text-align: center; margin-top: 15px; font-size: 8pt; }
+                      .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); 
+                                   font-size: 60px; color: rgba(0,0,0,0.08); font-weight: bold; pointer-events: none; z-index: -1; }
+                  </style>
+              </head>
+              <body>
+                  ${isDraft ? '<div class="watermark">DRAFT</div>' : ''}
+                  <div class="container">
+                      <div class="header center">
+                          <h1>${boutiqueNom}</h1>
+                          <p>${boutiqueAdresse}</p>
+                          <p>${boutiqueTelephone}</p>
+                      </div>
+                      <hr>
+                      <div class="info">
+                          <p><span>Date:</span> <span>${now.toLocaleDateString('fr-FR')} ${now.toLocaleTimeString('fr-FR')}</span></p>
+                          <p><span>Caissier:</span> <span>${cashierName}</span></p>
+                          <p><span>Client:</span> <span>${clientName}</span></p>
+                      </div>
+                      <hr>
+                      <table>
+                          <thead>
+                              <tr>
+                                  <th>Produit</th>
+                                  <th class="qty">Qté</th>
+                                  <th class="price">P.U.</th>
+                                  <th class="price">Total</th>
+                              </tr>
+                          </thead>
+                          <tbody>`;
+
+          tab.cart.forEach(item => {
+              receiptContent += `
+                  <tr>
+                      <td>${item.name}</td>
+                      <td class="qty">${item.quantity}</td>
+                      <td class="price">${Math.trunc(item.price)}</td>
+                      <td class="price">${Math.trunc(item.price * item.quantity)}</td>
+                  </tr>
+              `;
+          });
+
+          receiptContent += `
+                          </tbody>
+                      </table>
+                      <hr>
+                      <div class="totals">
+                          <p><span>Sous-total:</span> <span>${Math.trunc(tab.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0))} FCFA</span></p>
+                          <p><span>Remise:</span> <span>-${Math.trunc(tab.discountAmount || 0)} FCFA</span></p>
+                          <p class="grand-total"><span>TOTAL:</span> <span>${Math.trunc(finalTotal)} FCFA</span></p>
+                          ${saleData.paymentMethod === 'especes' && saleData.tenderedAmount > 0 ? `
+                              <hr>
+                              <p><span>Montant Reçu:</span> <span>${Math.trunc(saleData.tenderedAmount)} FCFA</span></p>
+                              <p><span>Reliquat:</span> <span>${Math.trunc(saleData.tenderedAmount - finalTotal)} FCFA</span></p>
+                          ` : ''}
+                      </div>
+                      <hr>
+                      <div class="footer">
+                          <p>Payé par: ${saleData.paymentMethod}</p>
+                          <p>Merci pour votre visite !</p>
+                          <p>L'article acheté n'est ni repris, ni échangé.</p>
+                      </div>
+                  </div>
+              </body>
+              </html>
+          `;
+          receiptWindow.document.write(receiptContent);
+          receiptWindow.document.close();
+          receiptWindow.focus();
+          receiptWindow.print();
+          receiptWindow.close();
+      }
+
+      // --- Event Listeners ---
+      cartItemsContainer.addEventListener('click', (e) => {
+          const button = e.target.closest('button[data-action]');
+          if (!button) return;
+          const action = button.dataset.action;
+          const cartItemEl = button.closest('[data-product-id]');
+          const productId = cartItemEl.dataset.productId;
+          if (action === 'increase') updateCartItemQuantity(productId, 1);
+          if (action === 'decrease') updateCartItemQuantity(productId, -1);
+          if (action === 'remove') {
+              tabs[activeTabIndex].cart = tabs[activeTabIndex].cart.filter(i => i.id !== productId);
+              renderActiveTabContent();
+              renderTabs();
+              saveActiveTabToDB(); // Sauvegarder
+          }
+      });
+      clearCartButton.addEventListener('click', clearCart);
+      discountBtn.addEventListener('click', openDiscountModal);
+      searchInput.addEventListener('input', filterProducts);
+      categoryFilter.addEventListener('change', filterProducts);
+      payButton.addEventListener('click', openPaymentModal);
+      newTabBtn.addEventListener('click', addNewTab);
+      clientSearchInput.addEventListener('input', async (e) => {
+          const query = e.target.value;
+          if (query.length < 2) {
+              clientSearchResults.innerHTML = '';
+              clientSearchResults.classList.add('hidden');
+              return;
+          }
+          try {
+              const response = await fetch(`/api/clients/search?query=${query}`);
+              const clients = await response.json();
+              clientSearchResults.innerHTML = '';
+              clients.forEach(client => {
+                  const resultDiv = document.createElement('div');
+                  resultDiv.className = 'p-3 cursor-pointer hover:bg-indigo-50 transition-colors rounded-lg';
+                  resultDiv.textContent = client.nom;
+                  resultDiv.addEventListener('click', () => selectClient(client));
+                  clientSearchResults.appendChild(resultDiv);
+              });
+              clientSearchResults.classList.remove('hidden');
+          } catch (error) {
+              console.error('Client search error:', error);
+          }
+      });
+      addClientBtn.addEventListener('click', openAddClientModal);
+      removeClientBtn.addEventListener('click', () => {
+          tabs[activeTabIndex].selectedClient = null;
+          renderClientSection();
+          renderTabs();
+          saveActiveTabToDB(); // Sauvegarder
+      });
+      
+  });
+  /*]]>*/
+</script>
+
+</body>
+</html>

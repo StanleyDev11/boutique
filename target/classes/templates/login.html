@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion | BelaLuxe</title>
+    <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    animation: {
+                        'gradient': 'gradient 8s linear infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        gradient: {
+                            '0%, 100%': { 'background-size': '200% 200%', 'background-position': 'left center' },
+                            '50%': { 'background-size': '200% 200%', 'background-position': 'right center' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .custom-gradient {
+            background: linear-gradient(-45deg, #0ea5e9, #2563eb, #7c3aed, #db2777);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+
+        .input-group:focus-within label {
+            color: #0ea5e9;
+            transform: translateY(-2px);
+        }
+
+        .input-group:focus-within .input-icon {
+            color: #0ea5e9;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-0 sm:p-4">
+
+    <!-- Background Decoration -->
+    <div class="fixed inset-0 z-0">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-400/20 blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-400/20 blur-[120px]"></div>
+    </div>
+
+    <main class="relative z-10 w-full max-w-[1000px] flex flex-col md:flex-row shadow-2xl rounded-none sm:rounded-[2rem] overflow-hidden min-h-[600px] bg-white">
+        
+        <!-- Left Side: Visual/Branding -->
+        <div class="hidden md:flex md:w-1/2 custom-gradient p-12 text-white flex-col justify-between relative overflow-hidden">
+            <!-- Decorative circles -->
+            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-white/10 blur-3xl"></div>
+            <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 rounded-full bg-black/10 blur-3xl"></div>
+
+            <div class="relative z-10">
+                <div class="flex items-center space-x-3 mb-8">
+                    <img th:src="@{${boutiqueLogo}}" alt="BelaLuxe Logo" class="h-12 w-auto brightness-0 invert">
+                    <span class="text-2xl font-extrabold tracking-tight italic" th:text="${boutiqueNom}">BelaLuxe</span>
+                </div>
+                
+                <h2 class="text-4xl font-extrabold leading-tight mb-4">Simplifiez la gestion de votre boutique.</h2>
+                <p class="text-blue-100 text-lg font-light leading-relaxed">Accédez à votre tableau de bord, suivez vos stocks et gérez vos ventes en temps réel.</p>
+            </div>
+
+            <div class="relative z-10 mt-auto">
+                <div class="flex items-center space-x-4 p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
+                    <div class="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                        <i class="fas fa-shield-halved text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold">Espace Sécurisé</p>
+                        <p class="text-xs text-blue-100">Chiffrement AES-256 bits actif</p>
+                    </div>
+                </div>
+                <p class="text-xs text-blue-200/60 mt-6">&copy; 2025 BelaLuxe System. Tous droits réservés.</p>
+            </div>
+        </div>
+
+        <!-- Right Side: Login Form -->
+        <div class="w-full md:w-1/2 p-8 sm:p-12 lg:p-16 flex flex-col justify-center bg-white relative">
+            
+            <!-- Mobile Logo -->
+            <div class="md:hidden flex flex-col items-center mb-10">
+                <img th:src="@{${boutiqueLogo}}" alt="Logo" class="h-16 w-auto mb-4">
+                <h1 class="text-3xl font-extrabold text-gray-900" th:text="${boutiqueNom}">BelaLuxe</h1>
+            </div>
+
+            <div class="fade-in">
+                <h3 class="text-3xl font-extrabold text-gray-900 mb-2">Bon retour !</h3>
+                <p class="text-gray-500 mb-8 font-medium">Veuillez vous identifier pour continuer.</p>
+
+                <!-- Feedback Messages -->
+                <div th:if="${param.error}" class="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 flex items-start space-x-3 text-red-600 animate-shake">
+                    <i class="fas fa-circle-exclamation mt-1"></i>
+                    <p class="text-sm font-semibold leading-tight">Identifiants incorrects. Veuillez réessayer.</p>
+                </div>
+
+                <div th:if="${param.logout}" class="mb-6 p-4 rounded-xl bg-blue-50 border border-blue-100 flex items-start space-x-3 text-blue-600">
+                    <i class="fas fa-circle-check mt-1"></i>
+                    <p class="text-sm font-semibold leading-tight">Vous avez été déconnecté. À bientôt !</p>
+                </div>
+
+                <div th:if="${param.expired}" class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-100 flex items-start space-x-3 text-amber-600">
+                    <i class="fas fa-hourglass-end mt-1"></i>
+                    <p class="text-sm font-semibold leading-tight">Session expirée. Merci de vous reconnecter.</p>
+                </div>
+
+                <!-- Form -->
+                <form th:action="@{/login}" method="post" class="space-y-6">
+                    <div class="input-group">
+                        <label for="username" class="block text-sm font-bold text-gray-700 mb-2 ml-1 transition-all duration-300">Nom d'utilisateur</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i class="fas fa-user text-gray-400 input-icon transition-colors duration-300"></i>
+                            </div>
+                            <input type="text" id="username" name="username" required autofocus
+                                class="block w-full pl-11 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all duration-300 font-medium"
+                                placeholder="ex: jean.dupont">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="flex justify-between items-center mb-2 ml-1">
+                            <label for="password" class="block text-sm font-bold text-gray-700 transition-all duration-300">Mot de passe</label>
+                        </div>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i class="fas fa-lock text-gray-400 input-icon transition-colors duration-300"></i>
+                            </div>
+                            <input type="password" id="password" name="password" required
+                                class="block w-full pl-11 pr-12 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all duration-300 font-medium"
+                                placeholder="••••••••••••">
+                            <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-blue-500 transition-colors duration-300">
+                                <i class="fas fa-eye-slash text-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                    <button type="submit" class="w-full py-4 px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold shadow-lg shadow-blue-500/30 transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center space-x-2">
+                        <span>Se connecter</span>
+                        <i class="fas fa-arrow-right text-sm"></i>
+                    </button>
+                </form>
+
+                <div class="mt-10 text-center">
+                    <div class="flex items-center justify-center space-x-4">
+                        <div class="h-px w-8 bg-gray-200"></div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Aide & Support</p>
+                        <div class="h-px w-8 bg-gray-200"></div>
+                    </div>
+                    <p class="mt-4 text-sm text-gray-500">Contactez l'administrateur en cas de problème.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const togglePassword = document.querySelector('#togglePassword');
+            const password = document.querySelector('#password');
+
+            togglePassword.addEventListener('click', () => {
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+                
+                const icon = togglePassword.querySelector('i');
+                icon.classList.toggle('fa-eye');
+                icon.classList.toggle('fa-eye-slash');
+            });
+
+            // Smooth entrance animation
+            const formInputs = document.querySelectorAll('.input-group');
+            formInputs.forEach((el, i) => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(10px)';
+                setTimeout(() => {
+                    el.style.transition = 'all 0.5s ease-out';
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 200 + (i * 100));
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails de la Session de Caisse</title>
+    <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-gray-100">
+
+<div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Détails de la Session de Caisse')}"></div>
+
+<div class="w-full px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-6">
+        <a th:href="@{/gestion-caisses#closed-sessions}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Retour aux Sessions
+        </a>
+    </div>
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 flex items-center">
+            <i class="fas fa-clipboard-list text-blue-600 mr-3"></i>
+            Détails de la Session
+        </h1>
+        <p class="text-gray-600 mt-2">Informations détaillées sur la session de caisse et les ventes associées.</p>
+    </div>
+
+    <!-- Session Info -->
+    <div class="bg-white shadow-lg rounded-2xl p-6 mb-8 border-l-4 border-blue-500">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-800">Informations sur la Session</h2>
+            <a th:href="@{/gestion-caisses/session-details/{id}/pdf(id=${sessionCaisse.id})}"
+               class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+               target="_blank">
+                <i class="fas fa-print mr-2"></i>
+                Imprimer le Récapitulatif
+            </a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <div class="flex items-center"><i class="fas fa-money-bill-wave text-gray-500 mr-3"></i>Montant initial: <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(sessionCaisse.montantInitial, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
+            <div class="flex items-center"><i class="fas fa-shopping-cart text-gray-500 mr-3"></i>Montant total de vente: <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(totalVentes, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
+            <div class="flex items-center"><i class="fas fa-cash-register text-gray-500 mr-3"></i>Montant compté: <span class="font-medium text-gray-900 ml-2" th:text="${montantCompté != null ? #numbers.formatDecimal(montantCompté, 1, 'POINT', 2, 'COMMA') + ' FCFA' : 'N/A'}"></span></div>
+            <div class="flex items-center"><i class="fas fa-credit-card text-gray-500 mr-3"></i>Montant à crédit: <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(totalVentesCredit, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
+            <div class="flex items-center hidden"><i class="fas fa-balance-scale-left text-gray-500 mr-3"></i>Écart: <span class="font-medium text-gray-900 ml-2" th:text="${ecartCalcule != null ? #numbers.formatDecimal(ecartCalcule, 1, 'POINT', 2, 'COMMA') + ' FCFA' : 'N/A'}"></span></div>
+            <div class="flex items-center hidden"><i class="fas fa-calculator text-gray-500 mr-3"></i>Montant final (Théorique): <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(theoreticalCashMontantFinal, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
+            
+            <div class="col-span-full border-t my-4"></div>
+
+            <div class="flex items-center"><i class="fas fa-money-bill-wave text-gray-500 mr-3"></i>Ventes (Espèces): <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(totalVentesEspeces, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
+            <div class="flex items-center"><i class="fas fa-credit-card text-gray-500 mr-3"></i>Ventes (Carte): <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(totalVentesCarte, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
+            <div class="flex items-center hidden"><i class="fas fa-mobile-alt text-gray-500 mr-3"></i>Ventes (Mobile): <span class="font-medium text-gray-900 ml-2" th:text="${#numbers.formatDecimal(totalVentesMobile, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></span></div>
+
+            <div class="col-span-full border-t my-4"></div>
+
+            <div class="flex items-center"><i class="fas fa-user text-gray-500 mr-3"></i>Caissier: <span class="font-medium text-gray-900 ml-2" th:text="${sessionCaisse.utilisateur.username}"></span></div>
+            <div class="flex items-center"><i class="fas fa-calendar-alt text-gray-500 mr-3"></i>Date d'ouverture: <span class="font-medium text-gray-900 ml-2" th:text="${#temporals.format(sessionCaisse.dateOuverture, 'dd/MM/yyyy HH:mm')}"></span></div>
+            <div class="flex items-center"><i class="fas fa-calendar-times text-gray-500 mr-3"></i>Date de fermeture: <span class="font-medium text-gray-900 ml-2" th:text="${sessionCaisse.dateFermeture != null ? #temporals.format(sessionCaisse.dateFermeture, 'dd/MM/yyyy HH:mm') : 'Session ouverte'}"></span></div>
+            <div th:if="${sessionCaisse.fermeParUtilisateur}" class="flex items-center"><i class="fas fa-user-lock text-gray-500 mr-3"></i>Fermé par: <span class="font-medium text-gray-900 ml-2" th:text="${sessionCaisse.fermeParUtilisateur.username}"></span></div>
+        </div>
+    </div>
+
+    <!-- Sales Summary -->
+    <div class="mb-8 hidden">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Résumé des Ventes</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-4">
+                <div class="bg-blue-100 p-4 rounded-full">
+                    <i class="fas fa-cash-register text-2xl text-blue-600"></i>
+                </div>
+                <div>
+                    <p class="text-gray-600">Total des Ventes</p>
+                    <p class="text-2xl font-bold text-gray-900" th:text="${#numbers.formatDecimal(totalVentes, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></p>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-4">
+                <div class="bg-green-100 p-4 rounded-full">
+                    <i class="fas fa-receipt text-2xl text-green-600"></i>
+                </div>
+                <div>
+                    <p class="text-gray-600">Nombre de Ventes</p>
+                    <p class="text-2xl font-bold text-gray-900" th:text="${nombreVentes}"></p>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-4">
+                <div class="bg-yellow-100 p-4 rounded-full">
+                    <i class="fas fa-chart-pie text-2xl text-yellow-600"></i>
+                </div>
+                <div>
+                    <p class="text-gray-600">Vente Moyenne</p>
+                    <p class="text-2xl font-bold text-gray-900" th:text="${#numbers.formatDecimal(venteMoyenne, 1, 'POINT', 2, 'COMMA')} + ' FCFA'"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sales Table -->
+    <div class="bg-white shadow-lg rounded-2xl overflow-hidden">
+        <div class="flex justify-between items-center p-6">
+            <h2 class="text-xl font-bold text-gray-800">Ventes de la Session</h2>
+        </div>
+        <div th:if="${ventes.empty}" class="p-6 text-center text-gray-500">
+            <i class="fas fa-dolly-flatbed text-4xl mb-3"></i>
+            <p>Aucune vente enregistrée pour cette session.</p>
+        </div>
+        <div th:unless="${ventes.empty}" class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12"></th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Vente</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Caissier</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Moyen Paiement</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" id="sales-table-body">
+                    <th:block th:each="vente : ${ventes}">
+                        <tr class="hover:bg-gray-50 transition-colors cursor-pointer"
+                            th:attr="data-vente-id=${vente.id}"
+                            th:classappend="${vente.status.name() == 'CANCELLED' ? 'text-gray-400 line-through' : ''}">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <button class="expand-btn text-blue-500 hover:text-blue-700 transition-transform duration-300">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap" th:text="${#temporals.format(vente.dateVente, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td class="px-6 py-4 whitespace-nowrap" th:text="${vente.client != null ? vente.client.nom : 'Client au comptant'}"></td>
+                            <td class="px-6 py-4 whitespace-nowrap" th:text="${vente.utilisateur.username}"></td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <th:block th:if="${vente.status.name() == 'CANCELLED'}">
+                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                        <i class="fas fa-times-circle mr-1"></i> Annulée
+                                    </span>
+                                </th:block>
+                                <th:block th:unless="${vente.status.name() == 'CANCELLED'}">
+                                    <span th:switch="${vente.moyenPaiement}" class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full">
+                                        <span th:case="'ESPECES'" class="bg-green-100 text-green-800"><i class="fas fa-money-bill-wave mr-1"></i> Espèces</span>
+                                        <span th:case="'CARTE'" class="bg-blue-100 text-blue-800"><i class="fas fa-credit-card mr-1"></i> Carte</span>
+                                        <span th:case="'MOBILE'" class="bg-orange-100 text-orange-800"><i class="fas fa-mobile-alt mr-1"></i> Mobile</span>
+                                        <span th:case="'CREDIT'" class="bg-red-100 text-red-800"><i class="fas fa-book mr-1"></i> Crédit</span>
+                                        <span th:case="*" class="bg-gray-100 text-gray-800" th:text="${vente.moyenPaiement}"></span>
+                                    </span>
+                                </th:block>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right font-semibold"
+                                th:classappend="${vente.status.name() != 'CANCELLED' ? 'text-gray-800' : ''}"
+                                th:text="${#numbers.formatInteger(vente.totalFinal, 1, 'WHITESPACE')} + ' FCFA'"></td>
+                        </tr>
+                        <tr class="details-row hidden bg-blue-50" th:id="'details-' + ${vente.id}" th:if="${vente.status.name() != 'CANCELLED'}">
+                            <td colspan="6" class="p-0">
+                                <div class="p-4">
+                                    <h4 class="text-md font-semibold text-gray-800 mb-3">Détails de la vente</h4>
+                                    <table class="min-w-full divide-y divide-gray-200 rounded-lg overflow-hidden">
+                                        <thead class="bg-gray-200">
+                                            <tr>
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Produit</th>
+                                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-600 uppercase">Quantité</th>
+                                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-600 uppercase">Prix Unitaire</th>
+                                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-600 uppercase">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white">
+                                            <tr th:each="ligne : ${vente.ligneVentes}" class="border-b border-gray-200">
+                                                <td class="px-4 py-3 whitespace-nowrap" th:text="${ligne.produit.nom}"></td>
+                                                <td class="px-4 py-3 whitespace-nowrap text-right" th:text="${ligne.quantite}"></td>
+                                                <td class="px-4 py-3 whitespace-nowrap text-right" th:text="${#numbers.formatInteger(ligne.prixUnitaire, 1, 'WHITESPACE')} + ' FCFA'"></td>
+                                                <td class="px-4 py-3 whitespace-nowrap text-right font-medium" th:text="${#numbers.formatInteger(ligne.montantTotal, 1, 'WHITESPACE')} + ' FCFA'"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                    </th:block>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const salesTableBody = document.getElementById('sales-table-body');
+
+        salesTableBody.addEventListener('click', function (event) {
+            const row = event.target.closest('tr[data-vente-id]');
+            if (!row) return;
+
+            const venteId = row.dataset.venteId;
+            const detailsRow = document.getElementById(`details-${venteId}`);
+            const expandBtnIcon = row.querySelector('.expand-btn i');
+
+            if (detailsRow) {
+                detailsRow.classList.toggle('hidden');
+                expandBtnIcon.classList.toggle('fa-chevron-right');
+                expandBtnIcon.classList.toggle('fa-chevron-down');
+                row.classList.toggle('bg-gray-100');
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

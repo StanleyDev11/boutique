@@ -1,0 +1,12 @@
+.git
+.idea
+target/
+.env
+*.md
+*.png
+*.txt
+*.jpg
+.dockerignore
+.gitignore
+pom.xml.bak
+README.md

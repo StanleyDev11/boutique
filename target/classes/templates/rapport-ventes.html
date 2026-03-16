@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Rapport des Ventes</title>
+    <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            font-size: 10px;
+        }
+        .report-container {
+            max-width: 100%;
+            margin: auto;
+            padding: 0;
+            background: #fff;
+        }
+        .report-header h1 {
+            font-size: 1.8em;
+            margin: 0;
+            color: #1a202c;
+        }
+        .report-header p {
+            font-size: 0.8em;
+            color: #718096;
+            margin: 1px 0;
+        }
+        .sale-block {
+            margin-bottom: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .sale-header {
+            background-color: #f7fafc;
+            padding: 6px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+        }
+        .sale-header div {
+            font-size: 0.7em;
+        }
+        .sale-header strong {
+            color: #4a5568;
+            font-weight: 600;
+        }
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .products-table th, .products-table td {
+            padding: 6px 8px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .products-table th {
+            background-color: #f7fafc;
+            font-weight: 600;
+            font-size: 0.7em;
+            text-transform: uppercase;
+            color: #718096;
+        }
+        .products-table tr:last-child td {
+            border-bottom: none;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .report-summary {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #edf2f7;
+            border-radius: 6px;
+            text-align: right;
+        }
+        .report-summary h2 {
+            font-size: 1.2em;
+            margin: 0;
+            color: #1a202c;
+        }
+        .print-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #3b82f6;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        @media print {
+            body {
+                background-color: #fff;
+            }
+            .report-container {
+                max-width: 100%;
+                padding: 0;
+                box-shadow: none;
+                border: none;
+            }
+            .print-button {
+                display: none;
+            }
+            .sale-block {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="report-container">
+    <div class="report-header">
+        <h1 class="text-3xl font-bold text-gray-800" th:text="${boutiqueNom}">SUPERMARCHE BELALUXE</h1>
+        <p class="text-sm text-gray-600" th:text="${boutiqueAdresse}">Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo</p>
+        <p class="text-sm text-gray-600" th:text="${boutiqueTelephone}">Tél: (+228) 96 00 01 89 / 90 12 34 30</p>
+        <h2 class="text-2xl font-semibold text-gray-700 mt-4">Rapport des Ventes</h2>
+        <p th:text="${'Période du ' + #temporals.format(startDate, 'dd/MM/yyyy') + ' au ' + #temporals.format(endDate, 'dd/MM/yyyy')}"></p>
+        <p class="text-xs text-gray-500 mt-1" th:text="${'Généré le ' + #temporals.format(dateGeneration, 'dd/MM/yyyy HH:mm')}"></p>
+    </div>
+
+    <table class="products-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Produit</th>
+                <th class="text-right">Quantité</th>
+                <th class="text-right">Prix Unitaire</th>
+                <th class="text-right">Total Ligne</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="ligne : ${allLigneVentes}">
+                <td th:text="${#temporals.format(ligne.getVente().getDateVente(), 'dd/MM/yyyy HH:mm')}"></td>
+                <td th:text="${ligne.produit.nom}"></td>
+                <td class="text-right" th:text="${ligne.quantite}"></td>
+                <td class="text-right" th:text="${#numbers.formatDecimal(ligne.prixUnitaire, 0, 'POINT', 2, 'COMMA') + ' FCFA'}"></td>
+                <td class="text-right" th:text="${#numbers.formatDecimal(ligne.montantTotal, 0, 'POINT', 2, 'COMMA') + ' FCFA'}"></td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="report-summary">
+        <div class="grand-total">
+            <span class="summary-label">Total Général</span>
+            <span class="summary-value-total" th:text="${#numbers.formatDecimal(totalGeneral, 0, 'POINT', 2, 'COMMA') + ' FCFA'}"></span>
+        </div>
+    </div>
+</div>
+
+
+
+</body>
+</html>
