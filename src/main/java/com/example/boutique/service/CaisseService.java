@@ -61,7 +61,6 @@ public class CaisseService {
 
         caisse.setNom(caisseDetails.getNom());
         caisse.setActive(caisseDetails.isActive());
-        caisse.setUtilisateur(caisseDetails.getUtilisateur());
 
         return caisseRepository.save(caisse);
     }
@@ -70,14 +69,10 @@ public class CaisseService {
         Caisse caisse = caisseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Caisse non trouvée avec l'id : " + id));
 
-        Utilisateur utilisateur = caisse.getUtilisateur();
-
-        if (utilisateur != null) {
-            Optional<SessionCaisse> openSession = sessionCaisseRepository.findFirstByUtilisateurAndDateFermetureIsNullOrderByDateOuvertureDesc(utilisateur);
-            if (openSession.isPresent()) {
-                throw new IllegalStateException("Impossible de supprimer la caisse '" + caisse.getNom() + "' car une session est actuellement ouverte par le caissier '" + utilisateur.getUsername() + "'.");
-            }
-        }
+        // La logique de vérification de session ouverte doit être réévaluée car elle était liée à l'utilisateur de la caisse
+        // Pour l'instant, on supprime la vérification directe ici.
+        // Une vérification globale pourrait être nécessaire pour voir si une session est liée à un utilisateur
+        // avant de supprimer une caisse, mais cela dépend des nouvelles règles métier.
 
         caisseRepository.delete(caisse);
     }
@@ -93,39 +88,14 @@ public class CaisseService {
         Caisse caisse = caisseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Caisse non trouvée avec l'id : " + id));
 
-        Utilisateur utilisateur = caisse.getUtilisateur();
-
-        if (utilisateur != null) {
-            Optional<SessionCaisse> openSession = sessionCaisseRepository.findFirstByUtilisateurAndDateFermetureIsNullOrderByDateOuvertureDesc(utilisateur);
-            if (openSession.isPresent()) {
-                throw new IllegalStateException("Impossible de désactiver la caisse '" + caisse.getNom() + "' car une session est actuellement ouverte par le caissier '" + utilisateur.getUsername() + "'.");
-            }
-        }
+        // La logique de vérification de session ouverte est retirée ici aussi.
 
         caisse.setActive(false);
         return caisseRepository.save(caisse);
     }
 
-    public Caisse assignerCaissier(Long caisseId, Long utilisateurId) {
-        Caisse caisse = caisseRepository.findById(caisseId)
-                .orElseThrow(() -> new RuntimeException("Caisse non trouvée avec l'id : " + caisseId));
-
-        Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'id : " + utilisateurId));
-
-        if (!utilisateur.getRoles().contains("ROLE_CAISSIER")) {
-            throw new RuntimeException("L'utilisateur n'a pas le rôle de caissier.");
-        }
-
-        caisse.setUtilisateur(utilisateur);
-        return caisseRepository.save(caisse);
-    }
-
     public Page<SessionCaisse> getOpenSessions(String keyword, Pageable pageable) {
-        if (keyword != null && !keyword.isEmpty()) {
-            return sessionCaisseRepository.findByDateFermetureIsNullAndUtilisateurUsernameContainingIgnoreCase(keyword, pageable);
-        }
-        return sessionCaisseRepository.findByDateFermetureIsNull(pageable);
+        return sessionCaisseRepository.findOpenSessions(keyword, pageable);
     }
 
     public Page<SessionCaisse> getClosedSessions(String keyword, LocalDate startDate, LocalDate endDate, Pageable pageable) {
@@ -135,10 +105,9 @@ public class CaisseService {
     }
 
     public List<com.example.boutique.model.Vente> getVentesBySessionCaisse(SessionCaisse sessionCaisse) {
-        return venteRepository.findByUtilisateurAndDateVenteBetween(
-                sessionCaisse.getUtilisateur(),
-                sessionCaisse.getDateOuverture(),
-                sessionCaisse.getDateFermeture() != null ? sessionCaisse.getDateFermeture() : LocalDateTime.now()
+        return venteRepository.findBySessionCaisse(
+                sessionCaisse,
+                org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "dateVente")
         );
     }
 }

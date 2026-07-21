@@ -23,13 +23,7 @@ public class ClientController {
     }
 
     @PostMapping
-    public ResponseEntity<Client> createClient(@RequestBody Client client) {
-        try {
-            Client savedClient = clientRepository.save(client);
-            return ResponseEntity.ok(savedClient);
-        } catch (Exception e) {
-            // Handle potential exceptions, e.g., unique constraint violation
-            return ResponseEntity.badRequest().build();
-        }
+    public Client createClient(@RequestBody Client client) {
+        return clientRepository.save(client);
     }
 }

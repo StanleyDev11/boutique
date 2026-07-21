@@ -4,48 +4,28 @@ import com.example.boutique.model.Produit;
 import com.example.boutique.model.Utilisateur;
 import com.example.boutique.repository.ProduitRepository;
 import com.example.boutique.repository.UtilisateurRepository;
+import com.example.boutique.security.AccountConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 
-import java.awt.Desktop;
-import java.net.URI;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
 @SpringBootApplication
+@EnableCaching
 public class BoutiqueApplication {
 
-    public static void main(String[] args) {
-        System.setProperty("java.awt.headless", "false");
-        SpringApplication.run(BoutiqueApplication.class, args);
-    }
+    private static final Logger logger = LoggerFactory.getLogger(BoutiqueApplication.class);
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void launchBrowser() {
-        try {
-            String url = "http://localhost:8085";
-            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                Desktop.getDesktop().browse(new URI(url));
-            } else {
-                Runtime rt = Runtime.getRuntime();
-                String os = System.getProperty("os.name").toLowerCase();
-                if (os.contains("win")) {
-                    rt.exec("rundll32 url.dll,FileProtocolHandler " + url);
-                } else if (os.contains("mac")) {
-                    rt.exec("open " + url);
-                } else if (os.contains("nix") || os.contains("nux")) {
-                    rt.exec("xdg-open " + url);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public static void main(String[] args) {
+        SpringApplication.run(BoutiqueApplication.class, args);
     }
 
     @Bean
@@ -58,7 +38,8 @@ public class BoutiqueApplication {
                 p1.setPrixAchat(new BigDecimal("800.00"));
                 p1.setPrixVenteUnitaire(new BigDecimal("1200.50"));
                 p1.setCategorie("Électronique");
-                p1.setQuantiteEnStock(50);
+                p1.setQuantiteEnStock(BigDecimal.valueOf(50));
+                p1.setUniteDeVente("PIECE");
                 p1.setDatePeremption(null);
 
                 Produit p2 = new Produit();
@@ -66,26 +47,58 @@ public class BoutiqueApplication {
                 p2.setPrixAchat(new BigDecimal("10.00"));
                 p2.setPrixVenteUnitaire(new BigDecimal("19.99"));
                 p2.setCategorie("Alimentaire");
-                p2.setQuantiteEnStock(200);
+                p2.setQuantiteEnStock(BigDecimal.valueOf(200));
+                p2.setUniteDeVente("KG");
                 p2.setDatePeremption(LocalDate.now().plusYears(1));
 
                 produitRepository.saveAll(List.of(p1, p2));
             }
 
-            // Création d'utilisateurs de démo
-            if (utilisateurRepository.count() == 0) {
-                Utilisateur admin = new Utilisateur();
-                admin.setUsername("admin");
-                admin.setPassword(passwordEncoder.encode("password"));
-                admin.setRoles("ROLE_ADMIN,ROLE_GESTIONNAIRE");
-
-                Utilisateur gestion = new Utilisateur();
-                gestion.setUsername("gestion");
-                gestion.setPassword(passwordEncoder.encode("password"));
-                gestion.setRoles("ROLE_GESTIONNAIRE");
-
-                utilisateurRepository.saveAll(List.of(admin, gestion));
+            // ----- Migration / mise en place des comptes -----
+            // 1) Retirer les anciens comptes de démo (admin, gestion) s'ils existent
+            //    dans une base déjà peuplée. Les hash sont embarqués, jamais en clair.
+            for (String legacy : AccountConstants.LEGACY_DEMO_USERNAMES) {
+                utilisateurRepository.findByUsername(legacy).ifPresent(u -> {
+                    utilisateurRepository.delete(u);
+                    logger.info("Ancien compte de démo supprimé : {}", legacy);
+                });
             }
+
+            // 2) Compte admin par défaut (verrouillé tant que la licence n'est pas activée)
+            ensureAccount(utilisateurRepository,
+                    AccountConstants.ADMIN_BOUTIKA_USERNAME,
+                    AccountConstants.ADMIN_BOUTIKA_PASSWORD_HASH,
+                    AccountConstants.ADMIN_BOUTIKA_ROLES);
+
+            // 3) Compte d'essai / démo (caché, non modifiable, restrictions gestion users)
+            ensureAccount(utilisateurRepository,
+                    AccountConstants.CLIENTDEMO_USERNAME,
+                    AccountConstants.CLIENTDEMO_PASSWORD_HASH,
+                    AccountConstants.CLIENTDEMO_ROLES);
+
+            // 4) Ligne DÉDIÉE au super admin (caché) : sert uniquement de support aux
+            //    opérations caisse/ventes (FK obligatoire session_caisse -> utilisateur).
+            //    Le login reste géré par SuperAdminAuthenticationProvider.
+            ensureAccount(utilisateurRepository,
+                    AccountConstants.SUPERADMIN_USERNAME,
+                    AccountConstants.SUPERADMIN_PASSWORD_HASH,
+                    AccountConstants.SUPERADMIN_ROLES);
         };
+    }
+
+    /**
+     * Crée le compte s'il est absent. Ne réécrit PAS un compte existant : après
+     * activation, le client peut avoir modifié admin.boutika (mot de passe/infos)
+     * et on ne veut pas écraser ces changements.
+     */
+    private void ensureAccount(UtilisateurRepository repo, String username, String passwordHash, String roles) {
+        if (repo.findByUsername(username).isEmpty()) {
+            Utilisateur u = new Utilisateur();
+            u.setUsername(username);
+            u.setPassword(passwordHash); // déjà hashé en BCrypt (constante)
+            u.setRoles(roles);
+            repo.save(u);
+            logger.info("Compte initialisé : {}", username);
+        }
     }
 }

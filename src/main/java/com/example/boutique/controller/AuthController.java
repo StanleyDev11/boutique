@@ -1,5 +1,6 @@
 package com.example.boutique.controller;
 
+import com.example.boutique.service.LicenseService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -10,8 +11,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class AuthController {
 
+    private final LicenseService licenseService;
+
+    public AuthController(LicenseService licenseService) {
+        this.licenseService = licenseService;
+    }
+
     @GetMapping("/login")
     public String login() {
+        // À la première ouverture de la page de connexion, on démarre l'essai
+        // (enregistre install_id + install_date de façon persistante).
+        licenseService.ensureInitialized();
         return "login";
     }
 
@@ -27,4 +37,5 @@ public class AuthController {
         }
         return "redirect:/login";
     }
+
 }

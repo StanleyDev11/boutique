@@ -2,7 +2,9 @@ package com.example.boutique.repository;
 
 import com.example.boutique.dto.CategorySales;
 import com.example.boutique.dto.ProduitVenteDto;
+import com.example.boutique.dto.ProduitVenteStatsDto;
 import com.example.boutique.model.LigneVente;
+import com.example.boutique.model.Vente;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,6 +22,8 @@ public interface LigneVenteRepository extends JpaRepository<LigneVente, Long> {
 
     List<LigneVente> findByVenteId(Long venteId);
 
+    List<LigneVente> findByVente(Vente vente);
+
     @Query("SELECT p.categorie as category, sum(lv.prixUnitaire * lv.quantite) as totalSales FROM LigneVente lv JOIN lv.produit p GROUP BY p.categorie")
     List<CategorySales> findTotalSalesByCategory();
 
@@ -31,6 +35,9 @@ public interface LigneVenteRepository extends JpaRepository<LigneVente, Long> {
 
     @Query("SELECT lv.produit, sum(lv.quantite) FROM LigneVente lv GROUP BY lv.produit ORDER BY sum(lv.quantite) DESC")
     List<Object[]> findMostSoldProducts();
+
+    @Query("SELECT new com.example.boutique.dto.ProduitVenteStatsDto(lv.produit, SUM(lv.quantite), SUM(lv.montantTotal)) FROM LigneVente lv WHERE lv.vente.status = com.example.boutique.enums.VenteStatus.COMPLETED AND (:keyword IS NULL OR LOWER(lv.produit.nom) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND (:startDate IS NULL OR lv.vente.dateVente >= :startDate) AND (:endDate IS NULL OR lv.vente.dateVente <= :endDate) GROUP BY lv.produit ORDER BY SUM(lv.quantite) DESC")
+    List<ProduitVenteStatsDto> findProduitVenteStats(@Param("keyword") String keyword, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
     @Query(value = "SELECT lv FROM LigneVente lv JOIN FETCH lv.vente", countQuery = "SELECT count(lv) FROM LigneVente lv")
     Page<LigneVente> findAllWithVente(Pageable pageable);

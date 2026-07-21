@@ -1,13 +1,14 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
+    <link rel="stylesheet" href="/vendor/tailwind/tailwind.css">
+    <link href="/vendor/fontawesome/css/all.min.css" rel="stylesheet">
+    <script src="/vendor/chartjs/chart.umd.min.js"></script>
+    <script src="/vendor/sweetalert2/sweetalert2.all.min.js"></script>
 </head>
 <body class="bg-gray-50">
 
@@ -17,9 +18,41 @@
 <div class="w-full px-4 sm:px-6 lg:px-8 py-8">
 
     <!-- Message de bienvenue -->
-    <div class="mb-8">
-        <h2 class="text-3xl font-bold text-gray-800">Bonjour, <span sec:authentication="name"></span> !</h2>
-        <p class="text-gray-600">Voici un aperçu de votre boutique aujourd'hui.</p>
+    <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h2 class="text-3xl font-bold text-gray-800">Bonjour, <span sec:authentication="name"></span> !</h2>
+            <p class="text-gray-600">Voici un aperçu de votre boutique aujourd'hui.</p>
+        </div>
+
+        <!-- Compte à rebours de la période d'essai (compte démo uniquement, licence non activée) -->
+        <div th:if="${demoCountdownVisible}" id="demo-countdown" th:attr="data-end=${demoTrialEndMs}"
+             class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 shadow-sm w-full sm:w-auto">
+            <div class="flex items-center gap-2 text-amber-700 mb-2">
+                <i class="fas fa-hourglass-half"></i>
+                <span class="text-xs font-semibold uppercase tracking-wide">Essai gratuit — temps restant</span>
+            </div>
+            <div id="demo-countdown-values" class="flex items-center gap-2">
+                <div class="bg-white border border-amber-100 rounded-lg px-3 py-2 text-center">
+                    <span id="cd-days" class="block text-xl font-bold text-amber-700 leading-none">--</span>
+                    <span class="block text-[10px] font-medium uppercase text-amber-600 mt-1">Jours</span>
+                </div>
+                <div class="bg-white border border-amber-100 rounded-lg px-3 py-2 text-center">
+                    <span id="cd-hours" class="block text-xl font-bold text-amber-700 leading-none">--</span>
+                    <span class="block text-[10px] font-medium uppercase text-amber-600 mt-1">Heures</span>
+                </div>
+                <div class="bg-white border border-amber-100 rounded-lg px-3 py-2 text-center">
+                    <span id="cd-mins" class="block text-xl font-bold text-amber-700 leading-none">--</span>
+                    <span class="block text-[10px] font-medium uppercase text-amber-600 mt-1">Min</span>
+                </div>
+                <div class="bg-white border border-amber-100 rounded-lg px-3 py-2 text-center">
+                    <span id="cd-secs" class="block text-xl font-bold text-amber-700 leading-none">--</span>
+                    <span class="block text-[10px] font-medium uppercase text-amber-600 mt-1">Sec</span>
+                </div>
+            </div>
+            <div id="demo-countdown-expired" class="hidden text-red-600 font-bold text-sm">
+                <i class="fas fa-triangle-exclamation mr-1"></i>Période d'essai expirée
+            </div>
+        </div>
     </div>
 
     <!-- Accès Rapide -->
@@ -60,7 +93,7 @@
     <!-- Cartes Statistiques -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
         <h3 class="text-xl font-semibold text-gray-800 mb-4">Statistiques Clés</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Carte Total Produits -->
             <div class="bg-gray-50 rounded-lg p-4">
                 <div class="flex items-center justify-between">
@@ -82,7 +115,7 @@
                 </div>
             </div>
             <!-- Carte Total Personnel -->
-            <div class="bg-gray-50 rounded-lg p-4">
+            <div class="bg-gray-50 rounded-lg p-4 hidden">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">Total Personnel</p>
@@ -102,7 +135,7 @@
                 </div>
             </div>
             <!-- Carte Valeur du Stock -->
-            <div class="bg-gray-50 rounded-lg p-4">
+            <div class="bg-gray-50 rounded-lg p-4 hidden">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">Valeur du Stock</p>
@@ -112,7 +145,7 @@
                 </div>
             </div>
             <!-- Carte Ventes du Jour -->
-            <div class="bg-gray-50 rounded-lg p-4">
+            <div class="bg-gray-50 rounded-lg p-4 hidden">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">Ventes du Jour</p>
@@ -122,7 +155,7 @@
                 </div>
             </div>
             <!-- Carte CA Aujourd'hui -->
-            <div class="bg-gray-50 rounded-lg p-4">
+            <div class="bg-gray-50 rounded-lg p-4 hidden">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">CA Aujourd'hui</p>
@@ -132,7 +165,7 @@
                 </div>
             </div>
             <!-- Carte CA du Mois -->
-            <div class="bg-gray-50 rounded-lg p-4">
+            <div class="bg-gray-50 rounded-lg p-4 hidden">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">CA du Mois</p>
@@ -147,6 +180,14 @@
 
     <!-- Section Principale: Graphiques et Activités -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+        <!-- Graphique des Ventes -->
+        <div class="lg:col-span-3 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Ventes des 7 derniers jours</h3>
+            <div>
+                <canvas id="ventesChart"></canvas>
+            </div>
+        </div>
+
         <!-- Graphique d'activité -->
         <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Activité des 7 derniers jours (Entrées/Sorties)</h3>
@@ -331,8 +372,106 @@
                 }
             }
         });
+
+        // Fetch and render Sales Chart
+        fetch('/dashboard/api/ventes-par-jour?jours=7')
+            .then(response => response.json())
+            .then(salesData => {
+                const ventesCtx = document.getElementById('ventesChart').getContext('2d');
+                new Chart(ventesCtx, {
+                    type: 'line',
+                    data: {
+                        labels: salesData.labels,
+                        datasets: [{
+                            label: 'Chiffre d\'affaires (FCFA)',
+                            data: salesData.data,
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value, index, values) {
+                                        return new Intl.NumberFormat('fr-FR').format(value) + ' FCFA';
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            label += new Intl.NumberFormat('fr-FR').format(context.parsed.y) + ' FCFA';
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
     });
     /*]]>*/
+</script>
+
+<!-- Compte à rebours de la période d'essai (compte démo) -->
+<script>
+    (function () {
+        const el = document.getElementById('demo-countdown');
+        if (!el) return;
+        const end = parseInt(el.getAttribute('data-end'), 10);
+        const valuesEl = document.getElementById('demo-countdown-values');
+        const expiredEl = document.getElementById('demo-countdown-expired');
+        const dEl = document.getElementById('cd-days');
+        const hEl = document.getElementById('cd-hours');
+        const mEl = document.getElementById('cd-mins');
+        const sEl = document.getElementById('cd-secs');
+
+        function pad(n) { return String(n).padStart(2, '0'); }
+
+        function showExpired() {
+            if (valuesEl) valuesEl.classList.add('hidden');
+            if (expiredEl) expiredEl.classList.remove('hidden');
+        }
+
+        function tick() {
+            const diff = end - Date.now();
+            if (isNaN(end) || diff <= 0) {
+                showExpired();
+                clearInterval(timer);
+                return;
+            }
+            const totalSec = Math.floor(diff / 1000);
+            const days = Math.floor(totalSec / 86400);
+            const hours = Math.floor((totalSec % 86400) / 3600);
+            const mins = Math.floor((totalSec % 3600) / 60);
+            const secs = totalSec % 60;
+            if (dEl) dEl.textContent = pad(days);
+            if (hEl) hEl.textContent = pad(hours);
+            if (mEl) mEl.textContent = pad(mins);
+            if (sEl) sEl.textContent = pad(secs);
+        }
+
+        const timer = setInterval(tick, 1000);
+        tick();
+    })();
 </script>
 
 </body>

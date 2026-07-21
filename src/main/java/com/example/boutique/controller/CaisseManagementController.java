@@ -3,25 +3,35 @@ package com.example.boutique.controller;
 import com.example.boutique.model.Caisse;
 import com.example.boutique.model.SessionCaisse;
 import com.example.boutique.model.Utilisateur;
+import com.example.boutique.enums.MoyenPaiement;
 import com.example.boutique.model.Vente;
 import com.example.boutique.service.CaisseService;
 import com.example.boutique.repository.SessionCaisseRepository;
 import com.example.boutique.repository.UtilisateurRepository;
 
+import com.example.boutique.service.PdfGenerationService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,27 +39,33 @@ import java.util.Map;
 @RequestMapping("/gestion-caisses")
 public class CaisseManagementController {
 
+    private static final Logger logger = LoggerFactory.getLogger(CaisseManagementController.class);
+
     private final CaisseService caisseService;
     private final UtilisateurRepository utilisateurRepository;
     private final SessionCaisseRepository sessionCaisseRepository;
+    private final PdfGenerationService pdfGenerationService;
+    private final com.example.boutique.service.ParametreService parametreService;
 
-    public CaisseManagementController(CaisseService caisseService, UtilisateurRepository utilisateurRepository, SessionCaisseRepository sessionCaisseRepository) {
+    public CaisseManagementController(CaisseService caisseService, UtilisateurRepository utilisateurRepository, SessionCaisseRepository sessionCaisseRepository, PdfGenerationService pdfGenerationService, com.example.boutique.service.ParametreService parametreService) {
         this.caisseService = caisseService;
         this.utilisateurRepository = utilisateurRepository;
         this.sessionCaisseRepository = sessionCaisseRepository;
+        this.pdfGenerationService = pdfGenerationService;
+        this.parametreService = parametreService;
     }
 
     @GetMapping
     public String listCaisses(Model model,
                               @RequestParam(required = false) String caisseKeyword,
                               @RequestParam(required = false) String openKeyword,
+                              @RequestParam(required = false) String closedKeyword,
+                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
                               @RequestParam(defaultValue = "0") int openPage,
                               @RequestParam(defaultValue = "10") int openSize,
                               @RequestParam(defaultValue = "dateOuverture") String openSortField,
                               @RequestParam(defaultValue = "desc") String openSortDir,
-                              @RequestParam(required = false) String closedKeyword,
-                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
                               @RequestParam(defaultValue = "0") int closedPage,
                               @RequestParam(defaultValue = "10") int closedSize,
                               @RequestParam(defaultValue = "dateFermeture") String closedSortField,
@@ -59,6 +75,7 @@ public class CaisseManagementController {
         model.addAttribute("caisses", caisses);
         model.addAttribute("caisseKeyword", caisseKeyword);
 
+        // Open sessions pagination
         Sort openSort = openSortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(openSortField).ascending() : Sort.by(openSortField).descending();
         Pageable openPageable = PageRequest.of(openPage, openSize, openSort);
         Page<SessionCaisse> openSessionsPage = caisseService.getOpenSessions(openKeyword, openPageable);
@@ -68,6 +85,7 @@ public class CaisseManagementController {
         model.addAttribute("openSortDir", openSortDir);
         model.addAttribute("openReverseSortDir", openSortDir.equals("asc") ? "desc" : "asc");
 
+        // Closed sessions pagination
         Sort closedSort = closedSortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(closedSortField).ascending() : Sort.by(closedSortField).descending();
         Pageable closedPageable = PageRequest.of(closedPage, closedSize, closedSort);
         Page<SessionCaisse> closedSessionsPage = caisseService.getClosedSessions(closedKeyword, startDate, endDate, closedPageable);
@@ -79,22 +97,13 @@ public class CaisseManagementController {
         model.addAttribute("closedSortDir", closedSortDir);
         model.addAttribute("closedReverseSortDir", closedSortDir.equals("asc") ? "desc" : "asc");
 
-        // Pass all params to pagination URLs
-        model.addAttribute("openPage", openPage);
-        model.addAttribute("closedPage", closedPage);
-        model.addAttribute("openSize", openSize);
-        model.addAttribute("closedSize", closedSize);
-
-
         return "gestion-caisses";
     }
 
     @GetMapping("/form")
     public String showCaisseForm(@RequestParam(required = false) Long id, Model model) {
         Caisse caisse = id != null ? caisseService.getCaisseById(id).orElse(new Caisse()) : new Caisse();
-        List<Utilisateur> caissiers = utilisateurRepository.findByRolesContaining("ROLE_CAISSIER");
         model.addAttribute("caisse", caisse);
-        model.addAttribute("caissiers", caissiers);
         return "fragments/caisse-form :: caisse-form";
     }
 
@@ -102,18 +111,16 @@ public class CaisseManagementController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> saveCaisse(@ModelAttribute Caisse caisse) {
         try {
-            if (caisse.getUtilisateur() != null && caisse.getUtilisateur().getId() == null) {
-                caisse.setUtilisateur(null);
-            }
             Caisse savedCaisse = caisseService.createCaisse(caisse);
             String successMessage = "La caisse '" + savedCaisse.getNom() + "' a été enregistrée avec succès.";
             return ResponseEntity.ok(Map.of("success", true, "message", successMessage));
         } catch (DataIntegrityViolationException e) {
+            logger.warn("Tentative de sauvegarde d'une caisse avec un nom existant: {}", caisse.getNom(), e);
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Une caisse avec ce nom existe déjà."));
         }
         catch (Exception e) {
-            String errorMessage = "Erreur lors de l'enregistrement de la caisse : " + e.getMessage();
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", errorMessage));
+            logger.error("Erreur inattendue lors de l'enregistrement de la caisse.", e);
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Une erreur technique est survenue lors de l'enregistrement."));
         }
     }
 
@@ -122,16 +129,25 @@ public class CaisseManagementController {
         try {
             caisseService.deleteCaisse(id);
             redirectAttributes.addFlashAttribute("successMessage", "Caisse supprimée avec succès !");
+        } catch (DataIntegrityViolationException e) {
+            logger.warn("Tentative de suppression d'une caisse liée à d'autres enregistrements. ID: {}", id, e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Impossible de supprimer cette caisse car elle est liée à des sessions.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            logger.error("Erreur inattendue lors de la suppression de la caisse. ID: {}", id, e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Une erreur technique est survenue.");
         }
         return "redirect:/gestion-caisses?tab=caisses";
     }
 
     @PostMapping("/activate/{id}")
     public String activateCaisse(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        caisseService.activateCaisse(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Caisse activée avec succès !");
+        try {
+            caisseService.activateCaisse(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Caisse activée avec succès !");
+        } catch (Exception e) {
+            logger.error("Erreur inattendue lors de l'activation de la caisse. ID: {}", id, e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Une erreur technique est survenue lors de l'activation.");
+        }
         return "redirect:/gestion-caisses?tab=caisses";
     }
 
@@ -140,41 +156,142 @@ public class CaisseManagementController {
         try {
             caisseService.deactivateCaisse(id);
             redirectAttributes.addFlashAttribute("successMessage", "Caisse désactivée avec succès !");
-        } catch (Exception e) {
+        } catch (IllegalStateException e) {
+            logger.warn("Tentative de désactivation d'une caisse invalide. ID: {}. Message: {}", id, e.getMessage());
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        } catch (Exception e) {
+            logger.error("Erreur inattendue lors de la désactivation de la caisse. ID: {}", id, e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Une erreur technique est survenue lors de la désactivation.");
         }
-        return "redirect:/gestion-caisses?tab=caisses";
-    }
-
-    @PostMapping("/assigner")
-    public String assignerCaissier(@RequestParam Long caisseId, @RequestParam(required=false) Long utilisateurId, RedirectAttributes redirectAttributes) {
-        if (utilisateurId == null) {
-            Caisse caisse = caisseService.getCaisseById(caisseId).orElseThrow(() -> new RuntimeException("Caisse non trouvée"));
-            caisse.setUtilisateur(null);
-            caisseService.createCaisse(caisse);
-        } else {
-            caisseService.assignerCaissier(caisseId, utilisateurId);
-        }
-        redirectAttributes.addFlashAttribute("successMessage", "Caissier assigné avec succès !");
         return "redirect:/gestion-caisses?tab=caisses";
     }
 
     @GetMapping("/session-details/{id}")
     public String sessionDetails(@PathVariable Long id, Model model) {
         SessionCaisse sessionCaisse = sessionCaisseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Session de caisse non trouvée avec l'id : " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Session de caisse non trouvée avec l'id : " + id));
         List<Vente> ventes = caisseService.getVentesBySessionCaisse(sessionCaisse);
+        List<Vente> ventesNonAnnulees = ventes.stream()
+                .filter(v -> v.getStatus() != com.example.boutique.enums.VenteStatus.CANCELLED)
+                .toList();
 
-        double totalVentes = ventes.stream().map(Vente::getTotalFinal).mapToDouble(java.math.BigDecimal::doubleValue).sum();
-        int nombreVentes = ventes.size();
-        double venteMoyenne = (nombreVentes > 0) ? totalVentes / nombreVentes : 0.0;
+                double totalVentes = ventesNonAnnulees.stream().map(Vente::getTotalFinal).mapToDouble(java.math.BigDecimal::doubleValue).sum();
 
-        model.addAttribute("sessionCaisse", sessionCaisse);
-        model.addAttribute("ventes", ventes);
-        model.addAttribute("totalVentes", totalVentes);
-        model.addAttribute("nombreVentes", nombreVentes);
-        model.addAttribute("venteMoyenne", venteMoyenne);
+        
+
+                double totalVentesEspeces = ventesNonAnnulees.stream()
+
+                    .filter(v -> v.getMoyenPaiement() == MoyenPaiement.ESPECES)
+
+                    .mapToDouble(v -> v.getTotalFinal().doubleValue())
+
+                    .sum();
+
+                
+
+                double totalVentesCarte = ventesNonAnnulees.stream()
+
+                    .filter(v -> v.getMoyenPaiement() == MoyenPaiement.CARTE)
+
+                    .mapToDouble(v -> v.getTotalFinal().doubleValue())
+
+                    .sum();
+
+                    
+
+                double totalVentesMobile = ventesNonAnnulees.stream()
+
+                    .filter(v -> v.getMoyenPaiement() == MoyenPaiement.MOBILE)
+
+                    .mapToDouble(v -> v.getTotalFinal().doubleValue())
+
+                    .sum();
+
+        
+
+                double totalVentesCredit = ventesNonAnnulees.stream()
+
+                    .filter(v -> v.getMoyenPaiement() == MoyenPaiement.CREDIT)
+
+                    .mapToDouble(v -> v.getTotalFinal().doubleValue())
+
+                    .sum();
+
+        
+
+                int nombreVentes = ventesNonAnnulees.size();
+
+                double venteMoyenne = (nombreVentes > 0) ? totalVentes / nombreVentes : 0.0;
+
+        
+
+                java.math.BigDecimal theoreticalCashMontantFinal = sessionCaisse.getMontantInitial().add(java.math.BigDecimal.valueOf(totalVentesEspeces));
+
+                java.math.BigDecimal montantCompté = sessionCaisse.getMontantFinal();
+
+                java.math.BigDecimal ecartCalcule = (montantCompté != null) ? montantCompté.subtract(theoreticalCashMontantFinal) : null;
+
+        
+
+                model.addAttribute("sessionCaisse", sessionCaisse);
+
+                model.addAttribute("ventes", ventes);
+
+                model.addAttribute("totalVentes", totalVentes);
+
+                model.addAttribute("totalVentesEspeces", totalVentesEspeces);
+
+                model.addAttribute("totalVentesCarte", totalVentesCarte);
+
+                model.addAttribute("totalVentesMobile", totalVentesMobile);
+
+                model.addAttribute("totalVentesCredit", totalVentesCredit);
+
+                model.addAttribute("nombreVentes", nombreVentes);
+
+                model.addAttribute("venteMoyenne", venteMoyenne);
+
+                model.addAttribute("theoreticalCashMontantFinal", theoreticalCashMontantFinal);
+
+                model.addAttribute("montantCompté", montantCompté);
+
+                model.addAttribute("ecartCalcule", ecartCalcule);
 
         return "session-details";
+    }
+
+    @GetMapping("/session-details/{id}/pdf")
+    public ResponseEntity<byte[]> generateSessionPdf(@PathVariable Long id) throws IOException {
+        SessionCaisse sessionCaisse = sessionCaisseRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Session de caisse non trouvée avec l'id : " + id));
+        List<Vente> ventes = caisseService.getVentesBySessionCaisse(sessionCaisse);
+        List<Vente> ventesNonAnnulees = ventes.stream()
+                .filter(v -> v.getStatus() != com.example.boutique.enums.VenteStatus.CANCELLED)
+                .toList();
+
+        double totalVentes = ventesNonAnnulees.stream().map(Vente::getTotalFinal).mapToDouble(java.math.BigDecimal::doubleValue).sum();
+        int nombreVentes = ventesNonAnnulees.size();
+        double venteMoyenne = (nombreVentes > 0) ? totalVentes / nombreVentes : 0.0;
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("sessionCaisse", sessionCaisse);
+        data.put("ventes", ventes);
+        data.put("totalVentes", totalVentes);
+        data.put("nombreVentes", nombreVentes);
+        data.put("venteMoyenne", venteMoyenne);
+        data.put("now", LocalDateTime.now());
+
+        data.put("boutiqueNom", parametreService.getBoutiqueNom());
+        data.put("boutiqueAdresse", parametreService.getBoutiqueAdresse());
+        data.put("boutiqueTelephone", parametreService.getBoutiqueTelephone());
+
+        byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("recu-session-details", data);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        String filename = "recap-session-" + id + ".pdf";
+        headers.add("Content-Disposition", "inline; filename=\"" + filename + "\"");
+
+        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
     }
 }

@@ -26,32 +26,34 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
     @Autowired
     private SessionCaisseRepository sessionCaisseRepository;
 
+    @Autowired
+    private com.example.boutique.service.AuditService auditService;
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         Set<String> roles = AuthorityUtils.authorityListToSet(authentication.getAuthorities());
+        
+        // Log the login action
+        try {
+            auditService.logInfo("CONNEXION", "Utilisateur connecté avec les rôles: " + roles);
+        } catch (Exception e) {
+            // Silently fail if audit logging fails to avoid blocking login
+        }
 
         if (roles.contains("ROLE_ADMIN")) {
             response.sendRedirect("/dashboard");
         } else if (roles.contains("ROLE_GESTIONNAIRE")) {
             response.sendRedirect("/produits");
         } else if (roles.contains("ROLE_CAISSIER")) {
-            String username = authentication.getName();
-            Optional<Utilisateur> userOpt = utilisateurRepository.findByUsername(username);
+            // Vérifier si une session de caisse est déjà ouverte globalement
+            Optional<SessionCaisse> sessionOpt = sessionCaisseRepository.findFirstByDateFermetureIsNull();
 
-            if (userOpt.isPresent()) {
-                Utilisateur utilisateur = userOpt.get();
-                Optional<SessionCaisse> sessionOpt = sessionCaisseRepository.findFirstByUtilisateurAndDateFermetureIsNullOrderByDateOuvertureDesc(utilisateur);
-
-                if (sessionOpt.isEmpty()) {
-                    // No open session, redirect to open cash register page
-                    response.sendRedirect("/caisse/ouvrir");
-                } else {
-                    // Session already open, proceed to cashier page
-                    response.sendRedirect("/caissier");
-                }
+            if (sessionOpt.isEmpty()) {
+                // Aucune session ouverte dans le magasin, rediriger vers la page d'ouverture
+                response.sendRedirect("/caisse/ouvrir");
             } else {
-                // Should not happen if authentication is successful
-                response.sendRedirect("/login?error");
+                // Une session est déjà ouverte, rediriger directement vers l'interface de vente
+                response.sendRedirect("/caissier");
             }
         } else {
             response.sendRedirect("/"); // Fallback

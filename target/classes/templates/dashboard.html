@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin</title>
+    <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -60,7 +61,7 @@
     <!-- Cartes Statistiques -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
         <h3 class="text-xl font-semibold text-gray-800 mb-4">Statistiques Clés</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Carte Total Produits -->
             <div class="bg-gray-50 rounded-lg p-4">
                 <div class="flex items-center justify-between">
@@ -82,7 +83,7 @@
                 </div>
             </div>
             <!-- Carte Total Personnel -->
-            <div class="bg-gray-50 rounded-lg p-4">
+            <div class="bg-gray-50 rounded-lg p-4 hidden">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">Total Personnel</p>
@@ -102,7 +103,7 @@
                 </div>
             </div>
             <!-- Carte Valeur du Stock -->
-            <div class="bg-gray-50 rounded-lg p-4">
+            <div class="bg-gray-50 rounded-lg p-4 hidden">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">Valeur du Stock</p>
@@ -112,7 +113,7 @@
                 </div>
             </div>
             <!-- Carte Ventes du Jour -->
-            <div class="bg-gray-50 rounded-lg p-4">
+            <div class="bg-gray-50 rounded-lg p-4 hidden">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">Ventes du Jour</p>
@@ -122,7 +123,7 @@
                 </div>
             </div>
             <!-- Carte CA Aujourd'hui -->
-            <div class="bg-gray-50 rounded-lg p-4">
+            <div class="bg-gray-50 rounded-lg p-4 hidden">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">CA Aujourd'hui</p>
@@ -132,7 +133,7 @@
                 </div>
             </div>
             <!-- Carte CA du Mois -->
-            <div class="bg-gray-50 rounded-lg p-4">
+            <div class="bg-gray-50 rounded-lg p-4 hidden">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">CA du Mois</p>
@@ -147,6 +148,14 @@
 
     <!-- Section Principale: Graphiques et Activités -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+        <!-- Graphique des Ventes -->
+        <div class="lg:col-span-3 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Ventes des 7 derniers jours</h3>
+            <div>
+                <canvas id="ventesChart"></canvas>
+            </div>
+        </div>
+
         <!-- Graphique d'activité -->
         <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Activité des 7 derniers jours (Entrées/Sorties)</h3>
@@ -331,6 +340,61 @@
                 }
             }
         });
+
+        // Fetch and render Sales Chart
+        fetch('/dashboard/api/ventes-par-jour?jours=7')
+            .then(response => response.json())
+            .then(salesData => {
+                const ventesCtx = document.getElementById('ventesChart').getContext('2d');
+                new Chart(ventesCtx, {
+                    type: 'line',
+                    data: {
+                        labels: salesData.labels,
+                        datasets: [{
+                            label: 'Chiffre d\'affaires (FCFA)',
+                            data: salesData.data,
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value, index, values) {
+                                        return new Intl.NumberFormat('fr-FR').format(value) + ' FCFA';
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            label += new Intl.NumberFormat('fr-FR').format(context.parsed.y) + ' FCFA';
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
     });
     /*]]>*/
 </script>

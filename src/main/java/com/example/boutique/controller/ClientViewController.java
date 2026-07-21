@@ -14,6 +14,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -23,6 +25,8 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/clients")
 public class ClientViewController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ClientViewController.class);
 
     private final ClientRepository clientRepository;
     private final VenteRepository venteRepository;
@@ -76,9 +80,11 @@ public class ClientViewController {
             String message = (client.getId() == null) ? "Client ajouté avec succès." : "Client modifié avec succès.";
             return ResponseEntity.ok(Map.of("success", true, "message", message));
         } catch (DataIntegrityViolationException e) {
+            logger.warn("Tentative de sauvegarde d'un client avec un nom ou téléphone existant: {}", client.getNom(), e);
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Un client avec ce nom ou ce téléphone existe déjà."));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur lors de l'enregistrement du client."));
+            logger.error("Erreur inattendue lors de l'enregistrement du client.", e);
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Une erreur technique est survenue lors de l'enregistrement."));
         }
     }
 
@@ -87,8 +93,12 @@ public class ClientViewController {
         try {
             clientRepository.deleteById(id);
             redirectAttributes.addFlashAttribute("successMessage", "Client supprimé avec succès !");
+        } catch (DataIntegrityViolationException e) {
+            logger.warn("Tentative de suppression d'un client lié à des ventes. ID: {}", id, e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Impossible de supprimer ce client car il est associé à des ventes.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Erreur : Impossible de supprimer ce client. Il est peut-être associé à des ventes.");
+            logger.error("Erreur inattendue lors de la suppression du client. ID: {}", id, e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Une erreur technique est survenue.");
         }
         return "redirect:/clients";
     }
@@ -97,7 +107,7 @@ public class ClientViewController {
     @GetMapping("/{id}/credits")
     public String getClientCreditSales(@PathVariable Long id, Model model) {
         Client client = clientRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Client non trouvé avec l'id : " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Client non trouvé avec l'id : " + id));
         List<VenteCreditDto> creditSales = venteRepository.findCreditSalesByClientId(id);
 
         BigDecimal totalCreditSales = creditSales.stream()

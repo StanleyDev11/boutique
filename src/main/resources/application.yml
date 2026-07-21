@@ -1,19 +1,21 @@
 spring:
   application:
     name: boutique
-  
+
   # --- Configuration de la base de données (MySQL Active) ---
   datasource:
-    url: jdbc:mysql://localhost/:3306/belaluxe_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://localhost/:3306/popo?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
     username: root
     password: ''
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
 
   # --- Configuration JPA ---
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     database-platform: org.hibernate.dialect.MySQLDialect
 
 # --- Configuration pour PostgreSQL (Inactive) ---
@@ -27,3 +29,13 @@ spring:
 
 server:
   port: 8085
+  servlet:
+    session:
+      timeout: 110m
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,loggers
+

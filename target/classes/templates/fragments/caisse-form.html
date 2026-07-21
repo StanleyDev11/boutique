@@ -19,19 +19,6 @@
             </div>
         </div>
 
-        <div class="mb-4">
-            <label for="utilisateur" class="block text-gray-700 text-sm font-bold mb-2">Caissier</label>
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i class="fas fa-user text-gray-400"></i>
-                </div>
-                <select id="utilisateur" th:field="*{utilisateur}" class="pl-10 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    <option value="">Non assigné</option>
-                    <option th:each="caissier : ${caissiers}" th:value="${caissier.id}" th:text="${caissier.username}"></option>
-                </select>
-            </div>
-        </div>
-
         
     </form>
 </div>

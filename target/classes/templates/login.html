@@ -3,21 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion Sécurisée - BELALUXE</title>
+    <title>Connexion | BelaLuxe</title>
+    <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/feather-icons"></script>
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: '#3B82F6',
-                        secondary: '#10B981',
-                        supermarket: {
-                            primary: '#2563eb',
-                            accent: '#059669',
-                            light: '#f0f9ff'
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    animation: {
+                        'gradient': 'gradient 8s linear infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        gradient: {
+                            '0%, 100%': { 'background-size': '200% 200%', 'background-position': 'left center' },
+                            '50%': { 'background-size': '200% 200%', 'background-position': 'right center' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
                         }
                     }
                 }
@@ -25,224 +44,191 @@
         }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0fdf4 100%);
-            min-height: 100vh;
-            position: relative;
-            overflow-x: hidden;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
         
-        .auth-card {
-            backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.92);
-            border-radius: 1.5rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.5);
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow: hidden;
         }
-        .auth-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
-        .input-field {
-            transition: all 0.3s ease;
+
+        .custom-gradient {
+            background: linear-gradient(-45deg, #0ea5e9, #2563eb, #7c3aed, #db2777);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
         }
-        .input-field:focus-within {
+
+        .input-group:focus-within label {
+            color: #0ea5e9;
             transform: translateY(-2px);
         }
-        .supermarket-badge {
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
+
+        .input-group:focus-within .input-icon {
+            color: #0ea5e9;
         }
-        .floating-icon {
-            animation: float 6s ease-in-out infinite;
+
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
         }
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #3B82F6 0%, #2563eb 100%);
-            transition: all 0.3s ease;
-        }
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4);
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
-<body class="flex items-center justify-center p-4">
-<!-- Floating Icons -->
-<div class="fixed top-10 left-10 floating-icon opacity-20">
-    <i data-feather="shopping-cart" class="text-supermarket-primary w-12 h-12"></i>
-</div>
-<div class="fixed top-20 right-20 floating-icon opacity-20" style="animation-delay: 1s;">
-    <i data-feather="package" class="text-supermarket-accent w-10 h-10"></i>
-</div>
-<div class="fixed bottom-20 left-20 floating-icon opacity-20" style="animation-delay: 2s;">
-    <i data-feather="dollar-sign" class="text-supermarket-primary w-8 h-8"></i>
-</div>
-<div class="fixed bottom-10 right-10 floating-icon opacity-20" style="animation-delay: 3s;">
-    <i data-feather="bar-chart-2" class="text-supermarket-accent w-9 h-9"></i>
-</div>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-0 sm:p-4">
 
-<div class="auth-card w-full max-w-lg p-8 sm:p-10">
-    <div class="text-center mb-8">
-        <div class="flex justify-center mb-4">
-            <div class="relative">
-                <div class="absolute -inset-4 bg-supermarket-primary rounded-full opacity-10"></div>
-                <img th:src="@{/loo.jpg}" alt="BELALUXE Logo" class="h-20 w-auto relative z-10">
-            </div>
-        </div>
-        <h1 class="text-2xl font-bold text-gray-800 mb-2">Bienvenue chez BELALUXE</h1>
-        <p class="text-gray-600 mb-4">Système de gestion de supermarché</p>
-        <div class="supermarket-badge inline-flex">
-            <i data-feather="shield" class="w-4 h-4 mr-1"></i>
-            <span>Connexion sécurisée</span>
-        </div>
+    <!-- Background Decoration -->
+    <div class="fixed inset-0 z-0">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-400/20 blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-400/20 blur-[120px]"></div>
     </div>
 
-    <form th:action="@{/login}" method="post" class="space-y-6">
-        <!-- Error Message -->
-        <div th:if="${param.error}" class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-            <div class="flex items-center">
-                <i data-feather="alert-circle" class="text-red-500 mr-2"></i>
-                <p class="text-red-700 font-medium">Nom d'utilisateur ou mot de passe invalide</p>
-            </div>
-        </div>
-
-        <!-- Success Message (if needed) -->
-        <div id="logout-message" th:if="${param.logout}" class="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
-            <div class="flex items-center">
-                <i data-feather="check-circle" class="text-green-500 mr-2"></i>
-                <p class="text-green-700 font-medium">Vous avez été déconnecté avec succès</p>
-            </div>
-        </div>
-
-        <div class="input-field">
-            <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Nom d'utilisateur</label>
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i data-feather="user" class="text-gray-400"></i>
-                </div>
-                <input type="text" id="username" name="username"
-                       class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-supermarket-primary focus:border-transparent transition-all duration-300"
-                       placeholder="Entrez votre nom d'utilisateur" required autofocus>
-            </div>
-        </div>
-
-        <div class="input-field">
-            <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i data-feather="key" class="text-gray-400"></i>
-                </div>
-                <input type="password" id="password" name="password"
-                       class="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-supermarket-primary focus:border-transparent transition-all duration-300"
-                       placeholder="Entrez votre mot de passe" required>
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer" id="togglePassword">
-                    <i data-feather="eye-off" class="text-gray-400 hover:text-gray-600 transition-colors"></i>
-                </div>
-            </div>
-        </div>
-
+    <main class="relative z-10 w-full max-w-[1000px] flex flex-col md:flex-row shadow-2xl rounded-none sm:rounded-[2rem] overflow-hidden min-h-[600px] bg-white">
         
+        <!-- Left Side: Visual/Branding -->
+        <div class="hidden md:flex md:w-1/2 custom-gradient p-12 text-white flex-col justify-between relative overflow-hidden">
+            <!-- Decorative circles -->
+            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-white/10 blur-3xl"></div>
+            <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 rounded-full bg-black/10 blur-3xl"></div>
 
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            <div class="relative z-10">
+                <div class="flex items-center space-x-3 mb-8">
+                    <img th:src="@{${boutiqueLogo}}" alt="BelaLuxe Logo" class="h-12 w-auto brightness-0 invert">
+                    <span class="text-2xl font-extrabold tracking-tight italic" th:text="${boutiqueNom}">BelaLuxe</span>
+                </div>
+                
+                <h2 class="text-4xl font-extrabold leading-tight mb-4">Simplifiez la gestion de votre boutique.</h2>
+                <p class="text-blue-100 text-lg font-light leading-relaxed">Accédez à votre tableau de bord, suivez vos stocks et gérez vos ventes en temps réel.</p>
+            </div>
 
-        <button type="submit"
-                class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white btn-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-supermarket-primary">
-            <i data-feather="log-in" class="mr-2"></i> Se connecter
-        </button>
-    </form>
+            <div class="relative z-10 mt-auto">
+                <div class="flex items-center space-x-4 p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
+                    <div class="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                        <i class="fas fa-shield-halved text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold">Espace Sécurisé</p>
+                        <p class="text-xs text-blue-100">Chiffrement AES-256 bits actif</p>
+                    </div>
+                </div>
+                <p class="text-xs text-blue-200/60 mt-6">&copy; 2025 BelaLuxe System. Tous droits réservés.</p>
+            </div>
+        </div>
 
-    <div class="mt-8 pt-6 border-t border-gray-200 text-center">
-        <p class="text-xs text-gray-500">
-            &copy; 2025 BELALUXE Supermarché. Tous droits réservés.
-            <br>
-            <span class="inline-flex items-center mt-1">
-                    <i data-feather="lock" class="w-3 h-3 mr-1"></i>
-                    Sécurité garantie
-                </span>
-        </p>
-    </div>
-</div>
+        <!-- Right Side: Login Form -->
+        <div class="w-full md:w-1/2 p-8 sm:p-12 lg:p-16 flex flex-col justify-center bg-white relative">
+            
+            <!-- Mobile Logo -->
+            <div class="md:hidden flex flex-col items-center mb-10">
+                <img th:src="@{${boutiqueLogo}}" alt="Logo" class="h-16 w-auto mb-4">
+                <h1 class="text-3xl font-extrabold text-gray-900" th:text="${boutiqueNom}">BelaLuxe</h1>
+            </div>
 
-<script>
-    feather.replace();
+            <div class="fade-in">
+                <h3 class="text-3xl font-extrabold text-gray-900 mb-2">Bon retour !</h3>
+                <p class="text-gray-500 mb-8 font-medium">Veuillez vous identifier pour continuer.</p>
 
-    // Animate the form on load
-    document.addEventListener('DOMContentLoaded', () => {
-        const logoutMessage = document.getElementById('logout-message');
-        if (logoutMessage) {
-            setTimeout(() => {
-                logoutMessage.style.transition = 'opacity 0.5s ease';
-                logoutMessage.style.opacity = '0';
+                <!-- Feedback Messages -->
+                <div th:if="${param.error}" class="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 flex items-start space-x-3 text-red-600 animate-shake">
+                    <i class="fas fa-circle-exclamation mt-1"></i>
+                    <p class="text-sm font-semibold leading-tight">Identifiants incorrects. Veuillez réessayer.</p>
+                </div>
+
+                <div th:if="${param.logout}" class="mb-6 p-4 rounded-xl bg-blue-50 border border-blue-100 flex items-start space-x-3 text-blue-600">
+                    <i class="fas fa-circle-check mt-1"></i>
+                    <p class="text-sm font-semibold leading-tight">Vous avez été déconnecté. À bientôt !</p>
+                </div>
+
+                <div th:if="${param.expired}" class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-100 flex items-start space-x-3 text-amber-600">
+                    <i class="fas fa-hourglass-end mt-1"></i>
+                    <p class="text-sm font-semibold leading-tight">Session expirée. Merci de vous reconnecter.</p>
+                </div>
+
+                <!-- Form -->
+                <form th:action="@{/login}" method="post" class="space-y-6">
+                    <div class="input-group">
+                        <label for="username" class="block text-sm font-bold text-gray-700 mb-2 ml-1 transition-all duration-300">Nom d'utilisateur</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i class="fas fa-user text-gray-400 input-icon transition-colors duration-300"></i>
+                            </div>
+                            <input type="text" id="username" name="username" required autofocus
+                                class="block w-full pl-11 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all duration-300 font-medium"
+                                placeholder="ex: jean.dupont">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="flex justify-between items-center mb-2 ml-1">
+                            <label for="password" class="block text-sm font-bold text-gray-700 transition-all duration-300">Mot de passe</label>
+                        </div>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i class="fas fa-lock text-gray-400 input-icon transition-colors duration-300"></i>
+                            </div>
+                            <input type="password" id="password" name="password" required
+                                class="block w-full pl-11 pr-12 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all duration-300 font-medium"
+                                placeholder="••••••••••••">
+                            <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-blue-500 transition-colors duration-300">
+                                <i class="fas fa-eye-slash text-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                    <button type="submit" class="w-full py-4 px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold shadow-lg shadow-blue-500/30 transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center space-x-2">
+                        <span>Se connecter</span>
+                        <i class="fas fa-arrow-right text-sm"></i>
+                    </button>
+                </form>
+
+                <div class="mt-10 text-center">
+                    <div class="flex items-center justify-center space-x-4">
+                        <div class="h-px w-8 bg-gray-200"></div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Aide & Support</p>
+                        <div class="h-px w-8 bg-gray-200"></div>
+                    </div>
+                    <p class="mt-4 text-sm text-gray-500">Contactez l'administrateur en cas de problème.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const togglePassword = document.querySelector('#togglePassword');
+            const password = document.querySelector('#password');
+
+            togglePassword.addEventListener('click', () => {
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+                
+                const icon = togglePassword.querySelector('i');
+                icon.classList.toggle('fa-eye');
+                icon.classList.toggle('fa-eye-slash');
+            });
+
+            // Smooth entrance animation
+            const formInputs = document.querySelectorAll('.input-group');
+            formInputs.forEach((el, i) => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(10px)';
                 setTimeout(() => {
-                    logoutMessage.style.display = 'none';
-                }, 500); // wait for the transition to finish
-            }, 5000); // 5 seconds
-        }
-
-        const inputs = document.querySelectorAll('.input-field');
-        inputs.forEach((input, index) => {
-            input.style.opacity = '0';
-            input.style.transform = 'translateY(20px)';
-            setTimeout(() => {
-                input.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-                input.style.opacity = '1';
-                input.style.transform = 'translateY(0)';
-            }, 100 * index);
+                    el.style.transition = 'all 0.5s ease-out';
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 200 + (i * 100));
+            });
         });
-
-        // Animate the auth card
-        const authCard = document.querySelector('.auth-card');
-        authCard.style.opacity = '0';
-        authCard.style.transform = 'scale(0.9)';
-        setTimeout(() => {
-            authCard.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-            authCard.style.opacity = '1';
-            authCard.style.transform = 'scale(1)';
-        }, 300);
-    });
-
-    const togglePassword = document.querySelector('#togglePassword');
-    const password = document.querySelector('#password');
-
-    togglePassword.addEventListener('click', function (e) {
-        // toggle the type attribute
-        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-        password.setAttribute('type', type);
-        // toggle the eye icon
-        const icon = this.querySelector('i');
-        if (type === 'password') {
-            icon.setAttribute('data-feather', 'eye-off');
-        } else {
-            icon.setAttribute('data-feather', 'eye');
-        }
-        feather.replace(); // Re-render feather icons
-    });
-
-    // Add subtle hover effect to inputs
-    const inputElements = document.querySelectorAll('input[type="text"], input[type="password"]');
-    inputElements.forEach(input => {
-        input.addEventListener('focus', () => {
-            input.parentElement.parentElement.classList.add('input-field-focused');
-        });
-        input.addEventListener('blur', () => {
-            input.parentElement.parentElement.classList.remove('input-field-focused');
-        });
-    });
-</script>
+    </script>
 </body>
 </html>

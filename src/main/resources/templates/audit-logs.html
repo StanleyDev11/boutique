@@ -1,0 +1,92 @@
+﻿<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Journaux d''Audit | ' + ${boutiqueNom}">Journaux d'Audit</title>
+    <link rel="stylesheet" href="/vendor/tailwind/tailwind.css">
+    <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Journaux d\'Audit')}"></div>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-6 border-b border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900">Activités du Système</h2>
+                    <p class="text-sm text-gray-500">Suivi des actions utilisateurs et des erreurs système.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="window.location.reload()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center">
+                        <i class="fas fa-sync-alt mr-2"></i>Actualiser
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Date & Heure</th>
+                            <th class="hidden md:table-cell px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Utilisateur</th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Action</th>
+                            <th class="hidden lg:table-cell px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Détails</th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500 text-center">Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <tr th:each="log : ${logs.content}" class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900" th:text="${#temporals.format(log.timestamp, 'dd/MM/yyyy HH:mm:ss')}"></div>
+                                <div class="text-[10px] text-gray-400 font-mono" th:text="${log.adresseIp}">127.0.0.1</div>
+                            </td>
+                            <td class="hidden md:table-cell px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs mr-3">
+                                        <span th:text="${#strings.substring(log.utilisateur, 0, 1).toUpperCase()}">U</span>
+                                    </div>
+                                    <span class="text-sm font-semibold text-gray-700" th:text="${log.utilisateur}">Admin</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="text-sm font-bold" th:text="${log.action}">CONNEXION</span>
+                                <div th:if="${log.entite}" class="text-[10px] font-bold text-blue-500 uppercase tracking-tight" th:text="${log.entite + ' #' + log.entiteId}">PRODUIT #1</div>
+                            </td>
+                            <td class="hidden lg:table-cell px-6 py-4">
+                                <p class="text-sm text-gray-600 line-clamp-2" th:text="${log.detail}">Détails de l'action...</p>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <span th:class="${'px-3 py-1 rounded-full text-[10px] font-extrabold uppercase ' + 
+                                    (log.type == 'ERROR' ? 'bg-red-100 text-red-700' : 
+                                     log.type == 'WARNING' ? 'bg-amber-100 text-amber-700' : 
+                                     'bg-green-100 text-green-700')}" 
+                                      th:text="${log.type}">INFO</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(logs.content)}">
+                            <td colspan="5" class="px-6 py-12 text-center">
+                                <i class="fas fa-clipboard-list text-gray-300 text-5xl mb-4 block"></i>
+                                <p class="text-gray-500">Aucun log enregistré pour le moment.</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div th:if="${logs.totalPages > 1}" class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+                <p class="text-sm text-gray-700">
+                    Affichage de <span class="font-bold" th:text="${logs.size * logs.number + 1}">1</span> à 
+                    <span class="font-bold" th:text="${logs.size * logs.number + logs.numberOfElements}">20</span> sur 
+                    <span class="font-bold" th:text="${logs.totalElements}">100</span> entrées
+                </p>
+                <div class="flex space-x-2">
+                    <a th:if="${logs.hasPrevious()}" th:href="@{/admin/audit(page=${logs.number - 1})}" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-bold bg-white hover:bg-gray-100 transition">Précédent</a>
+                    <a th:if="${logs.hasNext()}" th:href="@{/admin/audit(page=${logs.number + 1})}" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-bold bg-white hover:bg-gray-100 transition">Suivant</a>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

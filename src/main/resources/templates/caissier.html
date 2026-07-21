@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
@@ -6,12 +6,13 @@
   <title>Caissier Pro - Interface Caissier</title>
   <meta name="_csrf" th:content="${_csrf.token}"/>
   <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
+  <link rel="stylesheet" href="/vendor/tailwind/tailwind.css">
+  <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css">
+  <script src="/vendor/sweetalert2/sweetalert2.all.min.js"></script>
   
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    @import url('/vendor/fonts/fonts.css');
 
     body {
       font-family: 'Inter', sans-serif;
@@ -112,12 +113,12 @@
 <div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Caisse')}"></div>
 
 <div class="flex flex-col md:flex-row h-[calc(100vh-5rem)]">
-  <!-- Left Sidebar - Product Navigation -->
-  <aside class="w-full md:w-[42rem] bg-white shadow-lg p-6 overflow-y-auto">
-    <div class="mb-8">
-      <h2 class="text-xl font-bold mb-4 text-gray-800 flex items-center">
-        <i class="fas fa-filter mr-3 text-indigo-500"></i> Filtres de recherche
-      </h2>
+      <!-- Left Sidebar - Product Navigation -->
+      <aside class="w-full md:w-[42rem] bg-white shadow-lg p-6 overflow-y-auto">
+        <div class="mb-8">
+          <h2 class="text-xl font-bold mb-4 text-gray-800 flex items-center">
+            <i class="fas fa-filter mr-3 text-indigo-500"></i> Filtres de recherche
+          </h2>
       <div class="space-y-4">
         <div class="relative">
           <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
@@ -144,10 +145,11 @@
       <div th:each="produit : ${produits}"
            class="product-card p-4 rounded-xl glass-card cursor-pointer"
            th:data-id="${produit.id}" th:data-nom="${produit.nom}"
-           th:data-prix="${produit.prixVenteUnitaire}"
+           th:data-prix="${(produit.promotionActive and produit.prixPromotionnel != null) ? produit.prixPromotionnel : produit.prixVenteUnitaire}"
            th:data-categorie="${produit.categorie}"
            th:data-codebarres="${produit.codeBarres}"
-           th:data-stock="${produit.quantiteEnStock}">
+           th:data-stock="${produit.quantiteEnStock}"
+           th:data-unite="${produit.uniteDeVente}">
         <div class="flex justify-between items-start">
           <div class="flex-1">
             <h3 class="font-semibold text-gray-800" th:text="${produit.nom}"></h3>
@@ -166,7 +168,10 @@
           </span>
         </div>
         <div class="flex justify-between items-center mt-3">
-          <p class="text-lg font-bold text-indigo-600" th:text="${#numbers.formatDecimal(produit.prixVenteUnitaire, 0, 'COMMA', 2, 'POINT')} + ' FCFA'"></p>
+          <div class="flex items-center">
+            <p class="text-lg font-bold text-indigo-600" th:text="${#numbers.formatInteger((produit.promotionActive and produit.prixPromotionnel != null) ? produit.prixPromotionnel : produit.prixVenteUnitaire, 0, 'POINT')} + ' FCFA'"></p>
+            <span th:if="${produit.promotionActive and produit.prixPromotionnel != null}" class="ml-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md">PROMO</span>
+          </div>
           <button class="text-indigo-500 hover:text-indigo-700 transition-colors">
             <i class="fas fa-plus-circle text-xl"></i>
           </button>
@@ -291,8 +296,9 @@
     </div>
   </div>
   <div class="text-xs text-gray-500">
-    BELALUXE Supermarché &copy; 2025
+    <span th:text="${boutiqueNom}">Ma boutique</span> &copy; <span th:text="${#temporals.year(#temporals.createNow())}">2025</span>
   </div>
+</div>
 </div>
 
 <!-- Scripts -->
@@ -301,20 +307,14 @@
   const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
   const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
   const initialClients = /*[[${clients}]]*/ [];
+  const boutiqueNom = /*[[${boutiqueNom}]]*/ 'Ma boutique';
+  const boutiqueAdresse = /*[[${boutiqueAdresse}]]*/ 'Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo';
+  const boutiqueTelephone = /*[[${boutiqueTelephone}]]*/ 'Tél: (+228) 96 00 01 89 / 90 12 34 30';
 
   // --- Global State ---
   let tabs = [];
   let activeTabIndex = 0;
   let nextTabId = 1;
-
-  function saveState() {
-      const state = {
-          tabs: tabs,
-          activeTabIndex: activeTabIndex,
-          nextTabId: nextTabId
-      };
-      localStorage.setItem('cashierState', JSON.stringify(state));
-  }
 
   document.addEventListener('DOMContentLoaded', function() {
       // --- DOM Elements ---
@@ -341,38 +341,119 @@
       const removeClientBtn = document.getElementById('remove-client-btn');
       const clientSearchSection = document.getElementById('client-search-section');
 
-      // --- State Loading ---
-      function loadState() {
-          const savedState = localStorage.getItem('cashierState');
-          if (savedState) {
-              const state = JSON.parse(savedState);
-              tabs = state.tabs;
-              activeTabIndex = state.activeTabIndex;
-              nextTabId = state.nextTabId;
-              if (activeTabIndex >= tabs.length) {
-                  activeTabIndex = tabs.length - 1;
-              }
+      // --- Barcode Scanner Logic ---
+      let barcodeBuffer = '';
+      let barcodeTimer = null;
+
+      document.addEventListener('keydown', function(e) {
+          // Ignore input if user is typing in a text field
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+              return;
           }
-          if (tabs.length === 0) {
-              tabs = [{ id: 1, cart: [], selectedClient: null, discountAmount: 0 }];
-              activeTabIndex = 0;
-              nextTabId = 2;
+
+          if (e.key === 'Enter') {
+              if (barcodeBuffer.length > 2) { // Basic validation for barcode length
+                  handleScan(barcodeBuffer);
+              }
+              barcodeBuffer = '';
+              e.preventDefault();
+          } else if (e.key.length === 1) { // Append character keys
+              barcodeBuffer += e.key;
+          }
+
+          // Clear buffer after a short delay to distinguish from manual typing
+          clearTimeout(barcodeTimer);
+          barcodeTimer = setTimeout(() => {
+              barcodeBuffer = '';
+          }, 100); // 100ms delay
+      });
+
+      function handleScan(barcode) {
+          const productCard = document.querySelector(`.product-card[data-codebarres="${barcode}"]`);
+          if (productCard) {
+              const { id, nom, prix, stock } = productCard.dataset;
+              addToCart(id, nom, parseFloat(prix), 1, parseInt(stock));
+          } else {
+              Toast.fire({ icon: 'error', title: 'Produit non trouvé', text: `Aucun produit avec le code-barres ${barcode}` });
           }
       }
 
       // --- Initialization ---
-      loadState();
+      async function loadTabsFromDB() {
+          try {
+              const response = await fetch('/api/paniers');
+              if (!response.ok) throw new Error('Could not fetch tabs.');
+              const savedTabs = await response.json();
+
+              if (savedTabs && savedTabs.length > 0) {
+                  // Correction: Assurer que l'ID de l'onglet est bien le tabId de la DB
+                  tabs = savedTabs.map(t => {
+                      const cartData = JSON.parse(t.cartData);
+                      cartData.id = t.tabId; // L'ID principal de l'onglet est le tabId
+                      cartData.dbId = t.id; // Stocker l'ID de la DB (PK) séparément
+                      return cartData;
+                  });
+                  // Correction: Utiliser tabId (maintenant 't.id') pour trouver le max
+                  const maxId = Math.max(0, ...tabs.map(t => t.id));
+                  nextTabId = maxId + 1;
+              } else {
+                  // Create a default tab if none exist
+                  tabs = [{ id: 1, cart: [], selectedClient: null, discountAmount: 0, discountPercentage: 0 }];
+                  nextTabId = 2;
+                  // Save this new default tab to the backend
+                  await saveActiveTabToDB();
+              }
+              activeTabIndex = 0;
+              switchTab(activeTabIndex);
+          } catch (error) {
+              console.error("Error loading tabs:", error);
+              Swal.fire('Erreur de chargement', 'Impossible de charger les paniers existants.', 'error');
+              // Fallback to a single default tab
+              tabs = [{ id: 1, cart: [], selectedClient: null, discountAmount: 0, discountPercentage: 0 }];
+              activeTabIndex = 0;
+              nextTabId = 2;
+              switchTab(activeTabIndex);
+          }
+      }
+
+      loadTabsFromDB();
       searchInput.focus();
-      switchTab(activeTabIndex);
+      // switchTab is now called inside loadTabsFromDB
+      // switchTab(activeTabIndex);
 
       const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true });
 
       // --- Tab Management ---
+      async function saveActiveTabToDB() {
+          const activeTab = tabs[activeTabIndex];
+          if (!activeTab) return;
+
+          const payload = {
+              tabId: activeTab.id,
+              cartData: JSON.stringify(activeTab) // sérialise tout l'objet tab
+          };
+
+          try {
+              const response = await fetch('/api/paniers', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
+                  body: JSON.stringify(payload)
+              });
+              if (!response.ok) throw new Error('Failed to save tab.');
+              const savedTab = await response.json();
+              // Mettre à jour l'ID de la base de données sur l'onglet si ce n'était pas déjà fait
+              activeTab.dbId = savedTab.id;
+          } catch (error) {
+              console.error('Error saving tab:', error);
+              Toast.fire({ icon: 'error', title: 'Erreur de sauvegarde', text: 'Le panier n\'a pas pu être sauvegardé.' });
+          }
+      }
+
       function renderTabs() {
           tabsContainer.innerHTML = '';
           tabs.forEach((tab, index) => {
               const tabButton = document.createElement('button');
-              tabButton.className = `px-4 py-2 rounded-lg text-sm font-medium flex items-center transition-all duration-300 ` +
+              tabButton.className = `px-4 py-2 rounded-lg text-sm font-medium flex items-center transition-all duration-300 relative ` +
                   (index === activeTabIndex ? 'tab-active shadow' : 'bg-white text-gray-600 hover:bg-indigo-50 shadow-sm');
               let content = `Caisse ${tab.id}`;
               if (tab.cart.length > 0) {
@@ -381,15 +462,35 @@
               if (tab.selectedClient) {
                   content += ` <i class="fas fa-user ml-2 text-xs"></i>`;
               }
+              // Le bouton de fermeture a été supprimé comme demandé.
+
               tabButton.innerHTML = content;
-              tabButton.addEventListener('click', () => switchTab(index));
+              tabButton.addEventListener('click', (e) => {
+                  switchTab(index);
+              });
+
               tabsContainer.appendChild(tabButton);
           });
-          saveState();
       }
 
-      function addNewTab() {
-          tabs.push({ id: nextTabId++, cart: [], selectedClient: null, discountAmount: 0 });
+      async function deleteTabFromDatabase(tabId) {
+          try {
+              const response = await fetch(`/api/paniers/${tabId}`, {
+                  method: 'DELETE',
+                  headers: { [csrfHeader]: csrfToken }
+              });
+              if (!response.ok) throw new Error('Failed to delete tab.');
+          } catch (error) {
+              console.error('Error deleting tab:', error);
+              Toast.fire({ icon: 'error', title: 'Erreur de suppression', text: 'Le panier n\'a pas pu être supprimé.' });
+          }
+      }
+
+      async function addNewTab() {
+          const newTabObject = { id: nextTabId++, cart: [], selectedClient: null, discountAmount: 0, discountPercentage: 0 };
+          tabs.push(newTabObject);
+          activeTabIndex = tabs.length - 1;
+          await saveActiveTabToDB(); // Sauvegarde le nouvel onglet
           switchTab(tabs.length - 1);
       }
 
@@ -425,27 +526,33 @@
       });
 
       function displaySaleDetails(productData) {
-          const { id, nom, prix, stock } = productData;
+          const { id, nom, prix, stock, unite } = productData;
           const itemInCart = tabs[activeTabIndex].cart.find(item => item.id === id);
           const qtyInCart = itemInCart ? itemInCart.quantity : 0;
-          const availableStock = stock - qtyInCart;
+          const availableStock = parseFloat(stock) - qtyInCart;
+          
+          const isDecimal = unite && unite !== 'PIECE';
+          const step = isDecimal ? '0.01' : '1';
+          const initialValue = isDecimal ? '0.0' : '1';
+
+
           productDetailsContent.innerHTML = `
               <div class="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-xl mb-4">
                   <h3 class="font-bold text-lg text-gray-800">${nom}</h3>
                   <div class="flex justify-between items-center mt-2">
-                      <p class="text-indigo-600 font-semibold">${parseFloat(prix).toFixed(2)} FCFA</p>
+                      <p class="text-indigo-600 font-semibold">${Math.trunc(parseFloat(prix))} FCFA / ${unite || 'Pièce'}</p>
                       <span class="text-sm ${availableStock <= 5 ? 'text-amber-600' : 'text-green-600'} font-medium">
-                          Stock: ${availableStock} disponible(s)
+                          Stock: ${availableStock} ${unite || ''}
                       </span>
                   </div>
               </div>
               <div class="mt-4">
                   <label for="quantity" class="block text-sm font-medium text-gray-700 mb-2">Quantité à ajouter</label>
-                  <input type="number" id="quantity" value="1" min="1" max="${availableStock}"
+                  <input type="number" id="quantity" value="${initialValue}" min="${step}" step="${step}" max="${availableStock}"
                          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
               </div>
               <div class="mt-4 bg-gray-50 p-4 rounded-xl">
-                  <p class="font-bold text-gray-800">Total: <span id="total-price" class="text-indigo-600">${parseFloat(prix).toFixed(2)}</span> FCFA</p>
+                  <p class="font-bold text-gray-800">Total: <span id="total-price" class="text-indigo-600">${Math.trunc(parseFloat(prix))}</span> FCFA</p>
               </div>
               <button id="add-to-cart" class="w-full btn-primary text-white px-4 py-3 rounded-xl font-bold mt-4 flex items-center justify-center">
                   <i class="fas fa-cart-plus mr-2"></i> Ajouter au panier
@@ -454,10 +561,10 @@
           saleDetails.classList.remove('hidden');
           const qtyInput = document.getElementById('quantity');
           qtyInput.addEventListener('input', () => {
-              document.getElementById('total-price').textContent = (qtyInput.value * parseFloat(prix)).toFixed(2);
+              document.getElementById('total-price').textContent = Math.trunc(qtyInput.value * parseFloat(prix));
           });
           document.getElementById('add-to-cart').addEventListener('click', () => {
-              addToCart(id, nom, parseFloat(prix), parseInt(qtyInput.value), parseInt(stock));
+              addToCart(id, nom, parseFloat(prix), parseFloat(qtyInput.value), parseFloat(stock));
               saleDetails.classList.add('hidden');
           });
       }
@@ -467,6 +574,8 @@
       });
 
       function addToCart(productId, name, price, quantity, stock) {
+          quantity = parseFloat(quantity);
+          stock = parseFloat(stock);
           if (quantity <= 0) return;
           const tab = tabs[activeTabIndex];
           const itemInCart = tab.cart.find(item => item.id === productId);
@@ -482,6 +591,7 @@
           }
           renderActiveTabContent();
           renderTabs();
+          saveActiveTabToDB(); // Sauvegarder
           Toast.fire({ icon: 'success', title: `${name} ajouté` });
           searchInput.focus();
       }
@@ -491,7 +601,7 @@
           const item = tab.cart.find(i => i.id === productId);
           if (!item) return;
           const productCard = document.querySelector(`.product-card[data-id='${productId}']`);
-          const stock = parseInt(productCard.dataset.stock);
+          const stock = parseFloat(productCard.dataset.stock);
           if (item.quantity + change > stock) {
               Toast.fire({ icon: 'error', title: 'Stock insuffisant' });
               return;
@@ -502,6 +612,7 @@
           }
           renderActiveTabContent();
           renderTabs();
+          saveActiveTabToDB(); // Sauvegarder
       }
 
       function clearCart() {
@@ -522,6 +633,7 @@
                   tab.selectedClient = null;
                   renderActiveTabContent();
                   renderTabs();
+                  saveActiveTabToDB(); // Sauvegarder
                   Toast.fire({ icon: 'success', title: 'Panier vidé' });
               }
           });
@@ -548,6 +660,7 @@
           clientSearchResults.classList.add('hidden');
           renderClientSection();
           renderTabs();
+          saveActiveTabToDB(); // Sauvegarder
       }
 
       async function openAddClientModal() {
@@ -603,21 +716,32 @@
 
       // --- Discount Management ---
       async function openDiscountModal() {
-          const { value: amount } = await Swal.fire({
+          const tab = tabs[activeTabIndex];
+          const subTotal = tab.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+          const { value: percentage } = await Swal.fire({
               title: 'Appliquer une remise',
-              input: 'number',
-              inputLabel: 'Montant de la remise en FCFA',
-              inputValue: tabs[activeTabIndex].discountAmount || 0,
+              input: 'text',
+              inputLabel: 'Pourcentage de la remise (%)',
+              inputValue: tab.discountPercentage || 0,
+              inputPlaceholder: 'Ex: 5 pour 5%',
               showCancelButton: true,
+              confirmButtonText: 'Appliquer',
+              cancelButtonText: 'Annuler',
               inputValidator: (value) => {
-                  if (value === '' || parseFloat(value) < 0) {
-                      return 'Veuillez entrer un montant valide'
+                  const percent = parseFloat(value);
+                  if (isNaN(percent) || percent < 0 || percent > 100) {
+                      return 'Veuillez entrer un pourcentage valide entre 0 et 100'
                   }
               }
           });
-          if (amount) {
-              tabs[activeTabIndex].discountAmount = parseFloat(amount);
+
+          if (percentage) {
+              const percentValue = parseFloat(percentage);
+              tab.discountPercentage = percentValue;
+              tab.discountAmount = (subTotal * percentValue) / 100;
               renderActiveTabContent();
+              saveActiveTabToDB(); // Sauvegarder
           }
       }
 
@@ -636,20 +760,20 @@
                   cartItemEl.innerHTML = `
                       <div class="flex-grow">
                           <p class="font-semibold text-gray-800">${item.name}</p>
-                          <p class="text-sm text-gray-500 mt-1">${item.price.toFixed(2)} FCFA × ${item.quantity}</p>
+                          <p class="text-sm text-gray-500 mt-1">${Math.trunc(item.price)} FCFA × ${Number(item.quantity).toLocaleString('fr-FR')}</p>
                       </div>
                       <div class="flex items-center space-x-3">
                           <div class="flex items-center space-x-2 bg-white rounded-lg p-1">
                               <button data-action="decrease" class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
                                   <i class="fas fa-minus text-gray-600 text-xs"></i>
                               </button>
-                              <span class="font-medium w-8 text-center">${item.quantity}</span>
+                              <span class="font-medium w-8 text-center">${Number(item.quantity).toLocaleString('fr-FR')}</span>
                               <button data-action="increase" class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
                                   <i class="fas fa-plus text-gray-600 text-xs"></i>
                               </button>
                           </div>
                           <div class="text-right">
-                              <p class="font-bold text-gray-800">${itemTotal.toFixed(2)} FCFA</p>
+                              <p class="font-bold text-gray-800">${Math.trunc(itemTotal)} FCFA</p>
                               <button data-action="remove" class="text-red-400 hover:text-red-600 text-xs transition-colors mt-1">
                                   <i class="fas fa-trash mr-1"></i> Retirer
                               </button>
@@ -661,11 +785,10 @@
           }
           const discount = (tab && tab.discountAmount) || 0;
           const finalTotalValue = subTotal - discount > 0 ? subTotal - discount : 0;
-          subtotalAmount.textContent = `${subTotal.toFixed(2)} FCFA`;
-          discountAmount.textContent = `-${discount.toFixed(2)} FCFA`;
-          finalTotal.textContent = `${finalTotalValue.toFixed(2)} FCFA`;
+          subtotalAmount.textContent = `${Math.trunc(subTotal)} FCFA`;
+          discountAmount.textContent = `-${Math.trunc(discount)} FCFA`;
+          finalTotal.textContent = `${Math.trunc(finalTotalValue)} FCFA`;
           renderClientSection();
-          saveState();
       }
 
       async function openPaymentModal() {
@@ -683,7 +806,12 @@
                   <div class="text-left">
                       <div class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white p-4 rounded-xl mb-4 text-center">
                           <p class="text-sm">Total à payer</p>
-                          <p class="text-3xl font-bold">${finalTotalValue.toFixed(2)} FCFA</p>
+                          <p class="text-3xl font-bold">${Math.trunc(finalTotalValue)} FCFA</p>
+                      </div>
+                      <hr class="my-4">
+                      <div class="mb-4">
+                          <label for="swal-input-code" class="block font-bold mb-2 text-gray-700 text-center">Votre Code Caissier</label>
+                          <input id="swal-input-code" class="swal2-input text-center font-bold text-lg" type="password" placeholder="••••••" style="width: 12em; margin: auto;">
                       </div>
                       <hr class="my-4">
                       <div class="mb-4">
@@ -707,11 +835,11 @@
                           <strong class="block mb-2 text-gray-700">Moyen de paiement:</strong>
                           <div class="flex space-x-4">
                               <label class="flex items-center">
-                                  <input type="radio" id="pay-cash" name="paymentMethod" value="cash" checked class="mr-2">
+                                  <input type="radio" id="pay-cash" name="paymentMethod" value="especes" checked class="mr-2">
                                   <span>Espèces</span>
                               </label>
                               <label class="flex items-center">
-                                  <input type="radio" id="pay-card" name="paymentMethod" value="card" class="mr-2">
+                                  <input type="radio" id="pay-card" name="paymentMethod" value="carte" class="mr-2">
                                   <span>Carte</span>
                               </label>
                           </div>
@@ -763,7 +891,7 @@
 
                       const tendered = parseFloat(tenderedInput.value) || 0;
                       const change = tendered - finalTotalValue;
-                      changeDisplay.textContent = (change > 0 ? change : 0).toFixed(2) + ' FCFA';
+                      changeDisplay.textContent = Math.trunc(change > 0 ? change : 0) + ' FCFA';
                   };
 
                   tenderedInput.addEventListener('input', updateTotal);
@@ -775,9 +903,15 @@
                   updateTotal();
               },
               preConfirm: () => {
+                  const codeCaissier = document.getElementById('swal-input-code').value;
+                  if (!codeCaissier) {
+                      Swal.showValidationMessage('Votre code personnel est requis pour valider la vente.');
+                      return false;
+                  }
+
                   const saleType = document.querySelector('input[name="saleType"]:checked').value;
                   if (saleType === 'draft') {
-                      return { saleType: 'draft' };
+                      return { saleType: 'draft', codeCaissier: codeCaissier };
                   }
                   if (saleType === 'credit' && !tab.selectedClient) {
                       Swal.showValidationMessage('Veuillez sélectionner un client pour une vente à crédit.');
@@ -789,7 +923,7 @@
                       Swal.showValidationMessage('Le montant reçu est inférieur au total.');
                       return false;
                   }
-                  return { saleType, paymentMethod, tenderedAmount };
+                  return { saleType, paymentMethod, tenderedAmount, codeCaissier };
               }
           });
 
@@ -802,20 +936,25 @@
               fetch('/caissier/vendre', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
-                  body: JSON.stringify({
-                      cart: tab.cart,
-                      saleType: formValues.saleType,
-                      paymentMethod: formValues.paymentMethod,
-                      clientId: tab.selectedClient ? tab.selectedClient.id : null,
-                      discountAmount: tab.discountAmount
-                  })
-              })
+                                        body: JSON.stringify({
+                                            cart: tab.cart.map(item => ({ id: item.id, quantity: item.quantity })),
+                                            saleType: formValues.saleType,
+                                            paymentMethod: formValues.paymentMethod,
+                                            clientId: tab.selectedClient ? tab.selectedClient.id : null,
+                                            discountAmount: tab.discountAmount,
+                                            codeCaissier: formValues.codeCaissier,
+                                            montantPaye: formValues.tenderedAmount,
+                                            tabId: tab.id // Ajouter l'ID de l'onglet
+                                        })              })
               .then(res => res.json())
               .then(data => {
                   if (data.success) {
                       const completedTab = JSON.parse(JSON.stringify(tab));
-                      tabs[activeTabIndex] = { id: tabs[activeTabIndex].id, cart: [], selectedClient: null, discountAmount: 0 };
-                      saveState();
+                      // Vider le panier actif, mais conserver son ID et son dbId
+                      tabs[activeTabIndex].cart = [];
+                      tabs[activeTabIndex].selectedClient = null;
+                      tabs[activeTabIndex].discountAmount = 0;
+                      tabs[activeTabIndex].discountPercentage = 0; // Réinitialiser le pourcentage de remise aussi
 
                       Swal.fire({
                           title: 'Vente enregistrée!',
@@ -829,7 +968,11 @@
                           if (result.isConfirmed) {
                               printReceipt(completedTab, formValues, finalTotalValue, false);
                           }
-                          location.reload();
+                          // Après avoir vidé le panier, rafraîchir l'affichage et sauvegarder en DB
+                          renderActiveTabContent();
+                          renderTabs(); // Pour mettre à jour l'icône de client ou le nombre d'articles si nécessaire
+                          saveActiveTabToDB();
+                          // location.reload(); // Reste commenté
                       });
                   } else {
                       Swal.fire('Erreur!', data.message, 'error');
@@ -877,10 +1020,9 @@
                   ${isDraft ? '<div class="watermark">DRAFT</div>' : ''}
                   <div class="container">
                       <div class="header center">
-                          <h1>SUPERMARCHE BELALUXE</h1>
-                          <p>Bd. Jean Paul II, Près de la TDE, Hédzranawoé</p>
-                          <p>Lomé - Togo</p>
-                          <p>Tél: (+228) 96 00 01 89 / 90 12 34 30</p>
+                          <h1>${boutiqueNom}</h1>
+                          <p>${boutiqueAdresse}</p>
+                          <p>${boutiqueTelephone}</p>
                       </div>
                       <hr>
                       <div class="info">
@@ -905,8 +1047,8 @@
                   <tr>
                       <td>${item.name}</td>
                       <td class="qty">${item.quantity}</td>
-                      <td class="price">${item.price.toFixed(0)}</td>
-                      <td class="price">${(item.price * item.quantity).toFixed(0)}</td>
+                      <td class="price">${Math.trunc(item.price)}</td>
+                      <td class="price">${Math.trunc(item.price * item.quantity)}</td>
                   </tr>
               `;
           });
@@ -916,9 +1058,14 @@
                       </table>
                       <hr>
                       <div class="totals">
-                          <p><span>Sous-total:</span> <span>${tab.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(0)} FCFA</span></p>
-                          <p><span>Remise:</span> <span>-${(tab.discountAmount || 0).toFixed(0)} FCFA</span></p>
-                          <p class="grand-total"><span>TOTAL:</span> <span>${finalTotal.toFixed(0)} FCFA</span></p>
+                          <p><span>Sous-total:</span> <span>${Math.trunc(tab.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0))} FCFA</span></p>
+                          <p><span>Remise:</span> <span>-${Math.trunc(tab.discountAmount || 0)} FCFA</span></p>
+                          <p class="grand-total"><span>TOTAL:</span> <span>${Math.trunc(finalTotal)} FCFA</span></p>
+                          ${saleData.paymentMethod === 'especes' && saleData.tenderedAmount > 0 ? `
+                              <hr>
+                              <p><span>Montant Reçu:</span> <span>${Math.trunc(saleData.tenderedAmount)} FCFA</span></p>
+                              <p><span>Reliquat:</span> <span>${Math.trunc(saleData.tenderedAmount - finalTotal)} FCFA</span></p>
+                          ` : ''}
                       </div>
                       <hr>
                       <div class="footer">
@@ -950,6 +1097,7 @@
               tabs[activeTabIndex].cart = tabs[activeTabIndex].cart.filter(i => i.id !== productId);
               renderActiveTabContent();
               renderTabs();
+              saveActiveTabToDB(); // Sauvegarder
           }
       });
       clearCartButton.addEventListener('click', clearCart);
@@ -986,12 +1134,12 @@
           tabs[activeTabIndex].selectedClient = null;
           renderClientSection();
           renderTabs();
+          saveActiveTabToDB(); // Sauvegarder
       });
       
   });
   /*]]>*/
 </script>
-
 
 </body>
 </html>

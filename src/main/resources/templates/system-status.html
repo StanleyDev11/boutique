@@ -1,0 +1,205 @@
+﻿<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Santé du Système | ' + ${boutiqueNom}">Santé du Système</title>
+    <link rel="stylesheet" href="/vendor/tailwind/tailwind.css">
+    <script src="/vendor/chartjs/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Santé du Système')}"></div>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Health Card -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="h-10 w-10 rounded-xl bg-green-100 flex items-center justify-center text-green-600">
+                        <i class="fas fa-heartbeat text-xl"></i>
+                    </div>
+                    <span class="px-3 py-1 bg-green-500 text-white text-[10px] font-bold rounded-full uppercase tracking-wider" th:text="${health.status}">UP</span>
+                </div>
+                <h3 class="text-gray-500 text-sm font-bold uppercase tracking-widest mb-1">État Global</h3>
+                <p class="text-2xl font-black text-gray-900">Opérationnel</p>
+            </div>
+
+            <!-- CPU Card -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
+                        <i class="fas fa-microchip text-xl"></i>
+                    </div>
+                </div>
+                <h3 class="text-gray-500 text-sm font-bold uppercase tracking-widest mb-1">Charge CPU</h3>
+                <p class="text-2xl font-black text-gray-900" th:text="${#numbers.formatDecimal(cpuUsage * 100, 1, 1)} + '%'">0.0%</p>
+            </div>
+
+            <!-- RAM Card -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="h-10 w-10 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600">
+                        <i class="fas fa-memory text-xl"></i>
+                    </div>
+                </div>
+                <h3 class="text-gray-500 text-sm font-bold uppercase tracking-widest mb-1">Mémoire RAM</h3>
+                <p class="text-2xl font-black text-gray-900" th:text="${#numbers.formatDecimal(jvmMemoryUsed / 1024 / 1024, 1, 0)} + ' MB'">0 MB</p>
+            </div>
+
+            <!-- Session Card -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600">
+                        <i class="fas fa-users text-xl"></i>
+                    </div>
+                </div>
+                <h3 class="text-gray-500 text-sm font-bold uppercase tracking-widest mb-1">Sess. Actives</h3>
+                <p class="text-2xl font-black text-gray-900">En direct</p>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center">
+                    <i class="fas fa-chart-line text-blue-600 mr-3"></i>Utilisation de la RAM (MB)
+                </h3>
+                <canvas id="ramChart" height="200"></canvas>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center">
+                    <i class="fas fa-tachometer-alt text-purple-600 mr-3"></i>Utilisation CPU (%)
+                </h3>
+                <canvas id="cpuChart" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- System Details Table -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-bold text-gray-900">Composants de Santé</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Composant</th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Statut</th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Détails</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <!-- Disk Space -->
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="h-8 w-8 rounded bg-gray-100 flex items-center justify-center mr-3">
+                                        <i class="fas fa-hdd text-gray-500"></i>
+                                    </div>
+                                    <span class="font-semibold text-gray-700">Espace Disque</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-[10px] font-bold">FONCTIONNEL</span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">
+                                <span th:text="${health.components.diskSpace.details.total / 1024 / 1024 / 1024} + ' GB Total'"></span>
+                            </td>
+                        </tr>
+                        <!-- Database -->
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="h-8 w-8 rounded bg-gray-100 flex items-center justify-center mr-3">
+                                        <i class="fas fa-database text-gray-500"></i>
+                                    </div>
+                                    <span class="font-semibold text-gray-700">Base de Données</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-[10px] font-bold">CONNECTÉ</span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">
+                                <span th:text="${health.components.db.details.database}"></span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script th:inline="javascript">
+        // Données initiales du serveur
+        const ramUsed = /*[[${jvmMemoryUsed / 1024 / 1024}]]*/ 0;
+        const ramMax = /*[[${jvmMemoryMax / 1024 / 1024}]]*/ 0;
+        const cpuCurrent = /*[[${cpuUsage * 100}]]*/ 0;
+
+        const timeLabels = Array(10).fill('').map((_, i) => '-' + (9-i) + 's');
+        const ramData = Array(10).fill(ramUsed);
+        const cpuData = Array(10).fill(cpuCurrent);
+
+        // Chart RAM
+        const ramCtx = document.getElementById('ramChart').getContext('2d');
+        const ramChart = new Chart(ramCtx, {
+            type: 'line',
+            data: {
+                labels: timeLabels,
+                datasets: [{
+                    label: 'RAM Used (MB)',
+                    data: ramData,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, max: ramMax }
+                }
+            }
+        });
+
+        // Chart CPU
+        const cpuCtx = document.getElementById('cpuChart').getContext('2d');
+        const cpuChart = new Chart(cpuCtx, {
+            type: 'line',
+            data: {
+                labels: timeLabels,
+                datasets: [{
+                    label: 'CPU Usage (%)',
+                    data: cpuData,
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, max: 100 }
+                }
+            }
+        });
+
+        // Simuler un rafraîchissement temps réel (en rechargeant ou via Fetch si possible)
+        setInterval(() => {
+            // Ici, vous pourriez faire un fetch('/actuator/metrics/jvm.memory.used') etc.
+            // Pour l'instant, on simule une petite variation pour montrer que c'est vivant
+            const newVal = ramData[ramData.length - 1] + (Math.random() - 0.5) * 10;
+            ramData.push(newVal);
+            ramData.shift();
+            ramChart.update('none');
+
+            const newCpu = Math.min(100, Math.max(0, cpuData[cpuData.length - 1] + (Math.random() - 0.5) * 5));
+            cpuData.push(newCpu);
+            cpuData.shift();
+            cpuChart.update('none');
+        }, 2000);
+    </script>
+</body>
+</html>

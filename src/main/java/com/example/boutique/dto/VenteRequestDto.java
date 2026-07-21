@@ -9,6 +9,18 @@ public class VenteRequestDto {
     private String paymentMethod;
     private Long clientId;
     private BigDecimal discountAmount;
+    private String codeCaissier;
+    private BigDecimal montantPaye;
+    private Long tabId; // Ajout du champ tabId
+
+    public BigDecimal getMontantPaye() {
+        return montantPaye;
+    }
+
+    public void setMontantPaye(BigDecimal montantPaye) {
+        this.montantPaye = montantPaye;
+    }
+
 
     public List<CartItemDto> getCart() {
         return cart;
@@ -48,5 +60,21 @@ public class VenteRequestDto {
 
     public void setDiscountAmount(BigDecimal discountAmount) {
         this.discountAmount = discountAmount;
+    }
+
+    public String getCodeCaissier() {
+        return codeCaissier;
+    }
+
+    public void setCodeCaissier(String codeCaissier) {
+        this.codeCaissier = codeCaissier;
+    }
+
+    public Long getTabId() {
+        return tabId;
+    }
+
+    public void setTabId(Long tabId) {
+        this.tabId = tabId;
     }
 }

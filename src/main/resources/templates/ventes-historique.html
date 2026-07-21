@@ -1,16 +1,18 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Historique des Ventes</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
+    <link rel="stylesheet" href="/vendor/tailwind/tailwind.css">
+    <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css">
+    <link href="/vendor/fonts/fonts.css" rel="stylesheet">
+    <script src="/vendor/chartjs/chart.umd.min.js"></script>
+    <script src="/vendor/sweetalert2/sweetalert2.all.min.js"></script>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -61,60 +63,6 @@
         .btn-secondary:hover {
             background-color: #e5e7eb;
         }
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        .badge-success {
-            background-color: #d1fae5;
-            color: #065f46;
-        }
-        .badge-warning {
-            background-color: #fef3c7;
-            color: #92400e;
-        }
-        .badge-info {
-            background-color: #dbeafe;
-            color: #1e40af;
-        }
-        .progress-bar {
-            height: 8px;
-            border-radius: 4px;
-            background-color: #e5e7eb;
-            overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%;
-            background-color: #3b82f6;
-            border-radius: 4px;
-        }
-        .chart-container {
-            position: relative;
-            height: 300px;
-            width: 100%;
-        }
-        .filter-tag {
-            display: inline-flex;
-            align-items: center;
-            background-color: #e0f2fe;
-            color: #0369a1;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            margin-right: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-        .filter-tag button {
-            margin-left: 0.25rem;
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #0369a1;
-        }
         .export-dropdown {
             position: absolute;
             right: 0;
@@ -145,610 +93,385 @@
         .export-option:hover {
             background-color: #f3f4f6;
         }
-        .stats-card {
-            position: relative;
-            overflow: hidden;
-        }
-        .stats-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-        }
-        .stats-card-revenue::before {
-            background-color: #3b82f6;
-        }
-        .stats-card-sales::before {
-            background-color: #10b981;
-        }
-        .stats-card-today::before {
-            background-color: #f59e0b;
-        }
-        .trend-indicator {
-            display: inline-flex;
-            align-items: center;
-            font-size: 0.875rem;
-            margin-left: 0.5rem;
-        }
-        .trend-up {
-            color: #10b981;
-        }
-        .trend-down {
-            color: #ef4444;
-        }
     </style>
 </head>
 <body>
-<div th:replace="fragments/tailwind-header :: tailwind-header('Historique des Ventes')"></div>
+<div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Historique des Ventes')}"></div>
 
 <div class="container mx-auto mt-8 p-4">
     <!-- Header with title and actions -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
-            <h2 class="text-3xl font-bold text-gray-800">Historique des Ventes</h2>
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Rapport des Ventes</h2>
             <p class="text-gray-600 mt-1">Analysez et gérez l'historique complet de vos ventes</p>
         </div>
-        <div class="mt-4 md:mt-0 relative hidden">
-            <button id="exportBtn" class="btn-secondary flex items-center">
-                <i class="fas fa-download mr-2"></i>Exporter
-            </button>
-            <div id="exportDropdown" class="export-dropdown">
-                <button class="export-option">
-                    <i class="fas fa-file-excel mr-2 text-green-600"></i>Excel
+        <div class="mt-4 md:mt-0 flex items-center space-x-2">
+            <a id="printLink" href="#" class="btn-secondary flex items-center">
+                <i class="fas fa-print mr-2"></i>Imprimer
+            </a>
+            <div class="relative">
+                <button id="exportBtn" class="btn-secondary flex items-center">
+                    <i class="fas fa-download mr-2"></i>Exporter
                 </button>
-                <button class="export-option">
-                    <i class="fas fa-file-pdf mr-2 text-red-600"></i>PDF
-                </button>
-                <button class="export-option">
-                    <i class="fas fa-file-csv mr-2 text-blue-600"></i>CSV
-                </button>
+                <div id="exportDropdown" class="export-dropdown">
+                    <a id="exportExcelLink" href="#" class="export-option flex items-center">
+                        <i class="fas fa-file-excel mr-2 text-green-600"></i>Excel
+                    </a>
+                    <a id="exportPdfLink" href="#" class="export-option flex items-center">
+                        <i class="fas fa-file-pdf mr-2 text-red-600"></i>PDF
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Key Metrics Dashboard -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="card stats-card stats-card-revenue p-6">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-600">Revenu Total</h3>
-                        <p class="text-3xl font-bold text-gray-900 mt-2" th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 2, 'POINT')} + ' FCFA'"></p>
-                        <div class="flex items-center mt-2" th:if="${revenueChange != 0}">
-                            <span class="text-sm text-gray-500" th:text="${(revenueChange > 0 ? '+' : '') + #numbers.formatDecimal(revenueChange, 1, 1) + '% vs mois dernier'}"></span>
-                            <span class="trend-indicator" th:class="${revenueChange > 0 ? 'trend-up' : 'trend-down'}">
-                                <i class="fas fa-arrow-up mr-1" th:if="${revenueChange > 0}"></i>
-                                <i class="fas fa-arrow-down mr-1" th:if="${revenueChange < 0}"></i>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="bg-blue-100 p-3 rounded-full">
-                        <i class="fas fa-money-bill-wave text-blue-600 text-xl"></i>
-                    </div>
+    <!-- Tabs -->
+    <div class="mb-6 border-b border-gray-200">
+        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+            <a th:href="@{/rapports/ventes-historique(tab='historique')}"
+               th:class="${activeTab == 'historique' || activeTab == null ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
+               class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center">
+                <i class="fas fa-history mr-2"></i>Historique des Ventes
+            </a>
+            <a th:href="@{/rapports/ventes-historique(tab='produits')}"
+               th:class="${activeTab == 'produits' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
+               class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center">
+                <i class="fas fa-chart-pie mr-2"></i>Ventes par Produit
+            </a>
+        </nav>
+    </div>
+
+    <!-- Tab Content: Historique -->
+    <div th:if="${activeTab == 'historique' || activeTab == null}">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="card p-6">
+                <h3 class="text-xl font-semibold text-gray-700 mb-4">Ventes par Jour (7 derniers jours)</h3>
+                <div class="chart-container">
+                    <canvas id="salesChart"></canvas>
                 </div>
             </div>
-            <div class="card stats-card stats-card-sales p-6">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-600">Nombre de Ventes</h3>
-                        <p class="text-3xl font-bold text-gray-900 mt-2" th:text="${totalSales}"></p>
-                        <div class="flex items-center mt-2" th:if="${salesChange != 0}">
-                            <span class="text-sm text-gray-500" th:text="${(salesChange > 0 ? '+' : '') + #numbers.formatDecimal(salesChange, 1, 1) + '% vs mois dernier'}"></span>
-                            <span class="trend-indicator" th:class="${salesChange > 0 ? 'trend-up' : 'trend-down'}">
-                                <i class="fas fa-arrow-up mr-1" th:if="${salesChange > 0}"></i>
-                                <i class="fas fa-arrow-down mr-1" th:if="${salesChange < 0}"></i>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="bg-green-100 p-3 rounded-full">
-                        <i class="fas fa-shopping-cart text-green-600 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="card stats-card stats-card-today p-6">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-600">Revenu d'Aujourd'hui</h3>
-                        <p class="text-3xl font-bold text-gray-900 mt-2" th:text="${#numbers.formatDecimal(todaysRevenue, 0, 'COMMA', 2, 'POINT')} + ' FCFA'"></p>
-                        <div class="flex items-center mt-2" th:if="${todayRevenueChange != 0}">
-                            <span class="text-sm text-gray-500" th:text="${(todayRevenueChange > 0 ? '+' : '') + #numbers.formatDecimal(todayRevenueChange, 1, 1) + '% vs hier'}"></span>
-                            <span class="trend-indicator" th:class="${todayRevenueChange > 0 ? 'trend-up' : 'trend-down'}">
-                                <i class="fas fa-arrow-up mr-1" th:if="${todayRevenueChange > 0}"></i>
-                                <i class="fas fa-arrow-down mr-1" th:if="${todayRevenueChange < 0}"></i>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="bg-yellow-100 p-3 rounded-full">
-                        <i class="fas fa-calendar-day text-yellow-600 text-xl"></i>
-                    </div>
+            <div class="card p-6">
+                <h3 class="text-xl font-semibold text-gray-700 mb-4">Répartition des Ventes par Catégorie</h3>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
                 </div>
             </div>
         </div>
+        <div class="card p-6 mb-8">
+            <form th:action="@{/rapports/ventes-historique}" method="get" class="space-y-4">
+                <input type="hidden" name="tab" value="historique">
+                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label for="nomProduit" class="block text-sm font-medium text-gray-700">Nom du Produit</label>
+                        <input type="text" name="nomProduit" id="nomProduit" th:value="${nomProduit}" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" placeholder="e.g., Coca Cola">
+                    </div>
+                    <div>
+                        <label for="startDate" class="block text-sm font-medium text-gray-700">Date de début</label>
+                        <input type="date" name="startDate" id="startDate" th:value="${startDate}" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                    </div>
+                    <div>
+                        <label for="endDate" class="block text-sm font-medium text-gray-700">Date de fin</label>
+                        <input type="date" name="endDate" id="endDate" th:value="${endDate}" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                    </div>
+                    <div class="flex items-end space-x-2">
+                        <button type="submit" class="btn-primary w-full justify-center"><i class="fas fa-search mr-2"></i>Rechercher</button>
+                        <a th:href="@{/rapports/ventes-historique(tab='historique')}" class="btn-secondary w-full justify-center text-center"><i class="fas fa-redo mr-2"></i></a>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8 border border-gray-100">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Vente</th>
+                        <th scope="col" class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                        <th scope="col" class="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Caissier</th>
+                        <th scope="col" class="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="salesTableBody">
+                    <tr th:each="vente : ${ventesPage.content}" class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${vente.id}"></td>
+                        <td class="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${vente.client != null ? vente.client.nom : 'Client de passage'}"></td>
+                        <td class="hidden lg:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${vente.utilisateur != null ? vente.utilisateur.username : 'N/A'}"></td>
+                        <td class="hidden lg:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${#temporals.format(vente.dateVente, 'dd-MM-yyyy HH:mm')}"></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${#numbers.formatDecimal(vente.totalFinal, 0, 'COMMA', 2, 'POINT')} + ' FCFA'"></td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                              th:classappend="${vente.status.name() == 'COMPLETED' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}"
+                              th:text="${vente.status.displayName}">
+                        </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <a th:href="@{/ventes/{id}(id=${vente.id})}" class="text-indigo-600 hover:text-indigo-900 mr-3">Détails</a>
+                            <button th:if="${vente.status.name() == 'COMPLETED'}"
+                                    sec:authorize="hasAnyRole('ADMIN', 'GESTIONNAIRE')"
+                                    class="text-red-600 hover:text-red-900 cancel-sale-btn"
+                                    th:data-vente-id="${vente.id}">
+                                Annuler
+                            </button>
+                        </td>
+                    </tr>
+                    <tr th:if="${ventesPage.empty}">
+                        <td colspan="7" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Aucune vente trouvée.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Pagination for sales history -->
+        </div>
+    </div>
 
-    <!-- Charts Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Tab Content: Ventes par Produit -->
+    <div th:if="${activeTab == 'produits'}">
+        <div class="card p-6 mb-8">
+            <form th:action="@{/rapports/ventes-historique}" method="get">
+                <input type="hidden" name="tab" value="produits">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label for="nomProduit" class="block text-sm font-medium text-gray-700">Nom du Produit</label>
+                        <input type="text" name="nomProduit" id="nomProduit" th:value="${nomProduit}" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" placeholder="e.g., Coca Cola">
+                    </div>
+                    <div>
+                        <label for="startDate" class="block text-sm font-medium text-gray-700">Date de début</label>
+                        <input type="date" name="startDate" id="startDate" th:value="${startDate}" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                    </div>
+                    <div>
+                        <label for="endDate" class="block text-sm font-medium text-gray-700">Date de fin</label>
+                        <input type="date" name="endDate" id="endDate" th:value="${endDate}" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                    </div>
+                    <div class="flex items-end space-x-2">
+                        <button type="submit" class="btn-primary w-full justify-center"><i class="fas fa-search mr-2"></i>Rechercher</button>
+                        <a th:href="@{/rapports/ventes-historique(tab='produits')}" class="btn-secondary w-full justify-center text-center"><i class="fas fa-redo mr-2"></i></a>
+                    </div>
+                </div>
+            </form>
+        </div>
         <div class="card p-6">
-            <h3 class="text-xl font-semibold text-gray-700 mb-4">Ventes par Jour (7 derniers jours)</h3>
-            <div class="chart-container">
-                <canvas id="salesChart"></canvas>
-            </div>
-        </div>
-        <div class="card p-6">
-            <h3 class="text-xl font-semibold text-gray-700 mb-4">Répartition des Ventes par Catégorie</h3>
-            <div class="chart-container">
-                <canvas id="categoryChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Search and Filter Section -->
-    <div class="card p-6 mb-8">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
-            <h3 class="text-xl font-semibold text-gray-700">Rechercher et Filtrer les Ventes</h3>
-            <button id="toggleFiltersBtn" class="btn-secondary mt-2 md:mt-0 flex items-center">
-                <i class="fas fa-filter mr-2"></i>Filtres Avancés
-            </button>
-        </div>
-
-        <!-- Active Filters -->
-        <div id="activeFilters" class="mb-4 hidden">
-            <p class="text-sm font-medium text-gray-700 mb-2">Filtres actifs:</p>
-            <div id="filterTags" class="flex flex-wrap"></div>
-        </div>
-
-        <form th:action="@{/rapports/ventes-historique}" method="get" class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Search by Product -->
-                <div>
-                    <label for="nomProduitSearch" class="block text-sm font-medium text-gray-700">Rechercher par Produit</label>
-                    <input type="text" id="nomProduitSearch" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" placeholder="Nom du produit">
-                </div>
-
-                <!-- Filter by Product -->
-                <div>
-                    <label for="nomProduitSelect" class="block text-sm font-medium text-gray-700">Filtrer par Produit</label>
-                    <select id="nomProduitSelect" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                        <option value="">-- Tous les produits --</option>
-                        <option th:each="produit : ${produits}" th:value="${produit.nom}" th:text="${produit.nom}"></option>
-                    </select>
-                </div>
-                <input type="hidden" id="nomProduit" name="nomProduit">
-
-                <!-- Search by Date Range -->
-                <div>
-                    <label for="startDate" class="block text-sm font-medium text-gray-700">Date de début</label>
-                    <input type="date" id="startDate" name="startDate" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                </div>
-                <div>
-                    <label for="endDate" class="block text-sm font-medium text-gray-700">Date de fin</label>
-                    <input type="date" id="endDate" name="endDate" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                </div>
-
-                <!-- Advanced Filters (initially hidden) -->
-                <div id="advancedFilters" class="hidden md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div>
-                        <label for="minAmount" class="block text-sm font-medium text-gray-700">Montant minimum</label>
-                        <input type="number" id="minAmount" name="minAmount" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" placeholder="0 FCFA">
-                    </div>
-                    <div>
-                        <label for="maxAmount" class="block text-sm font-medium text-gray-700">Montant maximum</label>
-                        <input type="number" id="maxAmount" name="maxAmount" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" placeholder="100000 FCFA">
-                    </div>
-                    <div>
-                        <label for="sortBy" class="block text-sm font-medium text-gray-700">Trier par</label>
-                        <select id="sortBy" name="sortBy" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                            <option value="date">Date (plus récent)</option>
-                            <option value="date_asc">Date (plus ancien)</option>
-                            <option value="amount">Montant (plus élevé)</option>
-                            <option value="amount_asc">Montant (plus bas)</option>
-                            <option value="product">Produit (A-Z)</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="flex justify-between">
-                <button type="button" id="resetFiltersBtn" class="btn-secondary">
-                    <i class="fas fa-redo mr-2"></i>Réinitialiser
-                </button>
-                <button type="submit" class="btn-primary">
-                    <i class="fas fa-search mr-2"></i>Rechercher
-                </button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Sales Table -->
-    <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8 border border-gray-100">
-        <div class="px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row md:justify-between md:items-center">
-            <h3 class="text-lg font-semibold text-gray-800">Toutes les Ventes</h3>
-            <div class="flex items-center space-x-2 mt-2 md:mt-0">
-                <span class="text-sm text-gray-500">Lignes par page</span>
-                <select id="pageSizeSelect" class="text-sm border-gray-300 rounded-md">
-                    <option value="10">10</option>
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                </select>
-            </div>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onclick="sortTable(0)">
-                        <div class="flex items-center">
-                            <i class="fas fa-box mr-2"></i> Produit
-                            <i class="fas fa-sort ml-1 text-gray-400"></i>
-                        </div>
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onclick="sortTable(1)">
-                        <div class="flex items-center">
-                            <i class="fas fa-hashtag mr-2"></i> Quantité
-                            <i class="fas fa-sort ml-1 text-gray-400"></i>
-                        </div>
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onclick="sortTable(2)">
-                        <div class="flex items-center">
-                            <i class="fas fa-tag mr-2"></i> Prix Unitaire
-                            <i class="fas fa-sort ml-1 text-gray-400"></i>
-                        </div>
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onclick="sortTable(3)">
-                        <div class="flex items-center">
-                            <i class="fas fa-dollar-sign mr-2"></i> Montant Total
-                            <i class="fas fa-sort ml-1 text-gray-400"></i>
-                        </div>
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onclick="sortTable(4)">
-                        <div class="flex items-center">
-                            <i class="fas fa-clock mr-2"></i> Date
-                            <i class="fas fa-sort ml-1 text-gray-400"></i>
-                        </div>
-                    </th>
-                </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200" id="salesTableBody">
-                <tr th:each="ligneVente : ${ventesPage.content}" class="hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center">
-                            <div class="ml-4">
-                                <div class="text-sm font-medium text-gray-900" th:text="${ligneVente.produit.nom}"></div>
-                                <div class="text-sm text-gray-500" th:text="${ligneVente.produit.categorie}"></div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${ligneVente.quantite}"></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${#numbers.formatDecimal(ligneVente.prixUnitaire, 0, 'COMMA', 2, 'POINT')} + ' FCFA'"></td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900" th:text="${#numbers.formatDecimal(ligneVente.montantTotal, 0, 'COMMA', 2, 'POINT')} + ' FCFA'"></div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${#temporals.format(ligneVente.vente.dateVente, 'dd-MM-yyyy HH:mm')}"></td>
-                </tr>
-                <tr th:if="${ventesPage.empty}">
-                    <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Aucune vente trouvée.</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
-            <div class="flex-1 flex justify-between sm:hidden">
-                <a th:href="@{/rapports/ventes-historique(page=${ventesPage.number - 1}, size=${ventesPage.size})}" th:if="${ventesPage.hasPrevious()}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Précédent</a>
-                <a th:href="@{/rapports/ventes-historique(page=${ventesPage.number + 1}, size=${ventesPage.size})}" th:if="${ventesPage.hasNext()}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Suivant</a>
-            </div>
-            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                    <p class="text-sm text-gray-700">
-                        Affichage de
-                        <span class="font-medium" th:text="${ventesPage.number * ventesPage.size + 1}"></span>
-                        à
-                        <span class="font-medium" th:text="${ventesPage.number * ventesPage.size + ventesPage.numberOfElements}"></span>
-                        sur
-                        <span class="font-medium" th:text="${ventesPage.totalElements}"></span>
-                        résultats
-                    </p>
-                </div>
-                <div>
-                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                        <a th:href="@{/rapports/ventes-historique(page=${ventesPage.number - 1}, size=${ventesPage.size})}" th:if="${ventesPage.hasPrevious()}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                            <span class="sr-only">Précédent</span>
-                            <i class="fas fa-chevron-left h-5 w-5"></i>
-                        </a>
-                        <th:block th:each="i : ${#numbers.sequence(0, ventesPage.totalPages - 1)}">
-                            <a th:href="@{/rapports/ventes-historique(page=${i}, size=${ventesPage.size})}" th:text="${i + 1}" th:class="${ventesPage.number == i ? 'z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium'}"></a>
-                        </th:block>
-                        <a th:href="@{/rapports/ventes-historique(page=${ventesPage.number + 1}, size=${ventesPage.size})}" th:if="${ventesPage.hasNext()}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                            <span class="sr-only">Suivant</span>
-                            <i class="fas fa-chevron-right h-5 w-5"></i>
-                        </a>
-                    </nav>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Most Sold Products Section -->
-    <div class="mb-8">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold text-gray-800">Produits les Plus Vendus</h3>
-            <button class="text-sm text-blue-600 hover:text-blue-800 font-medium">Voir tout</button>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            <div th:each="item, iterStat : ${mostSoldProducts}" th:if="${iterStat.index < 5}" class="card p-4 flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center mb-2">
-                        <div class="ml-4">
-                            <div class="text-sm font-medium text-gray-900" th:text="${item.produit.nom}"></div>
-                            <div class="text-sm text-gray-500" th:text="${item.produit.categorie}"></div>
-                        </div>
-                    </div>
-                    <div class="text-sm text-gray-900" th:text="${item.quantite} + ' unités vendues'"></div>
-                </div>
-                <div class="mt-4">
-                    <div class="text-sm text-gray-900" th:text="${#numbers.formatDecimal(item.percentage, 1, 1)} + '% des ventes'"></div>
-                    <div class="progress-bar w-full mt-1">
-                        <div class="progress-fill" th:style="'width: ' + ${item.percentage} + '%;'"></div>
-                    </div>
-                </div>
-            </div>
-            <div th:if="${#lists.isEmpty(mostSoldProducts)}" class="col-span-full text-center text-gray-500 py-4">
-                Aucun produit vendu.
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">Statistiques des Ventes par Produit</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produit</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantité Totale Vendue</th>
+                        <th scope="col" class="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix de Vente Actuel</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenu Total Généré</th>
+                    </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tr th:each="stat : ${produitVenteStats}" class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${stat.produit.nom}"></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${#numbers.formatDecimal(stat.totalQuantiteVendue, 0, 'COMMA', 0, 'POINT')}"></td>
+                        <td class="hidden lg:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${stat.produit.prixVenteUnitaire != null ? #numbers.formatDecimal(stat.produit.prixVenteUnitaire, 0, 'COMMA', 2, 'POINT') + ' FCFA' : 'N/A'}"></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${#numbers.formatDecimal(stat.totalRevenu, 0, 'COMMA', 2, 'POINT')} + ' FCFA'"></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(produitVenteStats)}">
+                        <td colspan="4" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Aucune donnée de vente par produit à afficher.</td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Product search and filter integration
-        const searchInput = document.getElementById('nomProduitSearch');
-        const select = document.getElementById('nomProduitSelect');
-        const hiddenInput = document.getElementById('nomProduit');
+<script th:inline="javascript">
+    /*<![CDATA[*/
 
-        searchInput.addEventListener('input', function () {
-            hiddenInput.value = this.value;
-            select.value = '';
-            updateActiveFilters();
-        });
-
-        select.addEventListener('change', function () {
-            hiddenInput.value = this.value;
-            searchInput.value = '';
-            updateActiveFilters();
-        });
-
-        // Export dropdown functionality
-        const exportBtn = document.getElementById('exportBtn');
-        const exportDropdown = document.getElementById('exportDropdown');
-
-        exportBtn.addEventListener('click', function() {
-            exportDropdown.classList.toggle('show');
-        });
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            if (!exportBtn.contains(event.target) && !exportDropdown.contains(event.target)) {
-                exportDropdown.classList.remove('show');
-            }
-        });
-
-        // Toggle advanced filters
-        const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
-        const advancedFilters = document.getElementById('advancedFilters');
-
-        toggleFiltersBtn.addEventListener('click', function() {
-            advancedFilters.classList.toggle('hidden');
-            if (advancedFilters.classList.contains('hidden')) {
-                toggleFiltersBtn.innerHTML = '<i class="fas fa-filter mr-2"></i>Filtres Avancés';
-            } else {
-                toggleFiltersBtn.innerHTML = '<i class="fas fa-times mr-2"></i>Masquer Filtres';
-            }
-        });
-
-        // Reset filters
-        const resetFiltersBtn = document.getElementById('resetFiltersBtn');
-        resetFiltersBtn.addEventListener('click', function() {
-            searchInput.value = '';
-            select.value = '';
-            hiddenInput.value = '';
-            document.getElementById('startDate').value = '';
-            document.getElementById('endDate').value = '';
-            document.getElementById('minAmount').value = '';
-            document.getElementById('maxAmount').value = '';
-            document.getElementById('sortBy').value = 'date';
-            updateActiveFilters();
-        });
-
-        // Update active filters display
-        function updateActiveFilters() {
-            const activeFiltersContainer = document.getElementById('activeFilters');
-            const filterTagsContainer = document.getElementById('filterTags');
-            filterTagsContainer.innerHTML = '';
-
-            let hasActiveFilters = false;
-
-            // Product filter
-            if (hiddenInput.value) {
-                hasActiveFilters = true;
-                const tag = document.createElement('div');
-                tag.className = 'filter-tag';
-                tag.innerHTML = `Produit: ${hiddenInput.value} <button onclick="removeFilter('product')"><i class="fas fa-times"></i></button>`;
-                filterTagsContainer.appendChild(tag);
-            }
-
-            // Date filters
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
-
-            if (startDate) {
-                hasActiveFilters = true;
-                const tag = document.createElement('div');
-                tag.className = 'filter-tag';
-                tag.innerHTML = `Date début: ${startDate} <button onclick="removeFilter('startDate')"><i class="fas fa-times"></i></button>`;
-                filterTagsContainer.appendChild(tag);
-            }
-
-            if (endDate) {
-                hasActiveFilters = true;
-                const tag = document.createElement('div');
-                tag.className = 'filter-tag';
-                tag.innerHTML = `Date fin: ${endDate} <button onclick="removeFilter('endDate')"><i class="fas fa-times"></i></button>`;
-                filterTagsContainer.appendChild(tag);
-            }
-
-            // Amount filters
-            const minAmount = document.getElementById('minAmount').value;
-            const maxAmount = document.getElementById('maxAmount').value;
-
-            if (minAmount) {
-                hasActiveFilters = true;
-                const tag = document.createElement('div');
-                tag.className = 'filter-tag';
-                tag.innerHTML = `Montant min: ${minAmount} FCFA <button onclick="removeFilter('minAmount')"><i class="fas fa-times"></i></button>`;
-                filterTagsContainer.appendChild(tag);
-            }
-
-            if (maxAmount) {
-                hasActiveFilters = true;
-                const tag = document.createElement('div');
-                tag.className = 'filter-tag';
-                tag.innerHTML = `Montant max: ${maxAmount} FCFA <button onclick="removeFilter('maxAmount')"><i class="fas fa-times"></i></button>`;
-                filterTagsContainer.appendChild(tag);
-            }
-
-            // Show/hide active filters container
-            if (hasActiveFilters) {
-                activeFiltersContainer.classList.remove('hidden');
-            } else {
-                activeFiltersContainer.classList.add('hidden');
-            }
-        }
-
-        // Initialize active filters
-        updateActiveFilters();
-
-        // Add event listeners to form inputs to update active filters
-        const formInputs = document.querySelectorAll('input, select');
-        formInputs.forEach(input => {
-            input.addEventListener('change', updateActiveFilters);
-            input.addEventListener('input', updateActiveFilters);
-        });
-
-        // Initialize charts
-        initializeCharts();
-    });
-
-    // Remove filter function
-    function removeFilter(filterType) {
-        switch(filterType) {
-            case 'product':
-                document.getElementById('nomProduitSearch').value = '';
-                document.getElementById('nomProduitSelect').value = '';
-                document.getElementById('nomProduit').value = '';
-                break;
-            case 'startDate':
-                document.getElementById('startDate').value = '';
-                break;
-            case 'endDate':
-                document.getElementById('endDate').value = '';
-                break;
-            case 'minAmount':
-                document.getElementById('minAmount').value = '';
-                break;
-            case 'maxAmount':
-                document.getElementById('maxAmount').value = '';
-                break;
-        }
-        document.dispatchEvent(new Event('DOMContentLoaded'));
-    }
-
-    
-
-    // Initialize charts
     function initializeCharts() {
         // Sales by day chart
         fetch('/rapports/sales-by-day')
             .then(response => response.json())
             .then(data => {
-                const salesCtx = document.getElementById('salesChart').getContext('2d');
-                const salesChart = new Chart(salesCtx, {
-                    type: 'line',
-                    data: {
-                        labels: data.labels,
-                        datasets: [{
-                            label: 'Ventes (FCFA)',
-                            data: data.data,
-                            borderColor: '#3b82f6',
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4,
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
+                const salesChartEl = document.getElementById('salesChart');
+                if(salesChartEl) {
+                    const salesCtx = salesChartEl.getContext('2d');
+                    new Chart(salesCtx, {
+                        type: 'line',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                label: 'Ventes (FCFA)',
+                                data: data.data,
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                fill: true
+                            }]
                         },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                grid: {
-                                    drawBorder: false
-                                },
-                                ticks: {
-                                    callback: function(value) {
-                                        return value.toLocaleString() + ' FCFA';
-                                    }
-                                }
-                            },
-                            x: {
-                                grid: {
-                                    display: false
-                                }
-                            }
-                        }
-                    }
-                });
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }}, scales: { y: { beginAtZero: true, grid: { drawBorder: false }, ticks: { callback: value => value.toLocaleString() + ' FCFA'}}, x: {grid: {display: false }}}}}
+                    );
+                }
             });
 
         // Category distribution chart
         fetch('/rapports/sales-by-category')
             .then(response => response.json())
             .then(data => {
-                const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-                const categoryChart = new Chart(categoryCtx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: data.labels,
-                        datasets: [{
-                            data: data.data,
-                            backgroundColor: [
-                                '#3b82f6',
-                                '#10b981',
-                                '#f59e0b',
-                                '#8b5cf6',
-                                '#6b7280'
-                            ],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom'
-                            }
+                const categoryChartEl = document.getElementById('categoryChart');
+                if(categoryChartEl) {
+                    const categoryCtx = categoryChartEl.getContext('2d');
+                    new Chart(categoryCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                data: data.data,
+                                backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#6b7280'],
+                                borderWidth: 0
+                            }]
                         },
-                        cutout: '70%'
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }}, cutout: '70%'}
+                    });
+                }
+            });
+    }
+
+    function handleExportClick(event, exportType) {
+        event.preventDefault();
+
+        const activeTab = new URLSearchParams(window.location.search).get('tab') || 'historique';
+        const form = document.querySelector('form[action="/rapports/ventes-historique"]');
+        if (!form) return;
+
+        const nomProduit = form.querySelector('input[name="nomProduit"]').value;
+        const startDate = form.querySelector('input[name="startDate"]').value;
+        const endDate = form.querySelector('input[name="endDate"]').value;
+
+        let baseUrl = '';
+        const params = new URLSearchParams();
+
+        if (activeTab === 'produits') {
+            switch(exportType) {
+                case 'pdf': baseUrl = '/rapports/produits/export/pdf'; break;
+                case 'excel': baseUrl = '/rapports/produits/export/excel'; break;
+                default: return;
+            }
+            if (nomProduit) params.append('keyword', nomProduit); // Use 'keyword' for products tab
+            if (startDate) params.append('startDate', startDate);
+            if (endDate) params.append('endDate', endDate);
+
+        } else { // 'historique' tab
+            switch(exportType) {
+                case 'pdf': baseUrl = '/rapports/ventes/export/pdf'; break;
+                case 'excel': baseUrl = '/rapports/ventes/export/excel'; break;
+                case 'print': baseUrl = '/rapports/ventes/imprimer'; break;
+                default: return;
+            }
+             // General sales reports do not filter by product name in their controller
+            if (startDate) params.append('startDate', startDate);
+            if (endDate) params.append('endDate', endDate);
+        }
+
+        const queryString = params.toString();
+        const finalUrl = `${baseUrl}${queryString ? '?' + queryString : ''}`;
+
+        if (exportType === 'print') {
+             window.open(finalUrl, '_blank');
+        } else {
+             window.location.href = finalUrl;
+        }
+    }
+
+
+    // Main execution block
+    document.addEventListener('DOMContentLoaded', function () {
+        const activeTab = /*[[${activeTab}]]*/ 'historique';
+
+        if (activeTab === 'historique') {
+            initializeCharts();
+        }
+
+        // Setup for Export Button Dropdown
+        const exportBtn = document.getElementById('exportBtn');
+        const exportDropdown = document.getElementById('exportDropdown');
+        if(exportBtn) {
+            exportBtn.addEventListener('click', function() {
+                // Toggle display and also ensure the correct links are shown for the active tab
+                const isProduitsTab = (new URLSearchParams(window.location.search).get('tab') || 'historique') === 'produits';
+                document.getElementById('printLink').style.display = isProduitsTab ? 'none' : 'inline-flex';
+                exportDropdown.classList.toggle('show');
+            });
+        }
+        document.addEventListener('click', function(event) {
+            if (exportBtn && !exportBtn.contains(event.target) && exportDropdown && !exportDropdown.contains(event.target)) {
+                exportDropdown.classList.remove('show');
+            }
+        });
+
+                    // Attach event listeners to export links
+                    document.getElementById('exportPdfLink').addEventListener('click', (e) => handleExportClick(e, 'pdf'));
+                    document.getElementById('exportExcelLink').addEventListener('click', (e) => handleExportClick(e, 'excel'));
+                    document.getElementById('printLink').addEventListener('click', (e) => handleExportClick(e, 'print'));
+                    
+                    // Hide the print link permanently
+                    const printLink = document.getElementById('printLink');
+                    if (printLink) {
+                        printLink.style.display = 'none';
+                    }
+                });
+                
+                /*]]>*/
+            </script>
+            <script th:inline="javascript">    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function () {
+        const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+        document.querySelectorAll('.cancel-sale-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const venteId = this.getAttribute('data-vente-id');
+                Swal.fire({
+                    title: 'Annuler la vente',
+                    text: "Vous êtes sur le point d'annuler cette vente. Le stock sera réajusté. Cette action est irréversible.",
+                    input: 'textarea',
+                    inputPlaceholder: 'Motif de l\'annulation...',
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return 'Veuillez entrer un motif pour l\'annulation.'
+                        }
+                    },
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Oui, annuler!',
+                    cancelButtonText: 'Non'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const motif = result.value;
+                        fetch(`/ventes/${venteId}/annuler`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                [csrfHeader]: csrfToken
+                            },
+                            body: JSON.stringify({ motif: motif })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire('Annulée!', 'La vente a été annulée.', 'success').then(() => location.reload());
+                            } else {
+                                Swal.fire('Erreur!', data.message || 'Une erreur est survenue.', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire('Erreur de connexion!', 'Impossible de communiquer avec le serveur.', 'error');
+                        });
                     }
                 });
             });
-    }
+        });
+    });
+    /*]]>*/
 </script>
 </body>
 </html>

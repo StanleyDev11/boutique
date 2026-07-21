@@ -2,11 +2,13 @@ package com.example.boutique.dto;
 
 import com.example.boutique.model.Produit;
 
+import java.math.BigDecimal;
+
 public class ProduitVenteDto {
     private Produit produit;
-    private Long totalVendu;
+    private BigDecimal totalVendu;
 
-    public ProduitVenteDto(Produit produit, Long totalVendu) {
+    public ProduitVenteDto(Produit produit, BigDecimal totalVendu) {
         this.produit = produit;
         this.totalVendu = totalVendu;
     }
@@ -19,11 +21,11 @@ public class ProduitVenteDto {
         this.produit = produit;
     }
 
-    public Long getTotalVendu() {
+    public BigDecimal getTotalVendu() {
         return totalVendu;
     }
 
-    public void setTotalVendu(Long totalVendu) {
+    public void setTotalVendu(BigDecimal totalVendu) {
         this.totalVendu = totalVendu;
     }
 }

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="'Historique - ' + ${produit.nom}"></title>
+    <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -54,6 +55,8 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type de Mouvement</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantité</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">N° Facture</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fournisseur</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                 </tr>
                 </thead>
@@ -66,13 +69,15 @@
                               th:classappend="${mvt.typeMouvement.name() == 'ENTREE'} ? 'bg-green-100 text-green-800' : (${mvt.typeMouvement.name() == 'SORTIE'} ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800')">
                         </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold" 
-                        th:classappend="${mvt.typeMouvement.name() == 'ENTREE'} ? 'text-green-600' : 'text-red-600'" 
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold"
+                        th:classappend="${mvt.typeMouvement.name() == 'ENTREE'} ? 'text-green-600' : 'text-red-600'"
                         th:text="(${mvt.typeMouvement.name() == 'ENTREE'} ? '+' : '-') + ' ' + ${mvt.quantite}"></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700" th:text="${mvt.facture?.numeroFacture ?: 'N/A'}"></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700" th:text="${mvt.facture?.nomFournisseur ?: 'N/A'}"></td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700" th:text="${mvt.description}"></td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(historique)}">
-                    <td colspan="4" class="text-center py-12 text-gray-500">
+                    <td colspan="6" class="text-center py-12 text-gray-500">
                         Aucun mouvement enregistré pour ce produit.
                     </td>
                 </tr>

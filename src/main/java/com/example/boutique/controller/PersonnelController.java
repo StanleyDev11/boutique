@@ -54,23 +54,15 @@ public class PersonnelController {
     @PostMapping("/save")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> savePersonnel(@ModelAttribute("personnel") Personnel personnel) {
-        try {
-            personnelRepository.save(personnel);
-            return ResponseEntity.ok(Map.of("success", true, "message", "L'employé a été sauvegardé avec succès !"));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur lors de la sauvegarde de l'employé."));
-        }
+        personnelRepository.save(personnel);
+        return ResponseEntity.ok(Map.of("success", true, "message", "L'employé a été sauvegardé avec succès !"));
     }
 
     @PostMapping("/delete/{id}")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> deletePersonnel(@PathVariable Long id) {
-        try {
-            personnelRepository.deleteById(id);
-            return ResponseEntity.ok(Map.of("success", true, "message", "L'employé a été supprimé avec succès !"));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur lors de la suppression de l'employé."));
-        }
+        personnelRepository.deleteById(id);
+        return ResponseEntity.ok(Map.of("success", true, "message", "L'employé a été supprimé avec succès !"));
     }
 
     // --- Fallback methods ---

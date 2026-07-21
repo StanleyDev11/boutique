@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reçu - SUPERMARCHE BELALUXE</title>
+    <title th:text="'Reçu - ' + ${boutiqueNom}"></title>
+    <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -48,10 +49,9 @@
         <!-- Header -->
         <div class="text-center mb-4">
             
-            <h1 class="text-xl font-bold">SUPERMARCHE BELALUXE</h1>
-            <p class="text-xs">Bd. Jean Paul II, Près de la TDE</p>
-            <p class="text-xs">Hédzranawoé, Lomé - Togo</p>
-            <p class="text-xs font-semibold">Tél: (+228) 96 00 01 89 / 90 12 34 30</p>
+            <h1 class="text-xl font-bold" th:text="${boutiqueNom}">SUPERMARCHE BELALUXE</h1>
+            <p class="text-xs" th:text="${boutiqueAdresse}">Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo</p>
+            <p class="text-xs font-semibold" th:text="${boutiqueTelephone}">Tél: (+228) 96 00 01 89 / 90 12 34 30</p>
         </div>
 
         <!-- Vente Info -->
@@ -111,6 +111,19 @@
                 <span class="font-bold text-base" th:text="${#numbers.formatInteger(vente.totalFinal, 0, 'POINT')} + ' FCFA'"></span>
             </div>
         </div>
+
+        <!-- Cash Payment Details -->
+        <div class="mt-4 text-xs" th:if="${vente.moyenPaiement.name() == 'ESPECES' and vente.montantPaye != null}">
+            <div class="flex justify-between pt-2 border-t border-dashed border-black">
+                <span class="font-medium">MONTANT REÇU</span>
+                <span class="font-medium" th:text="${#numbers.formatInteger(vente.montantPaye, 0, 'POINT')} + ' FCFA'"></span>
+            </div>
+            <div class="flex justify-between">
+                <span class="font-medium">RELIQUAT</span>
+                <span class="font-medium" th:text="${#numbers.formatInteger(vente.reliquat, 0, 'POINT')} + ' FCFA'"></span>
+            </div>
+        </div>
+
 
         <!-- Payment Method -->
         <div class="text-center mt-4 text-xs">

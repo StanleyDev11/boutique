@@ -1,5 +1,6 @@
 package com.example.boutique.model;
 
+import com.example.boutique.enums.VenteStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -46,11 +47,23 @@ public class Vente {
     @Column(name = "total_final", nullable = false)
     private BigDecimal totalFinal;
 
+    @Column(name = "montant_paye")
+    private BigDecimal montantPaye;
+
+    @Column(name = "reliquat")
+    private BigDecimal reliquat;
+
+
     @Column(nullable = false)
     private String typeVente; // "Payé" ou "A crédit"
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String moyenPaiement; // "Espèces", "Carte", ou "Credit"
+    private com.example.boutique.enums.MoyenPaiement moyenPaiement; // "Espèces", "Carte", ou "Credit"
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private VenteStatus status;
 
     @ManyToOne
     @JoinColumn(name = "utilisateur_id")
@@ -59,6 +72,9 @@ public class Vente {
     @ManyToOne
     @JoinColumn(name = "session_caisse_id")
     private SessionCaisse sessionCaisse;
+
+    @Column(name = "motif_annulation")
+    private String motifAnnulation;
 
     @Override
     public boolean equals(Object o) {

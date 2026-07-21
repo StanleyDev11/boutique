@@ -5,6 +5,7 @@
     <title>Gestion des Clients</title>
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -71,7 +72,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-gray-700" th:text="${client.telephone}"></td>
                     <td class="px-6 py-4 whitespace-nowrap text-gray-700" th:text="${client.adresse}"></td>
                     
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-700" th:text="${#temporals.format(client.dateInscription, 'dd/MM/yyyy')}"></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-700" th:text="${client.dateInscription != null ? #temporals.format(client.dateInscription, 'dd/MM/yyyy') : ''}"></td>
                     <td class="px-6 py-4 whitespace-nowrap text-center space-x-2">
                         <button th:attr="data-client-id=${client.id}" onclick="openClientModal(this.getAttribute('data-client-id'))" title="Modifier" class="text-blue-600 hover:text-blue-900"><i class="fas fa-edit"></i></button>
                         <a th:href="@{/clients/{id}/credits(id=${client.id})}" title="Voir Crédits" class="text-green-600 hover:text-green-900"><i class="fas fa-eye"></i></a>
@@ -87,7 +88,7 @@
         
         <!-- Pagination -->
         <div th:if="${clientPage.totalPages > 1}" class="mt-6">
-             <div th:replace="~{fragments/pagination :: pagination(page=${clientPage}, baseUrl=@{/clients(keyword=${keyword}, size=${clientPage.size})})}"></div>
+             <div th:replace="~{fragments/pagination :: pagination(page=${clientPage}, baseUrl=@{/clients(keyword=${keyword}, size=${clientPage.size})}, pageParamName='page')}"></div>
         </div>
 
     </div>

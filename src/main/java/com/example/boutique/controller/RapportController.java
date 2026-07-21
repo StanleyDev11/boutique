@@ -5,27 +5,31 @@ import com.example.boutique.model.Produit;
 import com.example.boutique.repository.LigneVenteRepository;
 import com.example.boutique.repository.ProduitRepository;
 import com.example.boutique.repository.VenteRepository;
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfWriter;
-import com.itextpdf.layout.Document;
-import com.itextpdf.layout.element.Paragraph;
-import com.itextpdf.layout.element.Table;
-import com.opencsv.CSVWriter;
+import com.example.boutique.service.ParametreService;
+import com.example.boutique.service.PdfGenerationService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.data.domain.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.thymeleaf.TemplateEngine;
 
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -39,188 +43,224 @@ import java.util.stream.Collectors;
 @RequestMapping("/rapports")
 public class RapportController {
 
+    private static final Logger logger = LoggerFactory.getLogger(RapportController.class);
+
     private final ProduitRepository produitRepository;
     private final VenteRepository venteRepository;
     private final LigneVenteRepository ligneVenteRepository;
-    private static final int SEUIL_STOCK_BAS = 10;
-    private static final int JOURS_AVANT_PEREMPTION = 30;
+    private final PdfGenerationService pdfGenerationService;
+    private final TemplateEngine templateEngine;
+    private final ParametreService parametreService;
 
-    public RapportController(ProduitRepository produitRepository, VenteRepository venteRepository, LigneVenteRepository ligneVenteRepository) {
+    public RapportController(ProduitRepository produitRepository, VenteRepository venteRepository, LigneVenteRepository ligneVenteRepository, PdfGenerationService pdfGenerationService, TemplateEngine templateEngine, ParametreService parametreService) {
         this.produitRepository = produitRepository;
         this.venteRepository = venteRepository;
         this.ligneVenteRepository = ligneVenteRepository;
+        this.pdfGenerationService = pdfGenerationService;
+        this.templateEngine = templateEngine;
+        this.parametreService = parametreService;
     }
 
     @GetMapping("/stock-bas")
     public String rapportStockBas(Model model,
+                                  @RequestParam(defaultValue = "stock") String tab,
                                   @RequestParam(required = false) String filter,
                                   @RequestParam(defaultValue = "asc") String sort,
                                   @RequestParam(defaultValue = "0") int page,
-                                  @RequestParam(defaultValue = "8") int size) {
+                                  @RequestParam(defaultValue = "150") int size,
+                                  @RequestParam(required = false) String searchTerm) {
 
-        // --- Préparation de la Pagination et du Tri ---
+        model.addAttribute("activeTab", tab);
+
+        int seuilStockBasInt = parametreService.getSeuilStockBas();
+        BigDecimal seuilStockBas = BigDecimal.valueOf(seuilStockBasInt);
+        int joursAvantPeremption = parametreService.getJoursAvantPeremption();
+
         Sort.Direction direction = "desc".equalsIgnoreCase(sort) ? Sort.Direction.DESC : Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "quantiteEnStock"));
 
-        // --- Récupération des Données Paginées pour l'affichage ---
         Page<Produit> produitsPage;
-        if ("rupture".equals(filter)) {
-            produitsPage = produitRepository.findAllByQuantiteEnStock(0, pageable);
+        if (searchTerm != null && !searchTerm.isEmpty()) {
+            if ("rupture".equals(filter)) {
+                produitsPage = produitRepository.findByNomContainingIgnoreCaseAndQuantiteEnStock(searchTerm, BigDecimal.ZERO, pageable);
+            } else {
+                produitsPage = produitRepository.findByNomContainingIgnoreCaseAndQuantiteEnStockLessThanEqual(searchTerm, seuilStockBas, pageable);
+            }
         } else {
-            produitsPage = produitRepository.findAllByQuantiteEnStockLessThanEqual(SEUIL_STOCK_BAS, pageable);
+            if ("rupture".equals(filter)) {
+                produitsPage = produitRepository.findAllByQuantiteEnStock(BigDecimal.ZERO, pageable);
+            } else {
+                produitsPage = produitRepository.findAllByQuantiteEnStockLessThanEqual(seuilStockBas, pageable);
+            }
         }
 
-        // --- Calcul des Statistiques Globales (non paginées) ---
-        List<Produit> tousLesProduitsEnStockBas = produitRepository.findAllByQuantiteEnStockLessThanEqual(SEUIL_STOCK_BAS, PageRequest.of(0, Integer.MAX_VALUE)).getContent();
+        Pageable top10 = PageRequest.of(0, 10);
+        List<Produit> produitsPourStockChart = produitRepository.findTopNByQuantiteEnStockLessThanEqualOrderByQuantiteEnStockAsc(seuilStockBas, top10);
+
+        List<Produit> tousLesProduitsEnStockBas = produitRepository.findAllByQuantiteEnStockLessThanEqual(seuilStockBas, PageRequest.of(0, Integer.MAX_VALUE)).getContent();
 
         long nombreEnRupture = tousLesProduitsEnStockBas.stream()
-                .filter(p -> p.getQuantiteEnStock() == 0)
+                .filter(p -> p.getQuantiteEnStock().compareTo(BigDecimal.ZERO) == 0)
                 .count();
 
-        double valeurStockBas = tousLesProduitsEnStockBas.stream()
+        BigDecimal valeurStockBas = tousLesProduitsEnStockBas.stream()
                 .filter(p -> p.getPrixAchat() != null)
-                .map(p -> p.getPrixAchat().multiply(new BigDecimal(p.getQuantiteEnStock())))
-                .mapToDouble(BigDecimal::doubleValue)
-                .sum();
+                .map(p -> p.getPrixAchat().multiply(p.getQuantiteEnStock()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // --- Données de Péremption ---
         LocalDate aujourdhui = LocalDate.now();
-        LocalDate dateLimite = aujourdhui.plusDays(JOURS_AVANT_PEREMPTION);
-        List<Produit> produitsPeremptionProche = produitRepository.findAllByDatePeremptionBetween(aujourdhui, dateLimite);
+        LocalDate dateLimite = aujourdhui.plusDays(joursAvantPeremption);
+        List<Produit> produitsPeremptionProche = produitRepository.findAllByDatePeremptionBetweenAndQuantiteEnStockGreaterThan(aujourdhui, dateLimite, BigDecimal.ZERO);
 
-        // --- Ajout des données au modèle ---
-        model.addAttribute("produitsPage", produitsPage);
-        model.addAttribute("seuil", SEUIL_STOCK_BAS);
+        List<Produit> produitsPerimesList = produitRepository.findAllByDatePeremptionBeforeAndQuantiteEnStockGreaterThan(aujourdhui, BigDecimal.ZERO);
+
+        // Manually paginate the expired products list
+        Pageable perimesPageable = PageRequest.of(page, 150, Sort.by("datePeremption").ascending());
+        int start = (int) perimesPageable.getOffset();
+        int end = Math.min((start + perimesPageable.getPageSize()), produitsPerimesList.size());
+        List<Produit> pageContent = (produitsPerimesList.isEmpty() || start > end) ? java.util.Collections.emptyList() : produitsPerimesList.subList(start, end);
+        Page<Produit> produitsPerimesPage = new org.springframework.data.domain.PageImpl<>(pageContent, perimesPageable, produitsPerimesList.size());
+        model.addAttribute("produitsPerimesPage", produitsPerimesPage);
+
+        // Force initialization to prevent LazyInitializationException in the template
+        List<Produit> initializedProduits = produitsPage.getContent();
+        // Simply accessing the list might be enough if the transaction is managed correctly up to the view layer,
+        // but creating a new Page object from a collected list is safer.
+        Page<Produit> initializedPage = new org.springframework.data.domain.PageImpl<>(
+                initializedProduits.stream().collect(Collectors.toList()),
+                pageable,
+                produitsPage.getTotalElements()
+        );
+        model.addAttribute("produitsPage", initializedPage);
+        model.addAttribute("seuil", seuilStockBasInt);
         model.addAttribute("sort", sort);
         model.addAttribute("activeFilter", filter);
-
-        // Ajout des stats au modèle
         model.addAttribute("nombreStockBas", tousLesProduitsEnStockBas.size());
         model.addAttribute("nombreEnRupture", nombreEnRupture);
         model.addAttribute("valeurStockBas", valeurStockBas);
         model.addAttribute("produitsPeremptionProche", produitsPeremptionProche);
-        model.addAttribute("joursAvantPeremption", JOURS_AVANT_PEREMPTION);
+        model.addAttribute("joursAvantPeremption", joursAvantPeremption);
         model.addAttribute("totalProduits", produitRepository.count());
+        model.addAttribute("produitsPourStockChart", produitsPourStockChart);
+        model.addAttribute("searchTerm", searchTerm);
 
         return "rapport-stock-bas";
     }
 
     @GetMapping("/ventes-historique")
     public String ventesHistorique(Model model,
+                                   @RequestParam(defaultValue = "historique") String tab,
                                    @RequestParam(required = false) String nomProduit,
                                    @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate startDate,
                                    @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate endDate,
-                                   @RequestParam(required = false) BigDecimal minAmount,
-                                   @RequestParam(required = false) BigDecimal maxAmount,
+                                   @RequestParam(required = false) Double minAmount,
+                                   @RequestParam(required = false) Double maxAmount,
                                    @RequestParam(defaultValue = "date") String sortBy,
                                    @RequestParam(defaultValue = "0") int page,
-                                   @RequestParam(defaultValue = "10") int size) {
+                                   @RequestParam(defaultValue = "50") int size) {
 
-        Sort sort = switch (sortBy) {
-            case "date_asc" -> Sort.by(Sort.Direction.ASC, "vente.dateVente");
-            case "amount" -> Sort.by(Sort.Direction.DESC, "montantTotal");
-            case "amount_asc" -> Sort.by(Sort.Direction.ASC, "montantTotal");
-            case "product" -> Sort.by(Sort.Direction.ASC, "produit.nom");
-            default -> Sort.by(Sort.Direction.DESC, "vente.dateVente");
-        };
+        model.addAttribute("activeTab", tab);
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+        model.addAttribute("minAmount", minAmount);
+        model.addAttribute("maxAmount", maxAmount);
+        model.addAttribute("sortBy", sortBy);
+        model.addAttribute("size", size);
 
+        Sort sort = Sort.by(Sort.Direction.DESC, "dateVente");
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<LigneVente> ligneVentePage;
+        Page<com.example.boutique.model.Vente> ventePage;
 
-        if (nomProduit != null && !nomProduit.isEmpty()) {
-            ligneVentePage = ligneVenteRepository.findByProduitNomContainingIgnoreCase(nomProduit, pageable);
-        } else if (startDate != null && endDate != null) {
-            ligneVentePage = ligneVenteRepository.findByVenteDateVenteBetween(startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay(), pageable);
+        if (startDate != null && endDate != null) {
+            ventePage = venteRepository.findByDateVenteBetween(startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay(), pageable);
         } else {
-            ligneVentePage = ligneVenteRepository.findAll(pageable);
+            ventePage = venteRepository.findAll(pageable);
         }
 
-        List<LigneVente> ligneVentes = ligneVentePage.getContent().stream()
-                .filter(lv -> (minAmount == null || lv.getMontantTotal().compareTo(minAmount) >= 0))
-                .filter(lv -> (maxAmount == null || lv.getMontantTotal().compareTo(maxAmount) <= 0))
-                .collect(Collectors.toList());
-
-        // Calculate metrics
-        BigDecimal totalRevenue = ligneVentes.stream()
-                .map(LigneVente::getMontantTotal)
+        BigDecimal totalRevenue = venteRepository.findAll().stream()
+                .filter(v -> v.getStatus() == com.example.boutique.enums.VenteStatus.COMPLETED)
+                .map(com.example.boutique.model.Vente::getTotalFinal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        long totalSales = venteRepository.countByStatus(com.example.boutique.enums.VenteStatus.COMPLETED);
+        BigDecimal todaysRevenue = venteRepository.findAllByDateVenteAfter(LocalDate.now().atStartOfDay()).stream()
+                .filter(v -> v.getStatus() == com.example.boutique.enums.VenteStatus.COMPLETED)
+                .map(com.example.boutique.model.Vente::getTotalFinal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        long totalSales = ligneVentes.stream()
-                .map(LigneVente::getVente)
-                .distinct()
-                .count();
 
-        BigDecimal todaysRevenue = ligneVentes.stream()
-                .filter(lv -> lv.getVente() != null && lv.getVente().getDateVente().toLocalDate().isEqual(LocalDate.now()))
-                .map(LigneVente::getMontantTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        // Previous period metrics for trends
-        LocalDateTime lastMonthStart = LocalDate.now().minusMonths(1).withDayOfMonth(1).atStartOfDay();
-        LocalDateTime lastMonthEnd = LocalDate.now().withDayOfMonth(1).atStartOfDay();
-        List<LigneVente> lastMonthVentes = ligneVenteRepository.findByVenteDateVenteBetween(lastMonthStart, lastMonthEnd, Pageable.unpaged()).getContent();
-        BigDecimal previousMonthRevenue = lastMonthVentes.stream()
-            .map(LigneVente::getMontantTotal)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-        long previousMonthSales = lastMonthVentes.stream()
-            .map(LigneVente::getVente)
-            .filter(java.util.Objects::nonNull)
-            .map(com.example.boutique.model.Vente::getId)
-            .distinct()
-            .count();
-
-        LocalDateTime yesterdayStart = LocalDate.now().minusDays(1).atStartOfDay();
-        LocalDateTime yesterdayEnd = LocalDate.now().atStartOfDay();
-        List<LigneVente> yesterdayVentes = ligneVenteRepository.findByVenteDateVenteBetween(yesterdayStart, yesterdayEnd, Pageable.unpaged()).getContent();
-        BigDecimal yesterdayRevenue = yesterdayVentes.stream()
-            .map(LigneVente::getMontantTotal)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        // Calculate percentage changes
-        double revenueChange = 0;
-        if (previousMonthRevenue.compareTo(BigDecimal.ZERO) > 0) {
-            revenueChange = (totalRevenue.subtract(previousMonthRevenue)).divide(previousMonthRevenue, 2, BigDecimal.ROUND_HALF_UP).doubleValue() * 100;
-        }
-        double salesChange = 0;
-        if (previousMonthSales > 0) {
-            salesChange = ((double) totalSales - previousMonthSales) / previousMonthSales * 100;
-        }
-        double todayRevenueChange = 0;
-        if (yesterdayRevenue.compareTo(BigDecimal.ZERO) > 0) {
-            todayRevenueChange = (todaysRevenue.subtract(yesterdayRevenue)).divide(yesterdayRevenue, 2, BigDecimal.ROUND_HALF_UP).doubleValue() * 100;
-        }
-
-        model.addAttribute("ventesPage", new PageImpl<>(ligneVentes, pageable, ligneVentePage.getTotalElements()));
+        model.addAttribute("ventesPage", ventePage);
         model.addAttribute("produits", produitRepository.findAll(Sort.by("nom")));
         model.addAttribute("totalRevenue", totalRevenue);
         model.addAttribute("totalSales", totalSales);
         model.addAttribute("todaysRevenue", todaysRevenue);
-        model.addAttribute("revenueChange", revenueChange);
-        model.addAttribute("salesChange", salesChange);
-        model.addAttribute("todayRevenueChange", todayRevenueChange);
+        model.addAttribute("revenueChange", 0.0);
+        model.addAttribute("salesChange", 0.0);
+        model.addAttribute("todayRevenueChange", 0.0);
 
         List<Object[]> mostSoldProductsRaw = ligneVenteRepository.findMostSoldProducts();
-        long totalItemsSold = mostSoldProductsRaw.stream().mapToLong(item -> (long) item[1]).sum();
+        BigDecimal totalItemsSold = mostSoldProductsRaw.stream()
+                .map(item -> (BigDecimal) item[1])
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         List<Map<String, Object>> mostSoldProducts = mostSoldProductsRaw.stream()
                 .map(item -> {
                     Map<String, Object> productMap = new HashMap<>();
                     productMap.put("produit", item[0]);
-                    productMap.put("quantite", item[1]);
-                    if (totalItemsSold > 0) {
-                        double percentage = ((long) item[1] * 100.0) / totalItemsSold;
+                    BigDecimal quantite = (BigDecimal) item[1];
+                    productMap.put("quantite", quantite);
+
+                    if (totalItemsSold.compareTo(BigDecimal.ZERO) > 0) {
+                        BigDecimal percentage = quantite.multiply(new BigDecimal("100")).divide(totalItemsSold, 2, java.math.RoundingMode.HALF_UP);
                         productMap.put("percentage", percentage);
                     } else {
-                        productMap.put("percentage", 0.0);
+                        productMap.put("percentage", BigDecimal.ZERO);
                     }
                     return productMap;
                 })
                 .collect(Collectors.toList());
-
         model.addAttribute("mostSoldProducts", mostSoldProducts);
 
+        // Add stats for the new "Sales by Product" tab, applying filters
+        LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : null;
+        LocalDateTime endDateTime = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : null;
+        List<com.example.boutique.dto.ProduitVenteStatsDto> produitVenteStats = ligneVenteRepository.findProduitVenteStats(nomProduit, startDateTime, endDateTime);
+        model.addAttribute("produitVenteStats", produitVenteStats);
 
         return "ventes-historique";
+    }
+
+    @GetMapping("/ventes/imprimer")
+    public String imprimerVentes(Model model,
+                                 @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate startDate,
+                                 @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        if (startDate == null) {
+            startDate = LocalDate.now();
+        }
+        if (endDate == null) {
+            endDate = LocalDate.now();
+        }
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
+
+        Sort sort = Sort.by(Sort.Direction.ASC, "dateVente");
+        List<com.example.boutique.model.Vente> ventes = venteRepository.findAllWithDetailsByDateVenteBetween(startDateTime, endDateTime, sort).stream().filter(v -> v.getStatus() != com.example.boutique.enums.VenteStatus.CANCELLED).collect(Collectors.toList());
+
+        List<LigneVente> allLigneVentes = ventes.stream()
+                .flatMap(vente -> vente.getLigneVentes().stream())
+                .collect(Collectors.toList());
+
+        BigDecimal totalGeneral = allLigneVentes.stream()
+                .map(LigneVente::getMontantTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        model.addAttribute("allLigneVentes", allLigneVentes);
+        model.addAttribute("totalGeneral", totalGeneral);
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+        model.addAttribute("dateGeneration", LocalDateTime.now());
+
+        return "rapport-ventes";
     }
 
     @GetMapping("/sales-by-day")
@@ -255,98 +295,277 @@ public class RapportController {
         return Map.of("labels", labels, "data", data);
     }
 
-    @GetMapping("/export/csv")
-    @ResponseBody
-    public void exportCsv(HttpServletResponse response) throws IOException {
-        response.setContentType("text/csv");
-        response.setHeader("Content-Disposition", "attachment; file=ventes.csv");
-
-        try (CSVWriter writer = new CSVWriter(new OutputStreamWriter(response.getOutputStream()))) {
-            // Write header
-            String[] header = {"ID Vente", "Produit", "Quantité", "Prix Unitaire", "Montant Total", "Date de Vente"};
-            writer.writeNext(header);
-
-            // Write data
-            List<LigneVente> sales = ligneVenteRepository.findAllWithVente(Pageable.unpaged()).getContent();
-            for (LigneVente sale : sales) {
-                String[] data = {
-                        String.valueOf(sale.getVente().getId()),
-                        sale.getProduit().getNom(),
-                        String.valueOf(sale.getQuantite()),
-                        String.valueOf(sale.getPrixUnitaire()),
-                        String.valueOf(sale.getMontantTotal()),
-                        String.valueOf(sale.getVente().getDateVente())
-                };
-                writer.writeNext(data);
+    @GetMapping("/ventes/export/excel")
+    public void exportVentesRapportExcel(HttpServletResponse response,
+                                         @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate startDate,
+                                         @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        try {
+            if (startDate == null) {
+                startDate = LocalDate.now();
             }
+            if (endDate == null) {
+                endDate = LocalDate.now();
+            }
+            LocalDateTime startDateTime = startDate.atStartOfDay();
+            LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
+
+            Sort sort = Sort.by(Sort.Direction.ASC, "dateVente");
+            List<com.example.boutique.model.Vente> ventes = venteRepository.findAllWithDetailsByDateVenteBetween(startDateTime, endDateTime, sort).stream().filter(v -> v.getStatus() != com.example.boutique.enums.VenteStatus.CANCELLED).collect(Collectors.toList());
+
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setHeader("Content-Disposition", "attachment; filename=rapport_ventes.xlsx");
+
+            try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+                XSSFSheet sheet = workbook.createSheet("Rapport des Ventes");
+
+                Row headerRow = sheet.createRow(0);
+                String[] headers = {"Date", "Nom Produit", "Quantité", "Prix Unitaire", "Total Ligne"};
+                for (int i = 0; i < headers.length; i++) {
+                    Cell cell = headerRow.createCell(i);
+                    cell.setCellValue(headers[i]);
+                }
+
+                int rowNum = 1;
+                for (com.example.boutique.model.Vente vente : ventes) {
+                    for (LigneVente ligne : vente.getLigneVentes()) {
+                        Row row = sheet.createRow(rowNum++);
+                        row.createCell(0).setCellValue(vente.getDateVente().toString());
+                        row.createCell(1).setCellValue(ligne.getProduit().getNom());
+                        row.createCell(2).setCellValue(ligne.getQuantite().doubleValue());
+                        row.createCell(3).setCellValue(ligne.getPrixUnitaire().doubleValue());
+                        row.createCell(4).setCellValue(ligne.getMontantTotal().doubleValue());
+                    }
+                }
+                workbook.write(response.getOutputStream());
+            }
+        } catch (IOException e) {
+            logger.error("Erreur lors de la génération du rapport Excel des ventes.", e);
         }
     }
 
-    @GetMapping("/export/pdf")
-    @ResponseBody
-    public void exportPdf(HttpServletResponse response) throws IOException {
-        response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "attachment; file=ventes.pdf");
-
-        try (PdfWriter writer = new PdfWriter(response.getOutputStream());
-             PdfDocument pdf = new PdfDocument(writer);
-             Document document = new Document(pdf)) {
-
-            document.add(new Paragraph("Historique des Ventes"));
-
-            Table table = new Table(6);
-            table.addHeaderCell("ID Vente");
-            table.addHeaderCell("Produit");
-            table.addHeaderCell("Quantité");
-            table.addHeaderCell("Prix Unitaire");
-            table.addHeaderCell("Montant Total");
-            table.addHeaderCell("Date de Vente");
-
-            List<LigneVente> sales = ligneVenteRepository.findAll();
-            for (LigneVente sale : sales) {
-                table.addCell(String.valueOf(sale.getVente().getId()));
-                table.addCell(sale.getProduit().getNom());
-                table.addCell(String.valueOf(sale.getQuantite()));
-                table.addCell(String.valueOf(sale.getPrixUnitaire()));
-                table.addCell(String.valueOf(sale.getMontantTotal()));
-                table.addCell(String.valueOf(sale.getVente().getDateVente()));
+    @GetMapping("/ventes/export/pdf")
+    public ResponseEntity<byte[]> exportRapportVentesPdf(@RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate startDate,
+                                                     @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        try {
+            if (startDate == null) {
+                startDate = LocalDate.now();
             }
+            if (endDate == null) {
+                endDate = LocalDate.now();
+            }
+            LocalDateTime startDateTime = startDate.atStartOfDay();
+            LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
 
-            document.add(table);
+            Sort sort = Sort.by(Sort.Direction.ASC, "dateVente");
+            List<com.example.boutique.model.Vente> ventes = venteRepository.findAllWithDetailsByDateVenteBetween(startDateTime, endDateTime, sort).stream().filter(v -> v.getStatus() != com.example.boutique.enums.VenteStatus.CANCELLED).collect(Collectors.toList());
+
+            List<LigneVente> allLigneVentes = ventes.stream()
+                    .flatMap(vente -> vente.getLigneVentes().stream())
+                    .collect(Collectors.toList());
+
+            BigDecimal totalGeneral = allLigneVentes.stream()
+                    .map(LigneVente::getMontantTotal)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("allLigneVentes", allLigneVentes);
+            data.put("totalGeneral", totalGeneral);
+            data.put("startDate", startDate);
+            data.put("endDate", endDate);
+            data.put("dateGeneration", LocalDateTime.now());
+
+            data.put("boutiqueNom", parametreService.getBoutiqueNom());
+            data.put("boutiqueAdresse", parametreService.getBoutiqueAdresse());
+            data.put("boutiqueTelephone", parametreService.getBoutiqueTelephone());
+
+            byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("rapport-ventes", data);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "rapport-ventes.pdf");
+
+            return ResponseEntity.ok().headers(headers).body(pdfBytes);
+        } catch (IOException e) {
+            logger.error("Erreur lors de la génération du rapport PDF des ventes.", e);
+            return ResponseEntity.internalServerError().build();
         }
     }
 
-    @GetMapping("/export/excel")
-    @ResponseBody
-    public void exportExcel(HttpServletResponse response) throws IOException {
+    @GetMapping("/imprimer/stock-bas")
+    public ResponseEntity<byte[]> imprimerRapportStockBas(
+            @RequestParam(required = false) String filter) {
+        try {
+            int seuilStockBasInt = parametreService.getSeuilStockBas();
+            BigDecimal seuilStockBas = BigDecimal.valueOf(seuilStockBasInt);
+
+            List<Produit> produits;
+            String typeRapport;
+            if ("rupture".equals(filter)) {
+                produits = produitRepository.findAllByQuantiteEnStock(BigDecimal.ZERO, PageRequest.of(0, Integer.MAX_VALUE)).getContent();
+                typeRapport = "Produits en Rupture de Stock";
+            } else {
+                produits = produitRepository.findAllByQuantiteEnStockLessThanEqual(seuilStockBas, PageRequest.of(0, Integer.MAX_VALUE)).getContent();
+                typeRapport = "Produits en Stock Bas";
+            }
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("produits", produits);
+            data.put("dateGeneration", LocalDateTime.now());
+            data.put("typeRapport", typeRapport);
+
+            data.put("boutiqueNom", parametreService.getBoutiqueNom());
+            data.put("boutiqueAdresse", parametreService.getBoutiqueAdresse());
+            data.put("boutiqueTelephone", parametreService.getBoutiqueTelephone());
+
+            byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("rapport-stock-bas-print", data);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "rapport-stock-bas.pdf");
+
+            return ResponseEntity.ok().headers(headers).body(pdfBytes);
+
+        } catch (IOException e) {
+            logger.error("Erreur lors de la génération du rapport PDF de stock bas.", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/imprimer/peremption")
+    public ResponseEntity<byte[]> imprimerRapportPeremption(Model model) {
+        try {
+            int joursAvantPeremption = parametreService.getJoursAvantPeremption();
+            LocalDate aujourdhui = LocalDate.now();
+            LocalDate dateLimite = aujourdhui.plusDays(joursAvantPeremption);
+            List<Produit> produitsPeremptionProche = produitRepository.findAllByDatePeremptionBetweenAndQuantiteEnStockGreaterThan(aujourdhui, dateLimite, BigDecimal.ZERO);
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("produits", produitsPeremptionProche);
+            data.put("dateGeneration", LocalDateTime.now());
+            data.put("joursAvantPeremption", joursAvantPeremption);
+            data.put("typeRapport", "Produits avec date de péremption proche");
+
+            data.put("boutiqueNom", parametreService.getBoutiqueNom());
+            data.put("boutiqueAdresse", parametreService.getBoutiqueAdresse());
+            data.put("boutiqueTelephone", parametreService.getBoutiqueTelephone());
+
+            byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("rapport-peremption-print", data);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "rapport-peremption.pdf");
+
+            return ResponseEntity.ok().headers(headers).body(pdfBytes);
+
+        } catch (IOException e) {
+            logger.error("Erreur lors de la génération du rapport PDF de péremption.", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/imprimer/perimes")
+    public ResponseEntity<byte[]> imprimerRapportPerimes() {
+        try {
+            LocalDate aujourdhui = LocalDate.now();
+            List<Produit> produitsPerimes = produitRepository.findAllByDatePeremptionBeforeAndQuantiteEnStockGreaterThan(aujourdhui, BigDecimal.ZERO);
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("produits", produitsPerimes);
+            data.put("dateGeneration", LocalDateTime.now());
+            data.put("typeRapport", "Produits Périmés");
+
+            data.put("boutiqueNom", parametreService.getBoutiqueNom());
+            data.put("boutiqueAdresse", parametreService.getBoutiqueAdresse());
+            data.put("boutiqueTelephone", parametreService.getBoutiqueTelephone());
+
+            byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("rapport-perimes-print", data);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "rapport-perimes.pdf");
+
+            return ResponseEntity.ok().headers(headers).body(pdfBytes);
+        } catch (IOException e) {
+            logger.error("Erreur lors de la génération du rapport PDF des produits périmés.", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/produits/export/excel")
+    public void exportVentesParProduitExcel(HttpServletResponse response,
+                                     @RequestParam(required = false) String keyword,
+                                     @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate startDate,
+                                     @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate endDate) throws IOException {
+        
+        LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : null;
+        LocalDateTime endDateTime = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : null;
+
+        List<com.example.boutique.dto.ProduitVenteStatsDto> stats = ligneVenteRepository.findProduitVenteStats(keyword, startDateTime, endDateTime);
+
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setHeader("Content-Disposition", "attachment; file=ventes.xlsx");
+        response.setHeader("Content-Disposition", "attachment; filename=rapport_ventes_par_produit.xlsx");
 
         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
-            XSSFSheet sheet = workbook.createSheet("Ventes");
+            XSSFSheet sheet = workbook.createSheet("Ventes par Produit");
 
-            // Create header row
             Row headerRow = sheet.createRow(0);
-            String[] header = {"ID Vente", "Produit", "Quantité", "Prix Unitaire", "Montant Total", "Date de Vente"};
-            for (int i = 0; i < header.length; i++) {
+            String[] headers = {"Produit", "Quantité Vendue", "Prix Vente Actuel", "Revenu Total"};
+            for (int i = 0; i < headers.length; i++) {
                 Cell cell = headerRow.createCell(i);
-                cell.setCellValue(header[i]);
+                cell.setCellValue(headers[i]);
             }
 
-            // Create data rows
-            List<LigneVente> sales = ligneVenteRepository.findAllWithVente(Pageable.unpaged()).getContent();
             int rowNum = 1;
-            for (LigneVente sale : sales) {
+            for (com.example.boutique.dto.ProduitVenteStatsDto stat : stats) {
                 Row row = sheet.createRow(rowNum++);
-                row.createCell(0).setCellValue(sale.getVente().getId());
-                row.createCell(1).setCellValue(sale.getProduit().getNom());
-                row.createCell(2).setCellValue(sale.getQuantite());
-                row.createCell(3).setCellValue(sale.getPrixUnitaire().doubleValue());
-                row.createCell(4).setCellValue(sale.getMontantTotal().doubleValue());
-                row.createCell(5).setCellValue(sale.getVente().getDateVente().toString());
+                row.createCell(0).setCellValue(stat.getProduit().getNom());
+                row.createCell(1).setCellValue(stat.getTotalQuantiteVendue().doubleValue());
+                if (stat.getProduit().getPrixVenteUnitaire() != null) {
+                    row.createCell(2).setCellValue(stat.getProduit().getPrixVenteUnitaire().doubleValue());
+                }
+                row.createCell(3).setCellValue(stat.getTotalRevenu().doubleValue());
             }
-
             workbook.write(response.getOutputStream());
+        }
+    }
+
+    @GetMapping("/produits/export/pdf")
+    public ResponseEntity<byte[]> exportVentesParProduitPdf(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        try {
+            if (startDate == null) {
+                startDate = LocalDate.now();
+            }
+            if (endDate == null) {
+                endDate = LocalDate.now();
+            }
+            LocalDateTime startDateTime = startDate.atStartOfDay();
+            LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
+
+            List<com.example.boutique.dto.ProduitVenteStatsDto> stats = ligneVenteRepository.findProduitVenteStats(keyword, startDateTime, endDateTime);
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("produitVenteStats", stats);
+            data.put("startDate", startDate);
+            data.put("endDate", endDate);
+            data.put("dateGeneration", LocalDateTime.now());
+
+            data.put("boutiqueNom", parametreService.getBoutiqueNom());
+            data.put("boutiqueAdresse", parametreService.getBoutiqueAdresse());
+            data.put("boutiqueTelephone", parametreService.getBoutiqueTelephone());
+
+            byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml("rapport-ventes-par-produit-print", data);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "rapport_ventes_par_produit.pdf");
+
+            return ResponseEntity.ok().headers(headers).body(pdfBytes);
+        } catch (IOException e) {
+            logger.error("Erreur lors de la génération du rapport PDF des ventes par produit.", e);
+            return ResponseEntity.internalServerError().build();
         }
     }
 }

@@ -1,19 +1,34 @@
 package com.example.boutique.controller;
 
+import com.example.boutique.dto.MouvementStockBatchDto;
 import com.example.boutique.enums.TypeMouvement;
 import com.example.boutique.model.MouvementStock;
 import com.example.boutique.model.Produit;
 import com.example.boutique.repository.MouvementStockRepository;
 import com.example.boutique.repository.ProduitRepository;
 import com.example.boutique.service.StockService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @Controller
 @RequestMapping("/stock")
 public class StockController {
+
+    private static final Logger logger = LoggerFactory.getLogger(StockController.class);
 
     private final StockService stockService;
     private final ProduitRepository produitRepository;
@@ -32,33 +47,112 @@ public class StockController {
             produitRepository.findById(produitId).ifPresent(mouvement::setProduit);
         }
 
+        List<Produit> produits = produitRepository.findAll();
+        List<Map<String, Object>> productMaps = new ArrayList<>();
+        for (Produit p : produits) {
+            Map<String, Object> productMap = new HashMap<>();
+            productMap.put("id", p.getId());
+            productMap.put("name", p.getNom());
+            productMap.put("barcode", p.getCodeBarres());
+            productMap.put("stock", p.getQuantiteEnStock());
+            productMaps.add(productMap);
+        }
+
+        ObjectMapper mapper = new ObjectMapper();
+        String produitsJson = "[]";
+        try {
+            produitsJson = mapper.writeValueAsString(productMaps);
+        } catch (JsonProcessingException e) {
+            logger.error("Erreur lors de la sérialisation des produits en JSON.", e);
+            // On continue avec une liste vide, la page restera fonctionnelle
+        }
+
         model.addAttribute("mouvement", mouvement);
-        model.addAttribute("produits", produitRepository.findAll());
+        model.addAttribute("produitsJson", produitsJson);
+        model.addAttribute("produits", produits); // On peut le garder pour d'autres usages si nécessaire
         model.addAttribute("typesMouvement", TypeMouvement.values());
         return "stock-form";
     }
 
-    @PostMapping("/save")
-    public String saveMouvement(@ModelAttribute("mouvement") MouvementStock mouvement, RedirectAttributes redirectAttributes) {
-        try {
-            stockService.enregistrerMouvement(mouvement);
-            redirectAttributes.addFlashAttribute("successMessage", "Mouvement de stock enregistré avec succès !");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Erreur : " + e.getMessage());
+    @GetMapping("/batch-new")
+    public String showBatchStockForm(Model model) {
+        List<Produit> produits = produitRepository.findAll(Sort.by("nom"));
+        List<Map<String, Object>> productMaps = new ArrayList<>();
+        for (Produit p : produits) {
+            Map<String, Object> productMap = new HashMap<>();
+            productMap.put("id", p.getId());
+            productMap.put("name", p.getNom());
+            productMap.put("stock", p.getQuantiteEnStock());
+            productMaps.add(productMap);
         }
-        return "redirect:/produits";
+
+        ObjectMapper mapper = new ObjectMapper();
+        String produitsJson = "[]";
+        try {
+            produitsJson = mapper.writeValueAsString(productMaps);
+        } catch (JsonProcessingException e) {
+            logger.error("Erreur lors de la sérialisation des produits en JSON pour le formulaire de lot.", e);
+        }
+
+        model.addAttribute("produitsJson", produitsJson);
+        model.addAttribute("typesMouvement", TypeMouvement.values());
+        return "stock-form-batch";
     }
+
+
+    @PostMapping("/save")
+    public String saveMouvement(@ModelAttribute("mouvement") MouvementStock mouvement,
+                                @RequestParam(required = false) String numeroFacture,
+                                @RequestParam(required = false) String nomFournisseur,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            stockService.enregistrerMouvement(mouvement, numeroFacture, nomFournisseur);
+            redirectAttributes.addFlashAttribute("successMessage", "Mouvement de stock enregistré avec succès !");
+        } catch (IllegalArgumentException e) {
+            logger.warn("Tentative d'enregistrement d'un mouvement de stock invalide : {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Erreur de validation : " + e.getMessage());
+        } catch (Exception e) {
+            logger.error("Erreur inattendue lors de l'enregistrement d'un mouvement de stock.", e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Une erreur technique est survenue. Impossible d'enregistrer le mouvement.");
+        }
+        return "redirect:/stock/new";
+    }
+
+    @PostMapping("/save-batch")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> saveMouvementBatch(@Valid @ModelAttribute MouvementStockBatchDto batchDto) {
+        try {
+            stockService.enregistrerMouvementBatch(batchDto);
+            String redirectUrl = "/produits?tab=factures";
+            if (batchDto.getNumeroFacture() != null && !batchDto.getNumeroFacture().isBlank()) {
+                redirectUrl = "/produits/facture/" + batchDto.getNumeroFacture();
+            }
+            return ResponseEntity.ok(Map.of("success", true, "message", "Mouvements de stock enregistrés avec succès !", "redirectUrl", redirectUrl));
+        } catch (IllegalArgumentException e) {
+            logger.warn("Données de lot de mouvements de stock invalides : {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        } catch (Exception e) {
+            logger.error("Erreur inattendue lors de l'enregistrement d'un lot de mouvements de stock.", e);
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Une erreur technique est survenue."));
+        }
+    }
+
 
     @GetMapping("/history/{produitId}")
     public String showHistory(@PathVariable Long produitId, Model model, RedirectAttributes redirectAttributes) {
         try {
             Produit produit = produitRepository.findById(produitId)
-                    .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé"));
+                    .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé pour l'ID: " + produitId));
             model.addAttribute("produit", produit);
             model.addAttribute("historique", mouvementStockRepository.findByProduitIdOrderByDateMouvementDesc(produitId));
             return "stock-history";
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
+            logger.warn(e.getMessage());
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/produits";
+        } catch (Exception e) {
+            logger.error("Erreur inattendue en cherchant l'historique du produit avec l'ID: " + produitId, e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Une erreur technique est survenue en consultant l'historique.");
             return "redirect:/produits";
         }
     }

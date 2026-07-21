@@ -2,6 +2,7 @@ package com.example.boutique.controller;
 
 import com.example.boutique.model.Utilisateur;
 import com.example.boutique.repository.UtilisateurRepository;
+import com.example.boutique.security.AccountConstants;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,9 +34,17 @@ public class UtilisateurController {
                                    @RequestParam(defaultValue = "0") int page,
                                    @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Utilisateur> utilisateurPage = utilisateurRepository.findAll(pageable);
+        // Exclut les comptes cachés (super admin non persisté + compte démo) de la liste.
+        Page<Utilisateur> utilisateurPage =
+                utilisateurRepository.findByUsernameNotIn(AccountConstants.HIDDEN_USERNAMES, pageable);
         model.addAttribute("utilisateursPage", utilisateurPage);
         return "utilisateur-list";
+    }
+
+    private void assertNotProtected(String username) {
+        if (username != null && AccountConstants.HIDDEN_USERNAMES.contains(username)) {
+            throw new IllegalStateException("Ce compte est protégé et ne peut pas être modifié ou supprimé.");
+        }
     }
 
     @GetMapping("/form")
@@ -45,6 +54,7 @@ public class UtilisateurController {
         if (id != null) {
             utilisateur = utilisateurRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Utilisateur non trouvé pour l'ID: " + id));
+            assertNotProtected(utilisateur.getUsername());
             utilisateur.setPassword(""); // Ne jamais envoyer le hash au formulaire
             pageTitle = "Modifier l'utilisateur";
         } else {
@@ -62,6 +72,7 @@ public class UtilisateurController {
     public String showCreateForm(Model model) {
         model.addAttribute("utilisateur", new Utilisateur());
         model.addAttribute("pageTitle", "Ajouter un utilisateur");
+        model.addAttribute("allRoles", List.of("ROLE_ADMIN", "ROLE_GESTIONNAIRE", "ROLE_CAISSIER"));
         return "utilisateur-form";
     }
 
@@ -70,9 +81,11 @@ public class UtilisateurController {
         try {
             Utilisateur utilisateur = utilisateurRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Utilisateur non trouvé pour l'ID: " + id));
+            assertNotProtected(utilisateur.getUsername());
             utilisateur.setPassword(""); // Ne jamais envoyer le hash au formulaire
             model.addAttribute("utilisateur", utilisateur);
             model.addAttribute("pageTitle", "Modifier l'utilisateur");
+            model.addAttribute("allRoles", List.of("ROLE_ADMIN", "ROLE_GESTIONNAIRE", "ROLE_CAISSIER"));
             return "utilisateur-form";
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
@@ -83,38 +96,65 @@ public class UtilisateurController {
     @PostMapping("/save")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> saveUtilisateur(@ModelAttribute("utilisateur") Utilisateur utilisateur, @RequestParam(name = "roles", required = false) List<String> roles) {
-        try {
-            // Si c'est une modification et que le mot de passe est vide, on garde l'ancien
-            if (utilisateur.getId() != null && (utilisateur.getPassword() == null || utilisateur.getPassword().isEmpty())) {
-                Utilisateur existingUser = utilisateurRepository.findById(utilisateur.getId()).orElseThrow();
-                utilisateur.setPassword(existingUser.getPassword());
-            } else {
-                // Sinon, on chiffre le nouveau mot de passe
-                utilisateur.setPassword(passwordEncoder.encode(utilisateur.getPassword()));
-            }
-            if (roles != null) {
-                utilisateur.setRoles(String.join(",", roles));
-            }
-            utilisateurRepository.save(utilisateur);
-            return ResponseEntity.ok(Map.of("success", true, "message", "L'utilisateur a été sauvegardé avec succès !"));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur lors de la sauvegarde de l'utilisateur."));
+        // Interdire la création/modification de comptes protégés (super admin, démo)
+        assertNotProtected(utilisateur.getUsername());
+        if (utilisateur.getId() != null) {
+            utilisateurRepository.findById(utilisateur.getId())
+                    .ifPresent(existing -> assertNotProtected(existing.getUsername()));
         }
+        // Vérifier l'unicité du nom d'utilisateur
+        utilisateurRepository.findByUsername(utilisateur.getUsername()).ifPresent(existingUser -> {
+            if (utilisateur.getId() == null || !existingUser.getId().equals(utilisateur.getId())) {
+                throw new IllegalStateException("Le nom d'utilisateur '" + utilisateur.getUsername() + "' est déjà utilisé.");
+            }
+        });
+
+        // Gestion des rôles
+        if (roles != null) {
+            utilisateur.setRoles(String.join(",", roles));
+        } else {
+            utilisateur.setRoles(""); // ou une valeur par défaut si nécessaire
+        }
+
+        // Gestion du code caissier
+        if (utilisateur.getRoles().contains("ROLE_CAISSIER")) {
+            if (utilisateur.getCode() == null || utilisateur.getCode().trim().isEmpty()) {
+                throw new IllegalArgumentException("Le code caissier est obligatoire pour ce rôle.");
+            }
+            // Vérifier l'unicité du code
+            utilisateurRepository.findByCode(utilisateur.getCode()).ifPresent(existingUser -> {
+                if (utilisateur.getId() == null || !existingUser.getId().equals(utilisateur.getId())) {
+                    throw new IllegalStateException("Le code caissier '" + utilisateur.getCode() + "' est déjà utilisé par un autre utilisateur.");
+                }
+            });
+        } else {
+            utilisateur.setCode(null); // Assurer que le code est nul si l'utilisateur n'est pas caissier
+        }
+
+        // Gestion du mot de passe
+        if (utilisateur.getId() != null && (utilisateur.getPassword() == null || utilisateur.getPassword().isEmpty())) {
+            Utilisateur existingUser = utilisateurRepository.findById(utilisateur.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Impossible de trouver l'utilisateur existant pour mettre à jour le mot de passe."));
+            utilisateur.setPassword(existingUser.getPassword());
+        } else {
+            utilisateur.setPassword(passwordEncoder.encode(utilisateur.getPassword()));
+        }
+
+        utilisateurRepository.save(utilisateur);
+        return ResponseEntity.ok(Map.of("success", true, "message", "L'utilisateur a été sauvegardé avec succès !"));
     }
 
     @PostMapping("/delete/{id}")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> deleteUtilisateur(@PathVariable Long id, Principal principal) {
-        try {
-            Utilisateur userToDelete = utilisateurRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Utilisateur non trouvé"));
-            // Empêcher un admin de supprimer son propre compte
-            if (principal.getName().equals(userToDelete.getUsername())) {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vous ne pouvez pas supprimer votre propre compte."));
-            }
-            utilisateurRepository.deleteById(id);
-            return ResponseEntity.ok(Map.of("success", true, "message", "L'utilisateur a été supprimé avec succès !"));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur lors de la suppression de l'utilisateur."));
+        Utilisateur userToDelete = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur non trouvé avec l'ID: " + id));
+        assertNotProtected(userToDelete.getUsername());
+        // Empêcher un admin de supprimer son propre compte
+        if (principal.getName().equals(userToDelete.getUsername())) {
+            throw new IllegalStateException("Vous ne pouvez pas supprimer votre propre compte.");
         }
+        utilisateurRepository.deleteById(id);
+        return ResponseEntity.ok(Map.of("success", true, "message", "L'utilisateur a été supprimé avec succès !"));
     }
 }
