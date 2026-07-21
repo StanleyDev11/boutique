@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Journaux d'Audit | BelaLuxe</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title th:text="'Journaux d''Audit | ' + ${boutiqueNom}">Journaux d'Audit</title>
+    <link rel="stylesheet" href="/vendor/tailwind/tailwind.css">
+    <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css">
 </head>
 <body class="bg-gray-50 min-h-screen">
     <div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Journaux d\'Audit')}"></div>
@@ -29,9 +29,9 @@
                     <thead>
                         <tr class="bg-gray-50">
                             <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Date & Heure</th>
-                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Utilisateur</th>
+                            <th class="hidden md:table-cell px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Utilisateur</th>
                             <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Action</th>
-                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Détails</th>
+                            <th class="hidden lg:table-cell px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Détails</th>
                             <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500 text-center">Statut</th>
                         </tr>
                     </thead>
@@ -41,7 +41,7 @@
                                 <div class="text-sm font-medium text-gray-900" th:text="${#temporals.format(log.timestamp, 'dd/MM/yyyy HH:mm:ss')}"></div>
                                 <div class="text-[10px] text-gray-400 font-mono" th:text="${log.adresseIp}">127.0.0.1</div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="hidden md:table-cell px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs mr-3">
                                         <span th:text="${#strings.substring(log.utilisateur, 0, 1).toUpperCase()}">U</span>
@@ -53,7 +53,7 @@
                                 <span class="text-sm font-bold" th:text="${log.action}">CONNEXION</span>
                                 <div th:if="${log.entite}" class="text-[10px] font-bold text-blue-500 uppercase tracking-tight" th:text="${log.entite + ' #' + log.entiteId}">PRODUIT #1</div>
                             </td>
-                            <td class="px-6 py-4">
+                            <td class="hidden lg:table-cell px-6 py-4">
                                 <p class="text-sm text-gray-600 line-clamp-2" th:text="${log.detail}">Détails de l'action...</p>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">

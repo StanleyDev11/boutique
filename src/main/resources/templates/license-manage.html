@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Gestion de la licence | ' + ${boutiqueNom}">Gestion de la licence</title>
+    <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
+    <link rel="stylesheet" href="/vendor/tailwind/tailwind.css">
+    <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css">
+    <style>
+        @import url('/vendor/fonts/fonts.css');
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+<div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Gestion de la licence')}"></div>
+
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <div class="mb-6">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center">
+            <i class="fas fa-key text-blue-600 mr-3"></i>Gestion de la licence
+        </h1>
+        <p class="text-gray-600 mt-2">Espace réservé au super administrateur.</p>
+    </div>
+
+    <div th:if="${justActivated}" class="mb-6 p-4 rounded-xl bg-green-50 border border-green-100 flex items-start space-x-3 text-green-600">
+        <i class="fas fa-circle-check mt-1"></i>
+        <p class="text-sm font-semibold leading-tight">La licence a été activée avec succès.</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-md p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <span class="text-sm font-bold text-gray-500 uppercase tracking-wider">État de la licence</span>
+            <span th:if="${activated}" class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
+                <i class="fas fa-check-circle mr-1"></i>Activée (à vie)
+            </span>
+            <span th:unless="${activated}" class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                <i class="fas fa-hourglass-half mr-1"></i>Non activée
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Identifiant d'installation</p>
+                <p class="text-sm font-mono font-bold text-gray-900 break-all select-all" th:text="${installId}">XXXX-XXXX</p>
+            </div>
+            <div class="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Clé attendue</p>
+                <p class="text-sm font-mono font-bold text-gray-900 break-all select-all" th:text="${expectedKey}">XXXX-XXXX</p>
+            </div>
+        </div>
+
+        <div th:unless="${activated}" class="mt-4 p-4 rounded-xl bg-amber-50 border border-amber-100 text-amber-700 text-sm">
+            <span th:if="${trialExpired}"><i class="fas fa-exclamation-triangle mr-1"></i>Période d'essai expirée.</span>
+            <span th:unless="${trialExpired}"><i class="fas fa-clock mr-1"></i>
+                Essai en cours — <span class="font-bold" th:text="${daysRemaining}">0</span> jour(s) restant(s).
+            </span>
+        </div>
+    </div>
+
+    <div th:unless="${activated}" class="bg-white rounded-2xl shadow-md p-6">
+        <h2 class="text-lg font-bold text-gray-900 mb-2">Déblocage manuel (secours)</h2>
+        <p class="text-gray-600 text-sm mb-4">
+            Active immédiatement la licence à vie sans clé. À utiliser uniquement en dépannage.
+        </p>
+        <form th:action="@{/license/admin/activate}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            <button type="submit" class="py-3 px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold shadow-lg shadow-blue-500/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center space-x-2">
+                <i class="fas fa-unlock"></i><span>Débloquer la licence maintenant</span>
+            </button>
+        </form>
+    </div>
+
+    <div th:if="${activated}" class="bg-white rounded-2xl shadow-md p-6 text-center text-gray-600">
+        <i class="fas fa-shield-halved text-4xl text-green-500 mb-3"></i>
+        <p class="font-semibold">L'application est débloquée définitivement.</p>
+    </div>
+
+</div>
+
+</body>
+</html>

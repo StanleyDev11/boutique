@@ -1,12 +1,12 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="'Reçu - ' + ${boutiqueNom}"></title>
     <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/vendor/tailwind/tailwind.css">
+    <link href="/vendor/fontawesome/css/all.min.css" rel="stylesheet">
     <style>
         @media print {
             body {
@@ -49,7 +49,7 @@
         <!-- Header -->
         <div class="text-center mb-4">
             
-            <h1 class="text-xl font-bold" th:text="${boutiqueNom}">SUPERMARCHE BELALUXE</h1>
+            <h1 class="text-xl font-bold" th:text="${boutiqueNom}">Ma boutique</h1>
             <p class="text-xs" th:text="${boutiqueAdresse}">Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo</p>
             <p class="text-xs font-semibold" th:text="${boutiqueTelephone}">Tél: (+228) 96 00 01 89 / 90 12 34 30</p>
         </div>

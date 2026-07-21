@@ -2,6 +2,7 @@ package com.example.boutique.controller;
 
 import com.example.boutique.model.Utilisateur;
 import com.example.boutique.repository.UtilisateurRepository;
+import com.example.boutique.security.AccountConstants;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,9 +34,17 @@ public class UtilisateurController {
                                    @RequestParam(defaultValue = "0") int page,
                                    @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Utilisateur> utilisateurPage = utilisateurRepository.findAll(pageable);
+        // Exclut les comptes cachés (super admin non persisté + compte démo) de la liste.
+        Page<Utilisateur> utilisateurPage =
+                utilisateurRepository.findByUsernameNotIn(AccountConstants.HIDDEN_USERNAMES, pageable);
         model.addAttribute("utilisateursPage", utilisateurPage);
         return "utilisateur-list";
+    }
+
+    private void assertNotProtected(String username) {
+        if (username != null && AccountConstants.HIDDEN_USERNAMES.contains(username)) {
+            throw new IllegalStateException("Ce compte est protégé et ne peut pas être modifié ou supprimé.");
+        }
     }
 
     @GetMapping("/form")
@@ -45,6 +54,7 @@ public class UtilisateurController {
         if (id != null) {
             utilisateur = utilisateurRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Utilisateur non trouvé pour l'ID: " + id));
+            assertNotProtected(utilisateur.getUsername());
             utilisateur.setPassword(""); // Ne jamais envoyer le hash au formulaire
             pageTitle = "Modifier l'utilisateur";
         } else {
@@ -71,6 +81,7 @@ public class UtilisateurController {
         try {
             Utilisateur utilisateur = utilisateurRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Utilisateur non trouvé pour l'ID: " + id));
+            assertNotProtected(utilisateur.getUsername());
             utilisateur.setPassword(""); // Ne jamais envoyer le hash au formulaire
             model.addAttribute("utilisateur", utilisateur);
             model.addAttribute("pageTitle", "Modifier l'utilisateur");
@@ -85,6 +96,12 @@ public class UtilisateurController {
     @PostMapping("/save")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> saveUtilisateur(@ModelAttribute("utilisateur") Utilisateur utilisateur, @RequestParam(name = "roles", required = false) List<String> roles) {
+        // Interdire la création/modification de comptes protégés (super admin, démo)
+        assertNotProtected(utilisateur.getUsername());
+        if (utilisateur.getId() != null) {
+            utilisateurRepository.findById(utilisateur.getId())
+                    .ifPresent(existing -> assertNotProtected(existing.getUsername()));
+        }
         // Vérifier l'unicité du nom d'utilisateur
         utilisateurRepository.findByUsername(utilisateur.getUsername()).ifPresent(existingUser -> {
             if (utilisateur.getId() == null || !existingUser.getId().equals(utilisateur.getId())) {
@@ -132,6 +149,7 @@ public class UtilisateurController {
     public ResponseEntity<Map<String, Object>> deleteUtilisateur(@PathVariable Long id, Principal principal) {
         Utilisateur userToDelete = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur non trouvé avec l'ID: " + id));
+        assertNotProtected(userToDelete.getUsername());
         // Empêcher un admin de supprimer son propre compte
         if (principal.getName().equals(userToDelete.getUsername())) {
             throw new IllegalStateException("Vous ne pouvez pas supprimer votre propre compte.");

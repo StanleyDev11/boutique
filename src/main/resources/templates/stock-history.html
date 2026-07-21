@@ -1,25 +1,25 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="'Historique - ' + ${produit.nom}"></title>
     <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/vendor/tailwind/tailwind.css">
+    <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css">
+    <script src="/vendor/chartjs/chart.umd.min.js"></script>
 </head>
 <body class="bg-gray-50">
 
 <div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Historique: ' + ${produit.nom})}"></div>
 
 <div class="w-full px-4 sm:px-6 lg:px-8 py-8">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
             <h1 class="text-2xl font-bold text-gray-900" th:text="'Historique pour : ' + ${produit.nom}"></h1>
             <p class="text-gray-600 mt-1">Stock actuel : <strong class="font-bold" th:text="${produit.quantiteEnStock}"></strong></p>
         </div>
-        <a th:href="@{/produits}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition duration-200">
+        <a th:href="@{/produits}" class="w-full sm:w-auto text-center bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition duration-200">
             Retour aux produits
         </a>
     </div>
@@ -55,9 +55,9 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type de Mouvement</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantité</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">N° Facture</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fournisseur</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                    <th class="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">N° Facture</th>
+                    <th class="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fournisseur</th>
+                    <th class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                 </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -72,9 +72,9 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-bold"
                         th:classappend="${mvt.typeMouvement.name() == 'ENTREE'} ? 'text-green-600' : 'text-red-600'"
                         th:text="(${mvt.typeMouvement.name() == 'ENTREE'} ? '+' : '-') + ' ' + ${mvt.quantite}"></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700" th:text="${mvt.facture?.numeroFacture ?: 'N/A'}"></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700" th:text="${mvt.facture?.nomFournisseur ?: 'N/A'}"></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700" th:text="${mvt.description}"></td>
+                    <td class="hidden lg:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-700" th:text="${mvt.facture?.numeroFacture ?: 'N/A'}"></td>
+                    <td class="hidden lg:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-700" th:text="${mvt.facture?.nomFournisseur ?: 'N/A'}"></td>
+                    <td class="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-700" th:text="${mvt.description}"></td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(historique)}">
                     <td colspan="6" class="text-center py-12 text-gray-500">

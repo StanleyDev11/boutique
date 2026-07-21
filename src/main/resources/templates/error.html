@@ -1,13 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Erreur Inattendue</title>
     <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/vendor/tailwind/tailwind.css">
 </head>
 <body class="bg-gray-100 flex items-center justify-center h-screen">
-    <div class="text-center">
+    <div class="text-center px-4">
         <h1 class="text-6xl font-bold text-red-600">Erreur</h1>
         <p class="text-xl mt-4 text-gray-700">Désolé, une erreur inattendue est survenue.</p>
         <p class="text-md text-gray-500 mt-2" th:text="${errorMessage}">Message d'erreur détaillé ici.</p>

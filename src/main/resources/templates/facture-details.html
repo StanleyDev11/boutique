@@ -1,13 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Détails de la Facture</title>
     <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/vendor/tailwind/tailwind.css">
+    <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        @import url('/vendor/fonts/fonts.css');
         body {
             font-family: 'Inter', sans-serif;
         }
@@ -40,11 +40,11 @@
     <div th:replace="~{fragments/tailwind-header :: tailwind-header(pageTitle='Détails de la Facture')}"></div>
 
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-4 sm:p-8">
             <!-- Header -->
-            <div class="flex justify-between items-start mb-8 pb-4 border-b border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-8 pb-4 border-b border-gray-200">
                 <div>
-                    <h3 class="text-3xl font-bold text-gray-800 flex items-center">
+                    <h3 class="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center">
                         <i class="fas fa-file-invoice mr-4 text-blue-500"></i>
                         <span>Facture d'achat #<span th:text="${facture.numeroFacture}"></span></span>
                     </h3>
@@ -61,7 +61,7 @@
             </div>
 
             <!-- Invoice Summary -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div class="bg-gray-50 p-4 rounded-lg">
                     <p class="text-sm text-gray-500 font-medium">N° Facture</p>
                     <p class="text-lg font-bold text-gray-800" th:text="${facture.numeroFacture}"></p>
@@ -115,7 +115,7 @@
 <div id="invoice-print" class="p-8 hidden">
     <header class="flex justify-between items-center pb-4 border-b-2 border-black">
         <div>
-            <h1 class="text-4xl font-bold" th:text="${boutiqueNom}">SUPERMARCHE BELALUXE</h1>
+            <h1 class="text-4xl font-bold" th:text="${boutiqueNom}">Ma boutique</h1>
             <p th:text="${boutiqueAdresse}">Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo</p>
             <p th:text="${boutiqueTelephone}">Tél: (+228) 96 00 01 89 / 90 12 34 30</p>
         </div>

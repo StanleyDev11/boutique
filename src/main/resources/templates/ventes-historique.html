@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
@@ -8,13 +8,11 @@
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="/vendor/tailwind/tailwind.css">
+    <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css">
+    <link href="/vendor/fonts/fonts.css" rel="stylesheet">
+    <script src="/vendor/chartjs/chart.umd.min.js"></script>
+    <script src="/vendor/sweetalert2/sweetalert2.all.min.js"></script>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -104,7 +102,7 @@
     <!-- Header with title and actions -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
-            <h2 class="text-3xl font-bold text-gray-800">Rapport des Ventes</h2>
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Rapport des Ventes</h2>
             <p class="text-gray-600 mt-1">Analysez et gérez l'historique complet de vos ventes</p>
         </div>
         <div class="mt-4 md:mt-0 flex items-center space-x-2">
@@ -188,9 +186,9 @@
                     <thead class="bg-gray-50">
                     <tr>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Vente</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Caissier</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th scope="col" class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                        <th scope="col" class="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Caissier</th>
+                        <th scope="col" class="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -199,9 +197,9 @@
                     <tbody class="bg-white divide-y divide-gray-200" id="salesTableBody">
                     <tr th:each="vente : ${ventesPage.content}" class="hover:bg-gray-50 transition-colors">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${vente.id}"></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${vente.client != null ? vente.client.nom : 'Client de passage'}"></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${vente.utilisateur != null ? vente.utilisateur.username : 'N/A'}"></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${#temporals.format(vente.dateVente, 'dd-MM-yyyy HH:mm')}"></td>
+                        <td class="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${vente.client != null ? vente.client.nom : 'Client de passage'}"></td>
+                        <td class="hidden lg:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${vente.utilisateur != null ? vente.utilisateur.username : 'N/A'}"></td>
+                        <td class="hidden lg:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${#temporals.format(vente.dateVente, 'dd-MM-yyyy HH:mm')}"></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${#numbers.formatDecimal(vente.totalFinal, 0, 'COMMA', 2, 'POINT')} + ' FCFA'"></td>
                         <td class="px-6 py-4 whitespace-nowrap">
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
@@ -262,7 +260,7 @@
                     <tr>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produit</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantité Totale Vendue</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix de Vente Actuel</th>
+                        <th scope="col" class="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix de Vente Actuel</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenu Total Généré</th>
                     </tr>
                     </thead>
@@ -270,7 +268,7 @@
                     <tr th:each="stat : ${produitVenteStats}" class="hover:bg-gray-50 transition-colors">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${stat.produit.nom}"></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${#numbers.formatDecimal(stat.totalQuantiteVendue, 0, 'COMMA', 0, 'POINT')}"></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${stat.produit.prixVenteUnitaire != null ? #numbers.formatDecimal(stat.produit.prixVenteUnitaire, 0, 'COMMA', 2, 'POINT') + ' FCFA' : 'N/A'}"></td>
+                        <td class="hidden lg:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${stat.produit.prixVenteUnitaire != null ? #numbers.formatDecimal(stat.produit.prixVenteUnitaire, 0, 'COMMA', 2, 'POINT') + ' FCFA' : 'N/A'}"></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${#numbers.formatDecimal(stat.totalRevenu, 0, 'COMMA', 2, 'POINT')} + ' FCFA'"></td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(produitVenteStats)}">

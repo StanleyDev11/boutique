@@ -1,14 +1,14 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin</title>
     <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="/vendor/tailwind/tailwind.css">
+    <link href="/vendor/fontawesome/css/all.min.css" rel="stylesheet">
+    <script src="/vendor/chartjs/chart.umd.min.js"></script>
+    <script src="/vendor/sweetalert2/sweetalert2.all.min.js"></script>
 </head>
 <body class="bg-gray-50">
 
@@ -18,9 +18,41 @@
 <div class="w-full px-4 sm:px-6 lg:px-8 py-8">
 
     <!-- Message de bienvenue -->
-    <div class="mb-8">
-        <h2 class="text-3xl font-bold text-gray-800">Bonjour, <span sec:authentication="name"></span> !</h2>
-        <p class="text-gray-600">Voici un aperçu de votre boutique aujourd'hui.</p>
+    <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h2 class="text-3xl font-bold text-gray-800">Bonjour, <span sec:authentication="name"></span> !</h2>
+            <p class="text-gray-600">Voici un aperçu de votre boutique aujourd'hui.</p>
+        </div>
+
+        <!-- Compte à rebours de la période d'essai (compte démo uniquement, licence non activée) -->
+        <div th:if="${demoCountdownVisible}" id="demo-countdown" th:attr="data-end=${demoTrialEndMs}"
+             class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 shadow-sm w-full sm:w-auto">
+            <div class="flex items-center gap-2 text-amber-700 mb-2">
+                <i class="fas fa-hourglass-half"></i>
+                <span class="text-xs font-semibold uppercase tracking-wide">Essai gratuit — temps restant</span>
+            </div>
+            <div id="demo-countdown-values" class="flex items-center gap-2">
+                <div class="bg-white border border-amber-100 rounded-lg px-3 py-2 text-center">
+                    <span id="cd-days" class="block text-xl font-bold text-amber-700 leading-none">--</span>
+                    <span class="block text-[10px] font-medium uppercase text-amber-600 mt-1">Jours</span>
+                </div>
+                <div class="bg-white border border-amber-100 rounded-lg px-3 py-2 text-center">
+                    <span id="cd-hours" class="block text-xl font-bold text-amber-700 leading-none">--</span>
+                    <span class="block text-[10px] font-medium uppercase text-amber-600 mt-1">Heures</span>
+                </div>
+                <div class="bg-white border border-amber-100 rounded-lg px-3 py-2 text-center">
+                    <span id="cd-mins" class="block text-xl font-bold text-amber-700 leading-none">--</span>
+                    <span class="block text-[10px] font-medium uppercase text-amber-600 mt-1">Min</span>
+                </div>
+                <div class="bg-white border border-amber-100 rounded-lg px-3 py-2 text-center">
+                    <span id="cd-secs" class="block text-xl font-bold text-amber-700 leading-none">--</span>
+                    <span class="block text-[10px] font-medium uppercase text-amber-600 mt-1">Sec</span>
+                </div>
+            </div>
+            <div id="demo-countdown-expired" class="hidden text-red-600 font-bold text-sm">
+                <i class="fas fa-triangle-exclamation mr-1"></i>Période d'essai expirée
+            </div>
+        </div>
     </div>
 
     <!-- Accès Rapide -->
@@ -397,6 +429,49 @@
             });
     });
     /*]]>*/
+</script>
+
+<!-- Compte à rebours de la période d'essai (compte démo) -->
+<script>
+    (function () {
+        const el = document.getElementById('demo-countdown');
+        if (!el) return;
+        const end = parseInt(el.getAttribute('data-end'), 10);
+        const valuesEl = document.getElementById('demo-countdown-values');
+        const expiredEl = document.getElementById('demo-countdown-expired');
+        const dEl = document.getElementById('cd-days');
+        const hEl = document.getElementById('cd-hours');
+        const mEl = document.getElementById('cd-mins');
+        const sEl = document.getElementById('cd-secs');
+
+        function pad(n) { return String(n).padStart(2, '0'); }
+
+        function showExpired() {
+            if (valuesEl) valuesEl.classList.add('hidden');
+            if (expiredEl) expiredEl.classList.remove('hidden');
+        }
+
+        function tick() {
+            const diff = end - Date.now();
+            if (isNaN(end) || diff <= 0) {
+                showExpired();
+                clearInterval(timer);
+                return;
+            }
+            const totalSec = Math.floor(diff / 1000);
+            const days = Math.floor(totalSec / 86400);
+            const hours = Math.floor((totalSec % 86400) / 3600);
+            const mins = Math.floor((totalSec % 3600) / 60);
+            const secs = totalSec % 60;
+            if (dEl) dEl.textContent = pad(days);
+            if (hEl) hEl.textContent = pad(hours);
+            if (mEl) mEl.textContent = pad(mins);
+            if (sEl) sEl.textContent = pad(secs);
+        }
+
+        const timer = setInterval(tick, 1000);
+        tick();
+    })();
 </script>
 
 </body>

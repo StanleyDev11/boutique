@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
@@ -7,12 +7,12 @@
   <meta name="_csrf" th:content="${_csrf.token}"/>
   <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
   <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="/vendor/tailwind/tailwind.css">
+  <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css">
+  <script src="/vendor/sweetalert2/sweetalert2.all.min.js"></script>
   
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    @import url('/vendor/fonts/fonts.css');
 
     body {
       font-family: 'Inter', sans-serif;
@@ -296,7 +296,7 @@
     </div>
   </div>
   <div class="text-xs text-gray-500">
-    BELALUXE Supermarché &copy; 2025
+    <span th:text="${boutiqueNom}">Ma boutique</span> &copy; <span th:text="${#temporals.year(#temporals.createNow())}">2025</span>
   </div>
 </div>
 </div>
@@ -307,7 +307,7 @@
   const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
   const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
   const initialClients = /*[[${clients}]]*/ [];
-  const boutiqueNom = /*[[${boutiqueNom}]]*/ 'SUPERMARCHE BELALUXE';
+  const boutiqueNom = /*[[${boutiqueNom}]]*/ 'Ma boutique';
   const boutiqueAdresse = /*[[${boutiqueAdresse}]]*/ 'Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo';
   const boutiqueTelephone = /*[[${boutiqueTelephone}]]*/ 'Tél: (+228) 96 00 01 89 / 90 12 34 30';
 

@@ -6,9 +6,9 @@
 </head>
 <body>
 
-<div th:fragment="pagination(page, baseUrl, pageParamName)" th:if="${page.totalPages > 1}" class="flex justify-center items-center space-x-4 py-4">
-    <nav aria-label="Page navigation">
-        <ul class="inline-flex items-center -space-x-px shadow-sm rounded-md">
+<div th:fragment="pagination(page, baseUrl, pageParamName)" th:if="${page.totalPages > 1}" class="flex justify-center items-center py-4 px-2">
+    <nav aria-label="Page navigation" class="max-w-full overflow-x-auto">
+        <ul class="flex flex-wrap justify-center items-center gap-y-2 shadow-sm rounded-md">
             <li>
                 <a th:href="${page.first} ? '#' : ${baseUrl} + '&' + ${pageParamName} + '=' + ${page.number - 1}"
                    th:classappend="${page.first} ? 'pointer-events-none bg-gray-100 text-gray-400' : 'hover:bg-gray-50'"

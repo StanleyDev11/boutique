@@ -1,12 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
     <title>Rapport de Fermeture de Caisse</title>
     <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+    <link href="/vendor/fonts/fonts.css" rel="stylesheet" />
     <style>
         @page {
             size: 98mm 148mm;
@@ -113,7 +111,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1 th:text="${boutiqueNom}">SUPERMARCHE BELALUXE</h1>
+            <h1 th:text="${boutiqueNom}">Ma boutique</h1>
             <p th:text="${boutiqueAdresse}">Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo</p>
             <p th:text="${boutiqueTelephone}">Tél: (+228) 96 00 01 89 / 90 12 34 30</p>
         </div>

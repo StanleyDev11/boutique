@@ -23,15 +23,17 @@ public class ParametreService {
     public static final String BOUTIQUE_NOM_KEY = "boutique.nom";
     public static final String BOUTIQUE_ADRESSE_KEY = "boutique.adresse";
     public static final String BOUTIQUE_TELEPHONE_KEY = "boutique.telephone";
+    public static final String BOUTIQUE_WHATSAPP_KEY = "boutique.whatsapp";
     public static final String BOUTIQUE_LOGO_KEY = "boutique.logo";
     public static final String PRODUIT_IMAGE_UPLOAD_ACTIVE_KEY = "produit.image.upload.active";
     public static final String PRODUCT_FORM_FACTURE_ENABLED_KEY = "product.form.facture.enabled";
     public static final String PRODUCT_FORM_FOURNISSEUR_ENABLED_KEY = "product.form.fournisseur.enabled";
     public static final String TAILWIND_HEADER_BACKGROUND_COLOR_KEY = "tailwind.header.background.color";
     public static final String TAILWIND_HEADER_TEXT_COLOR_KEY = "tailwind.header.text.color";
-    private static final String BOUTIQUE_NOM_DEFAULT = "SUPERMARCHE BELALUXE";
+    private static final String BOUTIQUE_NOM_DEFAULT = "Ma boutique";
     private static final String BOUTIQUE_ADRESSE_DEFAULT = "Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo";
     private static final String BOUTIQUE_TELEPHONE_DEFAULT = "Tél: (+228) 96 00 01 89 / 90 12 34 30";
+    private static final String BOUTIQUE_WHATSAPP_DEFAULT = "22899181626";
     private static final String BOUTIQUE_LOGO_DEFAULT = "/lo.png";
     private static final String PRODUIT_IMAGE_UPLOAD_ACTIVE_DEFAULT = "true";
     private static final String TAILWIND_HEADER_BACKGROUND_COLOR_DEFAULT = "#1F2937";
@@ -78,6 +80,10 @@ public class ParametreService {
         return getStringParametre(BOUTIQUE_TELEPHONE_KEY, BOUTIQUE_TELEPHONE_DEFAULT);
     }
 
+    public String getBoutiqueWhatsapp() {
+        return getStringParametre(BOUTIQUE_WHATSAPP_KEY, BOUTIQUE_WHATSAPP_DEFAULT);
+    }
+
     public boolean isProduitImageUploadActive() {
         return getBooleanParametre(PRODUIT_IMAGE_UPLOAD_ACTIVE_KEY, "true".equalsIgnoreCase(PRODUIT_IMAGE_UPLOAD_ACTIVE_DEFAULT));
     }
@@ -117,6 +123,7 @@ public class ParametreService {
             BOUTIQUE_NOM_KEY,
             BOUTIQUE_ADRESSE_KEY,
             BOUTIQUE_TELEPHONE_KEY,
+            BOUTIQUE_WHATSAPP_KEY,
             BOUTIQUE_LOGO_KEY,
             PRODUIT_IMAGE_UPLOAD_ACTIVE_KEY,
             TAILWIND_HEADER_BACKGROUND_COLOR_KEY,

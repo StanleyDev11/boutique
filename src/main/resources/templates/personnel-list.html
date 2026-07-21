@@ -1,13 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion du Personnel</title>
     <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="/vendor/tailwind/tailwind.css">
+    <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css">
+    <script src="/vendor/sweetalert2/sweetalert2.all.min.js"></script>
 </head>
 <body class="bg-gray-50">
 
@@ -36,9 +36,9 @@
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prénom</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Poste</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date d'embauche</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                    <th class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Poste</th>
+                    <th class="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date d'embauche</th>
+                    <th class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
                 </thead>
@@ -46,9 +46,9 @@
                 <tr th:each="p : ${personnelPage.content}">
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${p.prenom}"></td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${p.nom}"></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${p.poste}"></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${#temporals.format(p.dateEmbauche, 'dd/MM/yyyy')}"></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${p.contact}"></td>
+                    <td class="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${p.poste}"></td>
+                    <td class="hidden lg:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${#temporals.format(p.dateEmbauche, 'dd/MM/yyyy')}"></td>
+                    <td class="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${p.contact}"></td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                             <a th:href="@{/personnel/edit/{id}(id=${p.id})}"
