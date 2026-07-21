@@ -1,50 +1,14 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion | BelaLuxe</title>
+    <title th:text="'Connexion | ' + ${boutiqueNom}">Connexion</title>
     <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            200: '#bae6fd',
-                            300: '#7dd3fc',
-                            400: '#38bdf8',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                            800: '#075985',
-                            900: '#0c4a6e',
-                        }
-                    },
-                    animation: {
-                        'gradient': 'gradient 8s linear infinite',
-                        'float': 'float 3s ease-in-out infinite',
-                    },
-                    keyframes: {
-                        gradient: {
-                            '0%, 100%': { 'background-size': '200% 200%', 'background-position': 'left center' },
-                            '50%': { 'background-size': '200% 200%', 'background-position': 'right center' },
-                        },
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <link rel="stylesheet" href="/vendor/tailwind/tailwind.css">
+    <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        @import url('/vendor/fonts/fonts.css');
         
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -101,8 +65,8 @@
 
             <div class="relative z-10">
                 <div class="flex items-center space-x-3 mb-8">
-                    <img th:src="@{${boutiqueLogo}}" alt="BelaLuxe Logo" class="h-12 w-auto brightness-0 invert">
-                    <span class="text-2xl font-extrabold tracking-tight italic" th:text="${boutiqueNom}">BelaLuxe</span>
+                    <img th:src="@{${boutiqueLogo}}" th:alt="${boutiqueNom} + ' Logo'" alt="Logo" class="h-12 w-auto brightness-0 invert">
+                    <span class="text-2xl font-extrabold tracking-tight italic" th:text="${boutiqueNom}">Ma boutique</span>
                 </div>
                 
                 <h2 class="text-4xl font-extrabold leading-tight mb-4">Simplifiez la gestion de votre boutique.</h2>
@@ -119,7 +83,7 @@
                         <p class="text-xs text-blue-100">Chiffrement AES-256 bits actif</p>
                     </div>
                 </div>
-                <p class="text-xs text-blue-200/60 mt-6">&copy; 2025 BelaLuxe System. Tous droits réservés.</p>
+                <p class="text-xs text-blue-200/60 mt-6">&copy; <span th:text="${#temporals.year(#temporals.createNow())}">2025</span> <span th:text="${boutiqueNom}">Ma boutique</span>. Tous droits réservés.</p>
             </div>
         </div>
 
@@ -129,7 +93,7 @@
             <!-- Mobile Logo -->
             <div class="md:hidden flex flex-col items-center mb-10">
                 <img th:src="@{${boutiqueLogo}}" alt="Logo" class="h-16 w-auto mb-4">
-                <h1 class="text-3xl font-extrabold text-gray-900" th:text="${boutiqueNom}">BelaLuxe</h1>
+                <h1 class="text-3xl font-extrabold text-gray-900" th:text="${boutiqueNom}">Ma boutique</h1>
             </div>
 
             <div class="fade-in">
@@ -150,6 +114,16 @@
                 <div th:if="${param.expired}" class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-100 flex items-start space-x-3 text-amber-600">
                     <i class="fas fa-hourglass-end mt-1"></i>
                     <p class="text-sm font-semibold leading-tight">Session expirée. Merci de vous reconnecter.</p>
+                </div>
+
+                <div th:if="${param.locked}" class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-100 flex items-start space-x-3 text-amber-600">
+                    <i class="fas fa-lock mt-1"></i>
+                    <p class="text-sm font-semibold leading-tight">Ce compte sera disponible après l'activation de la licence.</p>
+                </div>
+
+                <div th:if="${param.activated}" class="mb-6 p-4 rounded-xl bg-green-50 border border-green-100 flex items-start space-x-3 text-green-600">
+                    <i class="fas fa-circle-check mt-1"></i>
+                    <p class="text-sm font-semibold leading-tight">Licence activée avec succès. Vous pouvez maintenant vous connecter.</p>
                 </div>
 
                 <!-- Form -->
@@ -197,7 +171,13 @@
                         <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Aide & Support</p>
                         <div class="h-px w-8 bg-gray-200"></div>
                     </div>
-                    <p class="mt-4 text-sm text-gray-500">Contactez l'administrateur en cas de problème.</p>
+                    <p class="mt-4 text-sm text-gray-500">
+                        <a th:href="'https://wa.me/' + ${whatsappAdmin}" target="_blank" rel="noopener noreferrer"
+                           class="inline-flex items-center gap-1.5 font-semibold text-green-600 underline decoration-green-300 underline-offset-2 hover:text-green-700 hover:decoration-green-500 transition-colors duration-200">
+                            <i class="fab fa-whatsapp"></i>
+                            <span>Contactez l'administrateur en cas de problème.</span>
+                        </a>
+                    </p>
                 </div>
             </div>
         </div>

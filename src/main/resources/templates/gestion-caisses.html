@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
@@ -7,9 +7,9 @@
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="/vendor/tailwind/tailwind.css">
+    <link href="/vendor/fontawesome/css/all.min.css" rel="stylesheet">
+    <script src="/vendor/sweetalert2/sweetalert2.all.min.js"></script>
 </head>
 <body class="bg-gray-50">
 
@@ -43,22 +43,23 @@
     <div id="myTabContent">
         <!-- Postes de Caisse Tab -->
         <div class="p-4 rounded-lg bg-gray-50" id="caisses" role="tabpanel" aria-labelledby="caisses-tab">
-            <div class="flex justify-between items-center mb-6">
-                <button onclick="openCaisseModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl flex items-center justify-center font-semibold shadow-lg">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+                <button onclick="openCaisseModal()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl flex items-center justify-center font-semibold shadow-lg">
                     <i class="fas fa-plus-circle mr-3 text-lg"></i>
                     Nouvelle Caisse
                 </button>
-                <form th:action="@{/gestion-caisses}" method="get" class="flex items-center">
+                <form th:action="@{/gestion-caisses}" method="get" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <input type="hidden" name="tab" value="caisses">
-                    <div class="relative">
-                        <input type="search" name="caisseKeyword" th:value="${caisseKeyword}" placeholder="Rechercher par nom..." class="form-input pl-10 pr-4 py-2 border rounded-lg">
+                    <div class="relative w-full sm:w-auto">
+                        <input type="search" name="caisseKeyword" th:value="${caisseKeyword}" placeholder="Rechercher par nom..." class="form-input w-full pl-10 pr-4 py-2 border rounded-lg">
                         <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                     </div>
-                    <button type="submit" class="ml-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900">Rechercher</button>
+                    <button type="submit" class="w-full sm:w-auto px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900">Rechercher</button>
                 </form>
             </div>
 
             <div class="bg-white shadow-md rounded-2xl overflow-hidden">
+                <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-100">
                         <tr>
@@ -105,6 +106,7 @@
                         </tr>
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
 
@@ -126,6 +128,7 @@
             </div>
 
             <div th:unless="${openSessionsPage.empty}" class="bg-white shadow-md rounded-2xl overflow-hidden">
+                <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-100">
                         <tr>
@@ -146,6 +149,7 @@
                         </tr>
                     </tbody>
                 </table>
+                </div>
                 <div th:replace="~{fragments/pagination :: pagination(page=${openSessionsPage}, pageParamName='openPage', baseUrl=@{/gestion-caisses(tab='open-sessions', openKeyword=${openKeyword}, closedKeyword=${closedKeyword}, closedPage=${closedSessionsPage.number}, closedSize=${closedSessionsPage.size})})}"></div>
             </div>
         </div>
@@ -203,6 +207,7 @@
             </div>
 
             <div th:unless="${closedSessionsPage.empty}" class="bg-white shadow-md rounded-2xl overflow-hidden">
+                <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-100">
                         <tr>
@@ -232,6 +237,7 @@
                         </tr>
                     </tbody>
                 </table>
+                </div>
                 <div th:replace="~{fragments/pagination :: pagination(page=${closedSessionsPage}, pageParamName='closedPage', baseUrl=@{/gestion-caisses(tab='closed-sessions', openKeyword=${openKeyword}, openPage=${openSessionsPage.number}, openSize=${openSessionsPage.size}, openSortField=${openSortField}, openSortDir=${openSortDir}, closedKeyword=${closedKeyword}, closedSize=${closedSessionsPage.size}, closedSortField=${closedSortField}, closedSortDir=${closedSortDir})})}"></div>
             </div>
         </div>

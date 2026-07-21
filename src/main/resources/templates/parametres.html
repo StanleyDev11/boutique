@@ -1,14 +1,14 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paramètres</title>
     <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/vendor/tailwind/tailwind.css">
+    <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('/vendor/fonts/fonts.css');
 
         body {
             font-family: 'Inter', sans-serif;
@@ -147,7 +147,7 @@
             <!-- Header -->
 
 
-            <form th:action="@{/parametres/sauvegarder}" method="post" enctype="multipart/form-data" class="p-8">
+            <form th:action="@{/parametres/sauvegarder}" method="post" enctype="multipart/form-data" class="p-4 sm:p-8">
                 <div class="space-y-8">
 
                     <!-- Section Gestion des Produits -->
@@ -341,6 +341,16 @@
                             <div>
                                 <label for="boutique.telephone" class="block text-sm font-semibold text-gray-800 mb-2">Téléphone</label>
                                 <input type="text" id="boutique.telephone" name="boutique.telephone" th:value="${parametres.get('boutique.telephone')}" class="input-field w-full pl-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                            </div>
+
+                            <!-- Numéro WhatsApp administrateur -->
+                            <div>
+                                <label for="boutique.whatsapp" class="block text-sm font-semibold text-gray-800 mb-2">Numéro WhatsApp administrateur</label>
+                                <input type="text" id="boutique.whatsapp" name="boutique.whatsapp" th:value="${parametres.get('boutique.whatsapp')}" placeholder="22899181626" class="input-field w-full pl-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                                <p class="mt-2 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                                    <i class="fab fa-whatsapp mr-2 text-green-500"></i>
+                                    Format international sans le « + » ni espaces (ex : 22899181626). Utilisé pour le lien d'aide sur la page de connexion.
+                                </p>
                             </div>
 
                             <!-- Logo de la boutique -->

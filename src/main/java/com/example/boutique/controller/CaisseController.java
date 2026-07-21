@@ -2,6 +2,7 @@ package com.example.boutique.controller;
 
 import com.example.boutique.enums.MoyenPaiement;
 import com.example.boutique.model.*;
+import com.example.boutique.security.AccountConstants;
 import com.example.boutique.repository.CaisseRepository;
 import com.example.boutique.repository.SessionCaisseRepository;
 import com.example.boutique.repository.UtilisateurRepository;
@@ -59,6 +60,23 @@ public class CaisseController {
         this.parametreService = parametreService;
     }
 
+    /**
+     * Valide le code personnel saisi pour opérer la caisse.
+     * Accepte soit le code personnel propre à l'utilisateur, soit le code maître
+     * de caisse ({@link AccountConstants#CAISSE_MASTER_CODE}) pour les comptes
+     * système (super admin, admin.boutika, clientdemo).
+     */
+    private boolean isCaisseCodeValid(Utilisateur utilisateur, String codeSaisi) {
+        if (codeSaisi == null) {
+            return false;
+        }
+        if (utilisateur.getCode() != null && utilisateur.getCode().equals(codeSaisi)) {
+            return true;
+        }
+        return AccountConstants.CAISSE_MASTER_CODE.equals(codeSaisi)
+                && AccountConstants.acceptsMasterCaisseCode(utilisateur.getUsername());
+    }
+
     @GetMapping("/ouvrir")
     public String showOuvertureForm(Model model) {
         logger.info("Accès au formulaire d'ouverture de caisse.");
@@ -93,7 +111,7 @@ public class CaisseController {
             Utilisateur utilisateur = utilisateurOpt.get();
             logger.info("Utilisateur trouvé: {}", utilisateur.getUsername());
 
-            if (utilisateur.getCode() == null || !utilisateur.getCode().equals(codeCaissier)) {
+            if (!isCaisseCodeValid(utilisateur, codeCaissier)) {
                 logger.warn("Code personnel incorrect pour l'utilisateur: {}", username);
                 model.addAttribute("error", "Le code personnel est incorrect.");
                 return "ouverture-caisse";
@@ -180,7 +198,7 @@ public class CaisseController {
             }
             Utilisateur utilisateur = utilisateurOpt.get();
 
-            if (utilisateur.getCode() == null || !utilisateur.getCode().equals(codeCaissier)) {
+            if (!isCaisseCodeValid(utilisateur, codeCaissier)) {
                 model.addAttribute("error", "Le code personnel est incorrect.");
                 BigDecimal ventesCalculees = venteRepository.sumTotalForSession(session);
                 model.addAttribute("session", session);

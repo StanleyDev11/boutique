@@ -34,9 +34,10 @@ public class DataInitializer implements CommandLineRunner {
             logger.info("La caisse '{}' a été créée et activée.", caisse.getNom());
         }
 
-        initializeDefaultParameter(ParametreService.BOUTIQUE_NOM_KEY, "SUPERMARCHE BELALUXE");
+        initializeDefaultParameter(ParametreService.BOUTIQUE_NOM_KEY, "Ma boutique");
         initializeDefaultParameter(ParametreService.BOUTIQUE_ADRESSE_KEY, "Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo");
         initializeDefaultParameter(ParametreService.BOUTIQUE_TELEPHONE_KEY, "Tél: (+228) 96 00 01 89 / 90 12 34 30");
+        initializeDefaultParameter(ParametreService.BOUTIQUE_WHATSAPP_KEY, "22899181626");
         initializeDefaultParameter("seuil_stock_bas", "10");
         initializeDefaultParameter("jours_avant_peremption", "30");
         initializeDefaultParameter(ParametreService.PRODUIT_IMAGE_UPLOAD_ACTIVE_KEY, "true");

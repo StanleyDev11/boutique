@@ -1,13 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Liste des Produits - Supermarché Belaluxe</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <title th:text="'Liste des Produits - ' + ${boutiqueNom}">Liste des Produits</title>
+    <link rel="stylesheet" href="/vendor/tailwind/tailwind.css">
+    <link href="/vendor/fonts/fonts.css" rel="stylesheet">
+    <link href="/vendor/fontawesome/css/all.min.css" rel="stylesheet">
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -59,7 +57,7 @@
     <header class="mb-8 border-b pb-4">
         <div class="flex justify-between items-start">
             <div class="text-left">
-                <h1 class="text-2xl font-bold text-gray-800" th:text="${boutiqueNom}">SUPERMARCHE BELALUXE</h1>
+                <h1 class="text-2xl font-bold text-gray-800" th:text="${boutiqueNom}">Ma boutique</h1>
                 <p class="text-sm text-gray-600" th:text="${boutiqueAdresse}">Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo</p>
                 <p class="text-sm text-gray-600" th:text="${boutiqueTelephone}">Tél: (+228) 96 00 01 89 / 90 12 34 30</p>
             </div>
@@ -78,7 +76,7 @@
     </div>
 
     <!-- Products Table -->
-    <main>
+    <main class="overflow-x-auto">
         <table class="min-w-full bg-white">
             <thead class="bg-gray-800 text-white">
                 <tr>

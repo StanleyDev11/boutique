@@ -35,6 +35,8 @@ public class ParametreController {
         Map<String, String> parametres = parametreService.getAllParametres();
         // Ensure default values are present if not in the database
         parametres.putIfAbsent(ParametreService.BOUTIQUE_LOGO_KEY, parametreService.getBoutiqueLogo());
+        parametres.putIfAbsent(ParametreService.BOUTIQUE_NOM_KEY, parametreService.getBoutiqueNom());
+        parametres.putIfAbsent(ParametreService.BOUTIQUE_WHATSAPP_KEY, parametreService.getBoutiqueWhatsapp());
         parametres.putIfAbsent("seuil_stock_bas", String.valueOf(parametreService.getSeuilStockBas()));
         parametres.putIfAbsent("jours_avant_peremption", String.valueOf(parametreService.getJoursAvantPeremption()));
         model.addAttribute("parametres", parametres);

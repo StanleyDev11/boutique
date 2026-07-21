@@ -35,6 +35,9 @@ public class GlobalControllerAdvice {
     private ParametreService parametreService;
 
     @Autowired
+    private com.example.boutique.service.LicenseService licenseService;
+
+    @Autowired
     private com.example.boutique.service.AuditService auditService;
 
     @ModelAttribute("isSessionActive")
@@ -68,6 +71,11 @@ public class GlobalControllerAdvice {
         return parametreService.getBoutiqueTelephone();
     }
 
+    @ModelAttribute("whatsappAdmin")
+    public String getWhatsappAdmin() {
+        return parametreService.getBoutiqueWhatsapp();
+    }
+
     @ModelAttribute("boutiqueLogo")
     public String getBoutiqueLogo() {
         return parametreService.getBoutiqueLogo();
@@ -81,6 +89,27 @@ public class GlobalControllerAdvice {
     @ModelAttribute("tailwindHeaderTextColor")
     public String getTailwindHeaderTextColor() {
         return parametreService.getTailwindHeaderTextColor();
+    }
+
+    /**
+     * Compte à rebours d'essai : visible UNIQUEMENT pour le compte de démo
+     * (ROLE_DEMO) tant que la licence n'est pas activée.
+     */
+    @ModelAttribute("demoCountdownVisible")
+    public boolean isDemoCountdownVisible() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return false;
+        }
+        boolean isDemo = authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_DEMO".equals(a.getAuthority()));
+        return isDemo && !licenseService.isActivated();
+    }
+
+    /** Fin de la période d'essai en epoch millisecondes UTC (pour le compte à rebours). */
+    @ModelAttribute("demoTrialEndMs")
+    public long getDemoTrialEndMs() {
+        return licenseService.getTrialEndMs();
     }
 
     @ExceptionHandler(Exception.class)

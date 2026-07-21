@@ -1,19 +1,27 @@
 package com.example.boutique.controller;
 
-import org.springframework.http.ResponseEntity;
+import com.example.boutique.service.LicenseService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public class AuthController {
 
+    private final LicenseService licenseService;
+
+    public AuthController(LicenseService licenseService) {
+        this.licenseService = licenseService;
+    }
+
     @GetMapping("/login")
     public String login() {
+        // À la première ouverture de la page de connexion, on démarre l'essai
+        // (enregistre install_id + install_date de façon persistante).
+        licenseService.ensureInitialized();
         return "login";
     }
 
