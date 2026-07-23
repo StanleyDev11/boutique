@@ -65,8 +65,8 @@ public class SecurityConfig implements WebMvcConfigurer {
             .authenticationManager(authenticationManager())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/**").hasRole("ADMIN")
-                .requestMatchers("/login", "/css/**", "/js/**", "/vendor/**", "/loo.jpg", "/favicon.ico", "/uploads/**").permitAll() // Pages et ressources publiques
-                .requestMatchers("/license/expired", "/license/activate").permitAll() // Page d'expiration + activation par clé (essai expiré = personne connecté)
+                .requestMatchers("/login", "/css/**", "/js/**", "/vendor/**", "/loo.jpg", "/icon.png", "/lo.png", "/favicon.ico", "/uploads/**").permitAll() // Pages et ressources publiques (logo visible sur /login sans authentification)
+                .requestMatchers("/license/expired", "/license/activate", "/license/qr").permitAll() // Page d'expiration + activation par clé + QR code tarifs (essai expiré = personne connecté)
                 .requestMatchers("/license/manage", "/license/admin/**").hasRole("SUPERADMIN") // Gestion/activation manuelle réservée au super admin
                 .requestMatchers("/api/**").authenticated() // Autoriser l'accès à l'API pour les utilisateurs connectés
                 .requestMatchers("/produits/delete/**").hasRole("ADMIN") // Seul l'admin peut supprimer

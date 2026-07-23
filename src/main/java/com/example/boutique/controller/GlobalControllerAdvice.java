@@ -92,6 +92,16 @@ public class GlobalControllerAdvice {
     }
 
     /**
+     * Indique si la licence est activée (à vie sur ce poste). Exposé globalement
+     * pour, entre autres, masquer le lien « Activer une licence » sur /login une
+     * fois l'activation faite.
+     */
+    @ModelAttribute("licenceActivee")
+    public boolean isLicenceActivee() {
+        return licenseService.isActivated();
+    }
+
+    /**
      * Compte à rebours d'essai : visible UNIQUEMENT pour le compte de démo
      * (ROLE_DEMO) tant que la licence n'est pas activée.
      */
