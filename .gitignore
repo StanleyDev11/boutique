@@ -1,0 +1,10 @@
+# Artefacts de build Maven
+/target/
+
+# Artefacts d'empaquetage de l'installateur (runtime jlink, jar, EXE) — NE PAS committer
+/installer/payload/
+/installer/Output/
+
+# Outils binaires téléchargés (WiX 3.14) — NE PAS committer (seuls les scripts .ps1 sont versionnés)
+/tools/wix314/
+/tools/wix314-binaries.zip

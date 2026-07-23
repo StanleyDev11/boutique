@@ -1,0 +1,51 @@
+# =====================================================================
+# Profil "desktop" — packaging application portable (.exe via jpackage)
+# Base H2 en mode FICHIER, persistante et hors-ligne, rien à installer
+# côté client. Ce profil N'EST PAS actif par défaut : il faut lancer
+# l'application avec -Dspring.profiles.active=desktop (l'.exe le fait).
+# Ne modifie PAS la config par défaut (dev/MySQL) de application.yml.
+# =====================================================================
+spring:
+  # NB : le mode AWT non-headless (requis pour l'icône SystemTray) est activé
+  # dans BoutiqueApplication.main via application.setHeadless(false) — la
+  # propriété spring.main.headless du yml serait ignorée (headless est fixé par
+  # Spring Boot avant le chargement de ce fichier).
+
+  # --- Base H2 dans le dossier utilisateur : ${user.home}/.boutika/data ---
+  # AUTO_SERVER=TRUE permet plusieurs connexions locales ; DB_CLOSE_DELAY
+  # évite la fermeture prématurée de la base.
+  datasource:
+    url: jdbc:h2:file:${user.home}/.boutika/data/boutique;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ''
+    driver-class-name: org.h2.Driver
+    hikari:
+      maximum-pool-size: 10
+
+  jpa:
+    hibernate:
+      # Flyway est désormais la SOURCE DE VÉRITÉ du schéma pour l'exe (H2).
+      # On utilise `none` (et non `validate`) volontairement : Hibernate génère
+      # les colonnes @Lob String en `TEXT`, or H2 2.2 stocke `TEXT` comme
+      # VARCHAR alors que `validate` attend un CLOB -> échec de validation.
+      # De plus, les bases clients DÉJÀ créées par l'ancien ddl-auto ont ces
+      # colonnes en VARCHAR : `validate` casserait donc l'existant. `none`
+      # évite toute validation/modification ; Flyway gère seul le schéma.
+      ddl-auto: none
+    show-sql: false
+    database-platform: org.hibernate.dialect.H2Dialect
+
+  # --- Flyway (migrations de schéma) : ACTIF uniquement en profil desktop ---
+  # baseline-on-migrate + baseline-version=1 : sur une base client DÉJÀ créée
+  # par ddl-auto (versions antérieures), Flyway pose la baseline V1 sans
+  # rejouer la création ni échouer. Sur une base neuve, V1 crée le schéma.
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 1
+    locations: classpath:db/migration
+
+  # Console H2 désactivée (sécurité + expérience client propre)
+  h2:
+    console:
+      enabled: false

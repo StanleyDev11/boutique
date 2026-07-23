@@ -34,7 +34,7 @@ public class ParametreService {
     private static final String BOUTIQUE_ADRESSE_DEFAULT = "Bd. Jean Paul II, Près de la TDE, Hédzranawoé, Lomé - Togo";
     private static final String BOUTIQUE_TELEPHONE_DEFAULT = "Tél: (+228) 96 00 01 89 / 90 12 34 30";
     private static final String BOUTIQUE_WHATSAPP_DEFAULT = "22899181626";
-    private static final String BOUTIQUE_LOGO_DEFAULT = "/lo.png";
+    private static final String BOUTIQUE_LOGO_DEFAULT = "/icon.png";
     private static final String PRODUIT_IMAGE_UPLOAD_ACTIVE_DEFAULT = "true";
     private static final String TAILWIND_HEADER_BACKGROUND_COLOR_DEFAULT = "#1F2937";
     private static final String TAILWIND_HEADER_TEXT_COLOR_DEFAULT = "#D1D5DB";

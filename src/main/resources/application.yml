@@ -18,6 +18,12 @@ spring:
     show-sql: false
     database-platform: org.hibernate.dialect.MySQLDialect
 
+  # Flyway DÉSACTIVÉ sur le profil par défaut (dev/MySQL) : le baseline est
+  # écrit pour H2 et n'est activé que sur le profil "desktop" (voir
+  # application-desktop.yml). Le dev conserve donc ddl-auto=update sans Flyway.
+  flyway:
+    enabled: false
+
 # --- Configuration pour PostgreSQL (Inactive) ---
 #  datasource:
 #    url: jdbc:postgresql://localhost:5432/boutiquedb

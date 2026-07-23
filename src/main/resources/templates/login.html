@@ -80,7 +80,6 @@
                     </div>
                     <div>
                         <p class="font-bold">Espace Sécurisé</p>
-                        <p class="text-xs text-blue-100">Chiffrement AES-256 bits actif</p>
                     </div>
                 </div>
                 <p class="text-xs text-blue-200/60 mt-6">&copy; <span th:text="${#temporals.year(#temporals.createNow())}">2025</span> <span th:text="${boutiqueNom}">Ma boutique</span>. Tous droits réservés.</p>
@@ -176,6 +175,13 @@
                            class="inline-flex items-center gap-1.5 font-semibold text-green-600 underline decoration-green-300 underline-offset-2 hover:text-green-700 hover:decoration-green-500 transition-colors duration-200">
                             <i class="fab fa-whatsapp"></i>
                             <span>Contactez l'administrateur en cas de problème.</span>
+                        </a>
+                    </p>
+                    <p class="mt-4" th:if="${!licenceActivee}">
+                        <a th:href="@{/license/expired}"
+                           class="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors duration-200">
+                            <i class="fas fa-key"></i>
+                            <span>Activer une licence / saisir une clé</span>
                         </a>
                     </p>
                 </div>
