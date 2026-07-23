@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Force la création du token CSRF (et de la session) DÈS le <head>, avant
+         que le buffer de réponse ne soit committé. Sans cela, sur cette page
+         longue, le processeur th:action du formulaire (en bas) tenterait de créer
+         la session après commit -> IllegalStateException. -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <title th:text="'Période d\'essai expirée | ' + ${boutiqueNom}">Période d'essai expirée</title>
     <link rel="icon" type="image/x-icon" th:href="@{${boutiqueLogo}}">
     <link rel="stylesheet" href="/vendor/tailwind/tailwind.css">
@@ -10,6 +16,13 @@
     <style>
         @import url('/vendor/fonts/fonts.css');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .plan-card { cursor: pointer; }
+        .plan-card input:checked + .plan-inner {
+            border-color: #2563eb;
+            background: #eff6ff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+        .plan-card input:checked + .plan-inner .plan-check { opacity: 1; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
@@ -19,71 +32,264 @@
         <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-red-400/20 blur-[120px]"></div>
     </div>
 
-    <main class="relative z-10 w-full max-w-[560px] bg-white shadow-2xl rounded-[2rem] overflow-hidden">
+    <main class="relative z-10 w-full max-w-[900px] bg-white shadow-2xl rounded-[2rem] overflow-hidden my-6"
+          th:attr="data-wa1=${wa1},data-wa2=${wa2},data-installid=${installId}">
         <div class="bg-gradient-to-r from-amber-500 to-red-500 p-8 text-white text-center">
             <div class="h-16 w-16 rounded-2xl bg-white/20 flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-hourglass-end text-3xl"></i>
             </div>
             <h1 class="text-2xl font-extrabold">Période d'essai expirée</h1>
-            <p class="text-white/90 text-sm mt-2 font-medium">Votre période d'essai de 14 jours est terminée.</p>
+            <p class="text-white/90 text-sm mt-2 font-medium">Activez votre licence à vie (paiement unique, par poste).</p>
         </div>
 
-        <div class="p-8">
+        <div class="p-6 sm:p-8">
             <div th:if="${invalidKey}" class="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 flex items-start space-x-3 text-red-600">
                 <i class="fas fa-circle-exclamation mt-1"></i>
                 <p class="text-sm font-semibold leading-tight">Clé d'activation invalide. Vérifiez la clé et réessayez.</p>
             </div>
 
-            <p class="text-gray-600 text-sm mb-6 leading-relaxed">
-                Pour continuer à utiliser l'application, activez la <span class="font-bold text-gray-900">licence à vie</span>
-                (paiement unique). Contactez-nous pour obtenir votre clé d'activation :
-            </p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                <a th:href="'https://wa.me/' + ${wa1}" target="_blank" rel="noopener noreferrer"
-                   class="flex items-center justify-center gap-2 p-3 rounded-xl bg-green-50 border border-green-100 text-green-700 font-semibold hover:bg-green-100 transition">
-                    <i class="fab fa-whatsapp text-lg"></i><span th:text="${phone1}">+228 99 18 16 26</span>
-                </a>
-                <a th:href="'https://wa.me/' + ${wa2}" target="_blank" rel="noopener noreferrer"
-                   class="flex items-center justify-center gap-2 p-3 rounded-xl bg-green-50 border border-green-100 text-green-700 font-semibold hover:bg-green-100 transition">
-                    <i class="fab fa-whatsapp text-lg"></i><span th:text="${phone2}">+228 92 59 56 61</span>
-                </a>
-            </div>
-
-            <div class="mb-6 p-4 rounded-xl bg-gray-50 border border-gray-100">
-                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Identifiant d'installation</p>
-                <p class="text-sm font-mono font-bold text-gray-900 break-all select-all" th:text="${installId}">XXXX-XXXX-XXXX-XXXX</p>
-                <p class="text-xs text-gray-500 mt-2">Communiquez cet identifiant lors de votre demande de licence.</p>
-            </div>
-
-            <form th:action="@{/license/activate}" method="post" class="space-y-4">
+                <!-- Colonne gauche : plans + total + contact -->
                 <div>
-                    <label for="key" class="block text-sm font-bold text-gray-700 mb-2 ml-1">Clé d'activation</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i class="fas fa-key text-gray-400"></i>
-                        </div>
-                        <input type="text" id="key" name="key" required autofocus
-                               class="block w-full pl-11 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all duration-300 font-mono font-medium"
-                               placeholder="XXXX-XXXX-XXXX-XXXX-XXXX">
+                    <h2 class="text-lg font-extrabold text-gray-900 mb-1">Nos plans</h2>
+                    <p class="text-gray-500 text-sm mb-4">1 licence = 1 poste. Le prix par PC est dégressif.</p>
+
+                    <div class="space-y-3">
+                        <!-- Standard -->
+                        <label class="plan-card block">
+                            <input type="radio" name="plan" value="standard" class="hidden"
+                                   data-nom="Standard" data-count="1" data-unit="300000" checked>
+                            <div class="plan-inner relative flex items-center justify-between p-4 rounded-2xl border border-gray-200 bg-white transition">
+                                <div>
+                                    <p class="font-bold text-gray-900">Standard <span class="text-xs font-semibold text-blue-600">(recommandé)</span></p>
+                                    <p class="text-xs text-gray-500">1 poste — 300 000 / PC</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-extrabold text-gray-900">300 000 <span class="text-xs font-medium text-gray-400">FCFA</span></p>
+                                </div>
+                                <i class="plan-check fas fa-circle-check text-blue-600 absolute -top-2 -right-2 bg-white rounded-full text-lg opacity-0 transition"></i>
+                            </div>
+                        </label>
+
+                        <!-- 2 PC -->
+                        <label class="plan-card block">
+                            <input type="radio" name="plan" value="p2" class="hidden"
+                                   data-nom="2 PC" data-count="2" data-unit="275000">
+                            <div class="plan-inner relative flex items-center justify-between p-4 rounded-2xl border border-gray-200 bg-white transition">
+                                <div>
+                                    <p class="font-bold text-gray-900">2 PC</p>
+                                    <p class="text-xs text-gray-500">2 postes — 275 000 / PC</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-extrabold text-gray-900">550 000 <span class="text-xs font-medium text-gray-400">FCFA</span></p>
+                                </div>
+                                <i class="plan-check fas fa-circle-check text-blue-600 absolute -top-2 -right-2 bg-white rounded-full text-lg opacity-0 transition"></i>
+                            </div>
+                        </label>
+
+                        <!-- 3 PC -->
+                        <label class="plan-card block">
+                            <input type="radio" name="plan" value="p3" class="hidden"
+                                   data-nom="3 PC" data-count="3" data-unit="225000">
+                            <div class="plan-inner relative flex items-center justify-between p-4 rounded-2xl border border-gray-200 bg-white transition">
+                                <div>
+                                    <p class="font-bold text-gray-900">3 PC</p>
+                                    <p class="text-xs text-gray-500">3 postes — 225 000 / PC</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-extrabold text-gray-900">675 000 <span class="text-xs font-medium text-gray-400">FCFA</span></p>
+                                </div>
+                                <i class="plan-check fas fa-circle-check text-blue-600 absolute -top-2 -right-2 bg-white rounded-full text-lg opacity-0 transition"></i>
+                            </div>
+                        </label>
+
+                        <!-- 4 PC et + -->
+                        <label class="plan-card block">
+                            <input type="radio" name="plan" value="p4plus" class="hidden"
+                                   data-nom="4 PC et +" data-count="4" data-unit="200000">
+                            <div class="plan-inner relative p-4 rounded-2xl border border-gray-200 bg-white transition">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="font-bold text-gray-900">4 PC et +</p>
+                                        <p class="text-xs text-gray-500">200 000 / PC</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-extrabold text-gray-900"><span id="p4plusTotal">800 000</span> <span class="text-xs font-medium text-gray-400">FCFA</span></p>
+                                    </div>
+                                </div>
+                                <div class="mt-3 flex items-center gap-2">
+                                    <label for="qty4" class="text-xs font-semibold text-gray-600">Nombre de postes :</label>
+                                    <input type="number" id="qty4" min="4" value="4"
+                                           class="w-20 px-2 py-1 border border-gray-200 rounded-lg text-sm font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                </div>
+                                <i class="plan-check fas fa-circle-check text-blue-600 absolute -top-2 -right-2 bg-white rounded-full text-lg opacity-0 transition"></i>
+                            </div>
+                        </label>
+
+                        <!-- Supermarché -->
+                        <label class="plan-card block">
+                            <input type="radio" name="plan" value="supermarche" class="hidden"
+                                   data-nom="Supermarché" data-supermarche="true">
+                            <div class="plan-inner relative flex items-center justify-between p-4 rounded-2xl border border-gray-200 bg-white transition">
+                                <div>
+                                    <p class="font-bold text-gray-900">Supermarché <span class="text-xs font-semibold text-purple-600">(multi-caisses)</span></p>
+                                    <p class="text-xs text-gray-500">Plusieurs caisses, données partagées</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-extrabold text-purple-600 text-sm">Prix à discuter</p>
+                                </div>
+                                <i class="plan-check fas fa-circle-check text-blue-600 absolute -top-2 -right-2 bg-white rounded-full text-lg opacity-0 transition"></i>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="mt-5 p-4 rounded-2xl bg-gray-900 text-white flex items-center justify-between">
+                        <span class="text-sm font-semibold text-gray-300">Total estimé</span>
+                        <span id="totalDisplay" class="text-xl font-extrabold">300 000 FCFA</span>
+                    </div>
+
+                    <!-- Identifiant d'installation -->
+                    <div class="mt-5 p-4 rounded-xl bg-gray-50 border border-gray-100">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Identifiant d'installation</p>
+                        <p class="text-sm font-mono font-bold text-gray-900 break-all select-all" th:text="${installId}">XXXX-XXXX-XXXX-XXXX</p>
+                        <p class="text-xs text-gray-500 mt-2">Communiquez cet identifiant lors de votre demande de licence.</p>
                     </div>
                 </div>
 
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <!-- Colonne droite : contact WhatsApp + QR + clé -->
+                <div>
+                    <h2 class="text-lg font-extrabold text-gray-900 mb-1">Commander / payer</h2>
+                    <p class="text-gray-500 text-sm mb-4">Le paiement se fait avec le vendeur, qui vous envoie ensuite votre clé.</p>
 
-                <button type="submit" class="w-full py-4 px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold shadow-lg shadow-blue-500/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center space-x-2">
-                    <span>Activer la licence</span>
-                    <i class="fas fa-unlock text-sm"></i>
-                </button>
-            </form>
+                    <!-- Bouton WhatsApp -->
+                    <a id="waButton" href="#" target="_blank" rel="noopener noreferrer"
+                       class="flex items-center justify-center gap-2 w-full p-4 rounded-2xl bg-green-500 text-white font-extrabold shadow-lg shadow-green-500/30 hover:bg-green-600 transition">
+                        <i class="fab fa-whatsapp text-xl"></i><span>Contacter sur WhatsApp</span>
+                    </a>
+                    <p class="text-[11px] text-gray-400 text-center mt-1.5">(nécessite Internet sur ce PC)</p>
 
-            <div class="mt-6 text-center">
-                <a th:href="@{/login}" class="text-sm text-gray-400 hover:text-gray-600 font-semibold">
-                    <i class="fas fa-arrow-left mr-1"></i>Retour à la connexion
-                </a>
+                    <!-- QR code -->
+                    <div class="mt-4 p-4 rounded-2xl border border-gray-100 bg-gray-50 flex flex-col items-center">
+                        <p class="text-xs font-semibold text-gray-600 mb-3 text-center">
+                            Pas d'Internet sur ce PC ? Scannez ce QR code avec votre téléphone :
+                        </p>
+                        <img id="qrImage" alt="QR code WhatsApp" width="200" height="200"
+                             class="rounded-xl bg-white p-2 border border-gray-200" src="">
+                        <p class="text-[11px] text-gray-400 text-center mt-2">WhatsApp s'ouvrira sur votre téléphone avec le message pré-rempli.</p>
+                    </div>
+
+                    <!-- Contacts directs -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+                        <a th:href="'https://wa.me/' + ${wa1}" target="_blank" rel="noopener noreferrer"
+                           class="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-green-50 border border-green-100 text-green-700 text-sm font-semibold hover:bg-green-100 transition">
+                            <i class="fab fa-whatsapp"></i><span th:text="${phone1}">+228 99 18 16 26</span>
+                        </a>
+                        <a th:href="'https://wa.me/' + ${wa2}" target="_blank" rel="noopener noreferrer"
+                           class="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-green-50 border border-green-100 text-green-700 text-sm font-semibold hover:bg-green-100 transition">
+                            <i class="fab fa-whatsapp"></i><span th:text="${phone2}">+228 92 59 56 61</span>
+                        </a>
+                    </div>
+
+                    <!-- Formulaire clé d'activation -->
+                    <form th:action="@{/license/activate}" method="post" class="space-y-3 mt-6 pt-6 border-t border-gray-100">
+                        <label for="key" class="block text-sm font-bold text-gray-700 ml-1">Vous avez déjà votre clé ?</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i class="fas fa-key text-gray-400"></i>
+                            </div>
+                            <input type="text" id="key" name="key" required
+                                   class="block w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all duration-300 font-mono font-medium"
+                                   placeholder="XXXX-XXXX-XXXX-XXXX-XXXX">
+                        </div>
+
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                        <button type="submit" class="w-full py-3.5 px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold shadow-lg shadow-blue-500/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center space-x-2">
+                            <span>Activer la licence</span>
+                            <i class="fas fa-unlock text-sm"></i>
+                        </button>
+                    </form>
+
+                    <div class="mt-4 text-center">
+                        <a th:href="@{/login}" class="text-sm text-gray-400 hover:text-gray-600 font-semibold">
+                            <i class="fas fa-arrow-left mr-1"></i>Retour à la connexion
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
+
+    <script>
+        (function () {
+            const root = document.querySelector('main[data-installid]');
+            const wa1 = root.getAttribute('data-wa1') || '';
+            const installId = root.getAttribute('data-installid') || '';
+
+            const totalDisplay = document.getElementById('totalDisplay');
+            const p4plusTotal = document.getElementById('p4plusTotal');
+            const qty4 = document.getElementById('qty4');
+            const waButton = document.getElementById('waButton');
+            const qrImage = document.getElementById('qrImage');
+
+            function fmt(n) {
+                return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            }
+
+            function currentSelection() {
+                const input = document.querySelector('input[name="plan"]:checked');
+                const nom = input.getAttribute('data-nom');
+                if (input.getAttribute('data-supermarche') === 'true') {
+                    return { nom: nom, supermarche: true };
+                }
+                let count = parseInt(input.getAttribute('data-count'), 10);
+                const unit = parseInt(input.getAttribute('data-unit'), 10);
+                if (input.value === 'p4plus') {
+                    let q = parseInt(qty4.value, 10);
+                    if (isNaN(q) || q < 4) { q = 4; }
+                    count = q;
+                }
+                return { nom: nom, supermarche: false, count: count, total: count * unit };
+            }
+
+            function buildMessage(sel) {
+                if (sel.supermarche) {
+                    return 'Bonjour, je suis intéressé par le plan Supermarché (multi-caisses). Mon identifiant d\'installation : ' + installId + '.';
+                }
+                return 'Bonjour, je suis intéressé par le plan ' + sel.nom + ' (' + sel.count + ' PC – ' + fmt(sel.total) + ' FCFA). Mon identifiant d\'installation : ' + installId + '.';
+            }
+
+            function update() {
+                const sel = currentSelection();
+
+                if (sel.supermarche) {
+                    totalDisplay.textContent = 'Prix à discuter';
+                } else {
+                    totalDisplay.textContent = fmt(sel.total) + ' FCFA';
+                    if (document.querySelector('input[name="plan"]:checked').value === 'p4plus') {
+                        p4plusTotal.textContent = fmt(sel.total);
+                    }
+                }
+
+                const message = buildMessage(sel);
+                const waUrl = 'https://wa.me/' + wa1 + '?text=' + encodeURIComponent(message);
+                waButton.setAttribute('href', waUrl);
+                qrImage.setAttribute('src', '/license/qr?text=' + encodeURIComponent(waUrl));
+            }
+
+            document.querySelectorAll('input[name="plan"]').forEach(function (el) {
+                el.addEventListener('change', update);
+            });
+            qty4.addEventListener('input', function () {
+                document.querySelector('input[value="p4plus"]').checked = true;
+                update();
+            });
+
+            update();
+        })();
+    </script>
 
 </body>
 </html>
